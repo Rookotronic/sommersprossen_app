@@ -14,7 +14,7 @@ class MainApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSwatch().copyWith(
-          background: Colors.white,
+          surface: Colors.white,
         ),
       ),
       home: const StartupScreen(),

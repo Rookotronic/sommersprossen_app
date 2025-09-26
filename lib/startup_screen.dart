@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'loading_screen.dart';
 
 class StartupScreen extends StatefulWidget {
-  const StartupScreen({Key? key}) : super(key: key);
+  const StartupScreen({super.key});
 
   @override
   State<StartupScreen> createState() => _StartupScreenState();
@@ -43,7 +43,7 @@ class _StartupScreenState extends State<StartupScreen> {
 }
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   Future<void> _login(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
@@ -70,7 +70,7 @@ class LoginScreen extends StatelessWidget {
 }
 
 class MainMenuScreen extends StatelessWidget {
-  const MainMenuScreen({Key? key}) : super(key: key);
+  const MainMenuScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
