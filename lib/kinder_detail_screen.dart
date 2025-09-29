@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'child.dart';
 import 'parent.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'mock_data.dart';
 
 
@@ -30,12 +31,19 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> {
   }
 
   Future<void> _loadParents() async {
-    final all = await MockData().fetchParents();
+  // Fetch parents from Firestore, order by last name
+  final snapshot = await FirebaseFirestore.instance
+    .collection('parents')
+    .orderBy('nachname')
+    .get();
+  final parentList = snapshot.docs
+    .map((doc) => Parent.fromFirestore(doc.id, doc.data()))
+    .toList();
     setState(() {
-      _parentList = all;
+      _parentList = parentList;
       // Always match selected parents to the child's parentIds (handle null)
       final childParentIds = widget.child.parentIds ?? [];
-      _selectedParents = all.where((p) => childParentIds.contains(p.id)).toList();
+      _selectedParents = parentList.where((p) => childParentIds.contains(p.id)).toList();
       _loadingParents = false;
     });
   }
@@ -88,11 +96,18 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> {
   }
 
   void _showParentPicker() async {
-    final all = await MockData().fetchParents();
-  final childParentIds = _selectedParents.isNotEmpty
-    ? _selectedParents.map((p) => p.id).toList()
-    : (widget.child.parentIds ?? []);
-  final List<Parent> tempSelected = all.where((p) => childParentIds.contains(p.id)).toList();
+    // Fetch parents from Firestore, order by last name
+    final snapshot = await FirebaseFirestore.instance
+        .collection('parents')
+        .orderBy('nachname')
+        .get();
+    final all = snapshot.docs
+        .map((doc) => Parent.fromFirestore(doc.id, doc.data()))
+        .toList();
+    final childParentIds = _selectedParents.isNotEmpty
+        ? _selectedParents.map((p) => p.id).toList()
+        : (widget.child.parentIds ?? []);
+    final List<Parent> tempSelected = all.where((p) => childParentIds.contains(p.id)).toList();
     setState(() {
       _parentList = all;
     });

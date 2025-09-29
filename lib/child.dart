@@ -4,7 +4,7 @@ class Child {
   final int id;
   String vorname;
   String nachname;
-  List<int>? parentIds; // List of parent IDs, nullable
+  List<String>? parentIds; // List of parent IDs, nullable
   GroupName gruppe;
 
   Child({

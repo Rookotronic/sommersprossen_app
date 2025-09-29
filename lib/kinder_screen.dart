@@ -4,6 +4,7 @@ import 'eltern_screen.dart';
 import 'mock_data.dart';
 import 'child.dart';
 import 'parent.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class KinderScreen extends StatefulWidget {
   const KinderScreen({super.key});
@@ -16,7 +17,7 @@ class _KinderScreenState extends State<KinderScreen> {
   List<Child> _kinder = [];
 
   // Simulate backend fetch
-  Future<List<Child>> _fetchKinderFromServer() async {
+  Future<List> _fetchKinderFromServer() async {
     return await MockData().fetchChildren();
   }
 
@@ -29,7 +30,7 @@ class _KinderScreenState extends State<KinderScreen> {
   Future<void> _reloadKinder() async {
     final list = await _fetchKinderFromServer();
     setState(() {
-      _kinder = list;
+      _kinder = List<Child>.from(list);
       _kinder.sort((a, b) => a.nachname.toLowerCase().compareTo(b.nachname.toLowerCase()));
     });
   }
@@ -39,7 +40,14 @@ class _KinderScreenState extends State<KinderScreen> {
     final nachnameController = TextEditingController();
     GroupName? selectedGroup;
     String? errorText;
-    List<Parent> parentList = await MockData().fetchParents();
+  // Fetch parents from Firestore, order by last name
+  final snapshot = await FirebaseFirestore.instance
+    .collection('parents')
+    .orderBy('nachname')
+    .get();
+  List<Parent> parentList = snapshot.docs
+    .map((doc) => Parent.fromFirestore(doc.id, doc.data()))
+    .toList();
     List<Parent> selectedParents = [];
 
     await showDialog<void>(

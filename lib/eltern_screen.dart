@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'mock_data.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'parent.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ElternScreen extends StatefulWidget {
   const ElternScreen({super.key});
@@ -10,27 +11,47 @@ class ElternScreen extends StatefulWidget {
 }
 
 class ElternScreenState extends State<ElternScreen> {
-  List<Parent> _eltern = [];
-  static final List<Parent> addedEltern = [];
-  static final List<int> deletedElternIds = [];
-
-  // Simulate backend fetch
-  Future<List<Parent>> _fetchElternFromServer() async {
-    return await MockData().fetchParents();
-  }
+  get _eltern => null;
 
   @override
-  void initState() {
-    super.initState();
-    _reloadEltern();
-  }
-
-  Future<void> _reloadEltern() async {
-    final list = await _fetchElternFromServer();
-    setState(() {
-      _eltern = list;
-      _sortEltern();
-    });
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Eltern')),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('parents').orderBy('nachname').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Fehler beim Laden der Eltern:\n${snapshot.error}'));
+          }
+          final docs = snapshot.data?.docs ?? [];
+          if (docs.isEmpty) {
+            return const Center(child: Text('Keine Eltern gefunden.'));
+          }
+          final eltern = docs.map((doc) => Parent.fromFirestore(doc.id, doc.data() as Map<String, dynamic>)).toList();
+          return ListView.builder(
+            itemCount: eltern.length,
+            itemBuilder: (context, index) {
+              final parent = eltern[index];
+              final isEven = index % 2 == 0;
+              return Container(
+                color: isEven ? Colors.white : Colors.blue[50],
+                child: ListTile(
+                  title: Text('${parent.nachname}, ${parent.vorname}'),
+                  onTap: () => _showElternDetails(parent),
+                ),
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addEltern,
+        child: const Icon(Icons.add),
+      ),
+    );
   }
 
   void _showElternDetails(Parent parent) async {
@@ -39,18 +60,7 @@ class ElternScreenState extends State<ElternScreen> {
         builder: (_) => ElternDetailScreen(parent: parent),
       ),
     );
-    if (result is Parent) {
-      final idx = addedEltern.indexWhere((p) => p.id == result.id);
-      if (idx != -1) {
-        addedEltern[idx] = result;
-      }
-      await _reloadEltern();
-    } else if (result is Map && result['delete'] == true && result['id'] != null) {
-      MockData().deleteParent(result['id'] as int);
-      await _reloadEltern();
-    } else {
-      await _reloadEltern();
-    }
+    // Firestore updates handled in detail screen
   }
 
   void _sortEltern() {
@@ -66,7 +76,7 @@ class ElternScreenState extends State<ElternScreen> {
     bool isAlpha(String value) => RegExp(r"^[a-zA-ZäöüÄÖÜß'\- ]+").hasMatch(value);
     bool isValidEmail(String value) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+\u0000?').hasMatch(value);
 
-    await showDialog<void>(
+    final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (context) {
@@ -100,7 +110,7 @@ class ElternScreenState extends State<ElternScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => Navigator.of(context).pop(false),
                   child: const Text('Abbrechen'),
                 ),
                 ElevatedButton(
@@ -125,27 +135,12 @@ class ElternScreenState extends State<ElternScreen> {
                       return;
                     }
                     setState(() => errorText = null);
-                    MockData().addParent(Parent(
-                      id: MockData().nextParentId,
-                      vorname: vorname,
-                      nachname: nachname,
-                      email: email,
-                    ));
-                    await _reloadEltern();
-                    Navigator.of(context).pop();
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Neues Passwort gesendet'),
-                        content: Text('Ein neues Passwort wurde an $email gesendet.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      ),
-                    );
+                    await FirebaseFirestore.instance.collection('parents').add({
+                      'vorname': vorname,
+                      'nachname': nachname,
+                      'email': email,
+                    });
+                    Navigator.of(context).pop(true);
                   },
                   child: const Text('Hinzufügen'),
                 ),
@@ -155,32 +150,26 @@ class ElternScreenState extends State<ElternScreen> {
         );
       },
     );
+    if (result == true) {
+      final email = emailController.text.trim();
+      // Show info dialog after add-parent dialog is closed
+      // ignore: use_build_context_synchronously
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Neues Passwort gesendet'),
+          content: Text('Ein neues Passwort wurde an $email gesendet.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Eltern')),
-      body: ListView.builder(
-        itemCount: _eltern.length,
-        itemBuilder: (context, index) {
-          final parent = _eltern[index];
-          final isEven = index % 2 == 0;
-          return Container(
-            color: isEven ? Colors.white : Colors.blue[50],
-            child: ListTile(
-              title: Text('${parent.nachname}, ${parent.vorname}'),
-              onTap: () => _showElternDetails(parent),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addEltern,
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
 }
 
 class ElternDetailScreen extends StatefulWidget {
@@ -228,14 +217,15 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> {
     );
   }
 
-  void _save() {
+  Future<void> _save() async {
     final updated = Parent(
       id: widget.parent.id,
       vorname: _vornameController.text.trim(),
       nachname: _nachnameController.text.trim(),
       email: _emailController.text.trim(),
     );
-    MockData().updateParent(updated);
+    // Update parent in Firestore
+    await FirebaseFirestore.instance.collection('parents').doc(updated.id).update(updated.toFirestore());
     Navigator.of(context).pop(updated);
   }
 
@@ -262,6 +252,8 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> {
       ),
     );
     if (confirmed == true) {
+      // Delete parent from Firestore
+      await FirebaseFirestore.instance.collection('parents').doc(widget.parent.id).delete();
       Navigator.of(context).pop({'delete': true, 'id': widget.parent.id});
     }
   }

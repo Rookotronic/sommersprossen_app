@@ -4,7 +4,7 @@ class Lottery {
   bool requestsSend;
   bool allAnswersReceived;
   int lotterypotId;
-  int nrOfchildrenToPick;
+  final int nrOfchildrenToPick;
 
   Lottery({
     required this.date,
@@ -12,6 +12,27 @@ class Lottery {
     this.requestsSend = false,
     this.allAnswersReceived = false,
     required this.lotterypotId,
-    this.nrOfchildrenToPick = 0,
+    required this.nrOfchildrenToPick,
   });
+
+  factory Lottery.fromFirestore(dynamic doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Lottery(
+      date: DateTime.fromMillisecondsSinceEpoch(data['date'] ?? 0),
+      finished: data['finished'] ?? false,
+      requestsSend: data['requestsSend'] ?? false,
+      allAnswersReceived: data['allAnswersReceived'] ?? false,
+      lotterypotId: data['lotterypotId'] ?? 0,
+      nrOfchildrenToPick: data['nrOfchildrenToPick'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toFirestore() => {
+        'date': date.millisecondsSinceEpoch,
+        'finished': finished,
+        'requestsSend': requestsSend,
+        'allAnswersReceived': allAnswersReceived,
+        'lotterypotId': lotterypotId,
+        'nrOfchildrenToPick': nrOfchildrenToPick,
+      };
 }

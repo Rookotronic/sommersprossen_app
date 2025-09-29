@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "767015238873",
+    "project_id": "sommersprossenapp",
+    "storage_bucket": "sommersprossenapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767015238873:android:2129128619159e886dd2c8",
+        "android_client_info": {
+          "package_name": "com.example.sommersprossen_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqjfAOsqknsytG797iR7DzFW0nSnkpgHc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
