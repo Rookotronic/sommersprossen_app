@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'eltern_screen.dart';
 import 'kinder_screen.dart';
+import 'lottery_screen.dart';
 
 class ParentMainMenuScreen extends StatelessWidget {
   const ParentMainMenuScreen({super.key});
@@ -37,7 +38,11 @@ class AdminMainMenuScreen extends StatelessWidget {
               leading: const Icon(Icons.shuffle),
               title: const Text('Losverfahren'),
               onTap: () {
-                // TODO: Implement navigation or action
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const LotteryScreen(),
+                  ),
+                );
               },
             ),
             const Divider(),

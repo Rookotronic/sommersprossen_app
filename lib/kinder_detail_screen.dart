@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'kinder_screen.dart';
-import 'eltern_screen.dart' show Parent;
+import 'child.dart';
+import 'parent.dart';
+import 'mock_data.dart';
 
 
 class KinderDetailScreen extends StatefulWidget {
@@ -29,19 +30,12 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> {
   }
 
   Future<void> _loadParents() async {
-    // Simulate backend fetch (should match ElternScreen logic)
-    await Future.delayed(const Duration(milliseconds: 400));
-    final all = [
-      Parent(id: 1, vorname: 'Anna', nachname: 'Müller', email: 'anna.mueller@email.de'),
-      Parent(id: 2, vorname: 'Bernd', nachname: 'Schmidt', email: 'bernd.schmidt@email.de'),
-      Parent(id: 3, vorname: 'Claudia', nachname: 'Fischer', email: 'claudia.fischer@email.de'),
-      Parent(id: 4, vorname: 'Dieter', nachname: 'Klein', email: 'dieter.klein@email.de'),
-      Parent(id: 5, vorname: 'Eva', nachname: 'Schulz', email: 'eva.schulz@email.de'),
-    ];
+    final all = await MockData().fetchParents();
     setState(() {
       _parentList = all;
-      // Try to match existing parents by name
-      _selectedParents = all.where((p) => widget.child.eltern.contains('${p.nachname}, ${p.vorname}')).toList();
+      // Always match selected parents to the child's parentIds (handle null)
+      final childParentIds = widget.child.parentIds ?? [];
+      _selectedParents = all.where((p) => childParentIds.contains(p.id)).toList();
       _loadingParents = false;
     });
   }
@@ -58,10 +52,11 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> {
       id: widget.child.id,
       vorname: _vornameController.text.trim(),
       nachname: _nachnameController.text.trim(),
-      eltern: _selectedParents.map((p) => '${p.nachname}, ${p.vorname}').toList(),
+      parentIds: _selectedParents.isEmpty ? null : _selectedParents.map((p) => p.id).toList(),
       gruppe: _selectedGroup ?? GroupName.ratz,
     );
-    Navigator.of(context).pop(updated);
+    MockData().updateChild(updated);
+    Navigator.of(context).pop();
   }
 
   void _delete() async {
@@ -87,38 +82,50 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> {
       ),
     );
     if (confirmed == true) {
-      Navigator.of(context).pop({'delete': true, 'id': widget.child.id});
+      MockData().deleteChild(widget.child.id);
+      Navigator.of(context).pop();
     }
   }
 
   void _showParentPicker() async {
-    final List<Parent> tempSelected = List.from(_selectedParents);
+    final all = await MockData().fetchParents();
+  final childParentIds = _selectedParents.isNotEmpty
+    ? _selectedParents.map((p) => p.id).toList()
+    : (widget.child.parentIds ?? []);
+  final List<Parent> tempSelected = all.where((p) => childParentIds.contains(p.id)).toList();
+    setState(() {
+      _parentList = all;
+    });
     final result = await showDialog<List<Parent>>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Eltern auswählen'),
-          content: SizedBox(
-            width: 300,
-            child: ListView(
-              shrinkWrap: true,
-              children: _parentList.map((parent) {
-                final isChecked = tempSelected.contains(parent);
-                return CheckboxListTile(
-                  value: isChecked,
-                  title: Text('${parent.nachname}, ${parent.vorname}'),
-                  onChanged: (checked) {
-                    setState(() {
-                      if (checked == true) {
-                        if (!tempSelected.contains(parent)) tempSelected.add(parent);
-                      } else {
-                        tempSelected.remove(parent);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
+          content: StatefulBuilder(
+            builder: (context, setStateDialog) {
+              return SizedBox(
+                width: 300,
+                child: ListView(
+                  shrinkWrap: true,
+                  children: _parentList.map((parent) {
+                    final isChecked = tempSelected.contains(parent);
+                    return CheckboxListTile(
+                      value: isChecked,
+                      title: Text('${parent.nachname}, ${parent.vorname}'),
+                      onChanged: (checked) {
+                        setStateDialog(() {
+                          if (checked == true) {
+                            if (!tempSelected.contains(parent)) tempSelected.add(parent);
+                          } else {
+                            tempSelected.remove(parent);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              );
+            },
           ),
           actions: [
             TextButton(
@@ -164,17 +171,19 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> {
                       decoration: const InputDecoration(labelText: 'Nachname'),
                     ),
                     const SizedBox(height: 12),
+                    // Eltern field styled like Vorname/Nachname/Gruppe
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
-                          child: Wrap(
-                            spacing: 4,
-                            children: _selectedParents
-                                .map((parent) => Chip(
-                                      label: Text('${parent.nachname}, ${parent.vorname}'),
-                                      onDeleted: () => setState(() => _selectedParents.remove(parent)),
-                                    ))
-                                .toList(),
+                          child: TextField(
+                            readOnly: true,
+                            decoration: const InputDecoration(labelText: 'Eltern'),
+                            controller: TextEditingController(
+                              text: _selectedParents.isEmpty
+                                  ? 'Keine'
+                                  : _selectedParents.map((p) => '${p.nachname}, ${p.vorname}').join(', '),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
