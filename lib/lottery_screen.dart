@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'lottery.dart';
-import 'mock_data.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class LotteryScreen extends StatefulWidget {
@@ -17,63 +17,63 @@ class _LotteryScreenState extends State<LotteryScreen> {
     setState(() {}); // Triggers rebuild every time the screen is shown
   }
 
-  List<Lottery> _lotteries = [];
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadLotteries();
-  }
-
-  Future<void> _loadLotteries() async {
-    setState(() => _loading = true);
-    final list = await MockData().fetchLotteries();
-    setState(() {
-      _lotteries = List<Lottery>.from(list)..sort((a, b) => b.date.compareTo(a.date));
-      _loading = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    final hasUnfinished = _lotteries.any((l) => !l.finished);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Lotterien')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _lotteries.length,
-              itemBuilder: (context, index) {
-                final lottery = _lotteries[index];
-                final dateStr = _formatDate(lottery.date);
-                final textColor = lottery.finished
-                    ? Colors.grey.shade600
-                    : Theme.of(context).textTheme.bodyLarge?.color;
-                return ListTile(
-                  title: Text(
-                    dateStr,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    'Zu ziehende Kinder: ${lottery.nrOfchildrenToPick}',
-                    style: TextStyle(color: textColor),
-                  ),
-                );
-              },
-            ),
-      floatingActionButton: hasUnfinished
-          ? null
-          : FloatingActionButton(
-              onPressed: () async {
-                final created = await _showNewLotteryDialog();
-                await _loadLotteries(); // Always reload after dialog closes
-              },
-              child: const Icon(Icons.add),
-              tooltip: 'Neue Lotterie starten',
-            ),
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('lotteries').orderBy('date', descending: true).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Losverfahren')),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Losverfahren')),
+            body: Center(child: Text('Fehler beim Laden der Lotterien: ${snapshot.error}')),
+          );
+        }
+        final docs = snapshot.data?.docs ?? [];
+        final lotteries = docs.map((doc) => Lottery.fromFirestore(doc)).toList();
+        final hasUnfinished = lotteries.any((l) => !l.finished);
+        return Scaffold(
+          appBar: AppBar(title: const Text('Losverfahren')),
+          body: ListView.builder(
+            itemCount: lotteries.length,
+            itemBuilder: (context, index) {
+              final lottery = lotteries[index];
+              final dateStr = _formatDate(lottery.date);
+              final textColor = lottery.finished
+                  ? Colors.grey.shade600
+                  : Theme.of(context).textTheme.bodyLarge?.color;
+              return ListTile(
+                title: Text(
+                  dateStr,
+                  style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  'Zu ziehende Kinder: ${lottery.nrOfchildrenToPick}',
+                  style: TextStyle(color: textColor),
+                ),
+              );
+            },
+          ),
+          floatingActionButton: hasUnfinished
+              ? null
+              : FloatingActionButton(
+                  onPressed: () async {
+                    final created = await _showNewLotteryDialog();
+                    // No need to reload, StreamBuilder auto-updates
+                  },
+                  child: const Icon(Icons.add),
+                  tooltip: 'Neue Lotterie starten',
+                ),
+        );
+      },
     );
   }
+
 
   Future<bool?> _showNewLotteryDialog() async {
     DateTime selectedDate = DateTime.now();
@@ -120,22 +120,20 @@ class _LotteryScreenState extends State<LotteryScreen> {
                   child: const Text('Abbrechen'),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final nr = int.tryParse(nrController.text);
                     if (nr == null || nr < 1) {
                       setState(() => errorText = 'Bitte Datum und gültige Anzahl eingeben.');
                       return;
                     }
-                    // Add new lottery to MockData
-                    MockData().addLottery(
-                      Lottery(
-                        date: selectedDate,
-                        finished: false,
-                        requestsSend: false,
-                        allAnswersReceived: false,
-                        nrOfchildrenToPick: nr,
-                      ),
-                    );
+                    // Add new lottery to Firestore
+                    await FirebaseFirestore.instance.collection('lotteries').add({
+                      'date': selectedDate.millisecondsSinceEpoch,
+                      'finished': false,
+                      'requestsSend': false,
+                      'allAnswersReceived': false,
+                      'nrOfchildrenToPick': nr,
+                    });
                     Navigator.of(context, rootNavigator: true).pop(false);
                   },
                   child: const Text('Erstellen'),
