@@ -55,7 +55,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> {
     super.dispose();
   }
 
-  void _save() {
+  void _save() async {
     final updated = Child(
       id: widget.child.id,
       vorname: _vornameController.text.trim(),
@@ -63,8 +63,9 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> {
       parentIds: _selectedParents.isEmpty ? null : _selectedParents.map((p) => p.id).toList(),
       gruppe: _selectedGroup ?? GroupName.ratz,
     );
-    MockData().updateChild(updated);
-    Navigator.of(context).pop();
+    // Update child in Firestore
+    await FirebaseFirestore.instance.collection('children').doc(updated.id.toString()).set(updated.toFirestore());
+    Navigator.of(context).pop(updated);
   }
 
   void _delete() async {
@@ -90,8 +91,9 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> {
       ),
     );
     if (confirmed == true) {
-      MockData().deleteChild(widget.child.id);
-      Navigator.of(context).pop();
+      // Delete child from Firestore
+      await FirebaseFirestore.instance.collection('children').doc(widget.child.id.toString()).delete();
+      Navigator.of(context).pop({'delete': true, 'id': widget.child.id});
     }
   }
 
@@ -212,14 +214,14 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> {
                     DropdownButtonFormField<GroupName>(
                       value: _selectedGroup,
                       decoration: const InputDecoration(labelText: 'Gruppe'),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: GroupName.ratz,
-                          child: Text('Ratz'),
+                          child: Text(GroupName.ratz.displayName),
                         ),
                         DropdownMenuItem(
                           value: GroupName.ruebe,
-                          child: Text('Rübe'),
+                          child: Text(GroupName.ruebe.displayName),
                         ),
                       ],
                       onChanged: (value) => setState(() => _selectedGroup = value),

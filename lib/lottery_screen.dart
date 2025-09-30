@@ -133,7 +133,6 @@ class _LotteryScreenState extends State<LotteryScreen> {
                         finished: false,
                         requestsSend: false,
                         allAnswersReceived: false,
-                        lotterypotId: MockData().lotteries.length + 1,
                         nrOfchildrenToPick: nr,
                       ),
                     );

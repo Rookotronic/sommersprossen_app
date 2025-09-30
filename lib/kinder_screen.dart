@@ -28,7 +28,13 @@ class _KinderScreenState extends State<KinderScreen> {
   }
 
   Future<void> _reloadKinder() async {
-    final list = await _fetchKinderFromServer();
+    final snapshot = await FirebaseFirestore.instance
+        .collection('children')
+        .orderBy('nachname')
+        .get();
+    final list = snapshot.docs
+        .map((doc) => Child.fromFirestore(doc.id, doc.data()))
+        .toList();
     setState(() {
       _kinder = List<Child>.from(list);
       _kinder.sort((a, b) => a.nachname.toLowerCase().compareTo(b.nachname.toLowerCase()));
@@ -101,14 +107,14 @@ class _KinderScreenState extends State<KinderScreen> {
                     DropdownButtonFormField<GroupName>(
                       value: selectedGroup,
                       decoration: const InputDecoration(labelText: 'Gruppe'),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: GroupName.ratz,
-                          child: Text('Ratz'),
+                          child: Text(GroupName.ratz.displayName),
                         ),
                         DropdownMenuItem(
                           value: GroupName.ruebe,
-                          child: Text('Rübe'),
+                          child: Text(GroupName.ruebe.displayName),
                         ),
                       ],
                       onChanged: (value) => setState(() => selectedGroup = value),
@@ -135,13 +141,13 @@ class _KinderScreenState extends State<KinderScreen> {
                       return;
                     }
                     setState(() => errorText = null);
-                    MockData().addChild(Child(
-                      id: MockData().nextChildId,
-                      vorname: vorname,
-                      nachname: nachname,
-                      parentIds: selectedParents.isEmpty ? null : selectedParents.map((p) => p.id).toList(),
-                      gruppe: selectedGroup!,
-                    ));
+                    // Add child to Firestore
+                    await FirebaseFirestore.instance.collection('children').add({
+                      'vorname': vorname,
+                      'nachname': nachname,
+                      'parentIds': selectedParents.isEmpty ? null : selectedParents.map((p) => p.id).toList(),
+                      'gruppe': selectedGroup!.name,
+                    });
                     await _reloadKinder();
                     Navigator.of(context).pop();
                   },
@@ -188,12 +194,11 @@ class _KinderScreenState extends State<KinderScreen> {
     );
     if (result is Map && result['delete'] == true && result['id'] != null) {
       // Only delete if user requested deletion
-      MockData().deleteChild(result['id'] as int);
+      await FirebaseFirestore.instance.collection('children').doc(result['id'].toString()).delete();
       await _reloadKinder();
     } else if (result is Child) {
       // Update child (even if parentIds is null/empty)
-      MockData().deleteChild(result.id);
-      MockData().addChild(result);
+      await FirebaseFirestore.instance.collection('children').doc(result.id.toString()).set(result.toFirestore());
       await _reloadKinder();
     } else {
       await _reloadKinder();

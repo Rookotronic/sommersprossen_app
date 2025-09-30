@@ -3,7 +3,6 @@ class Lottery {
   bool finished;
   bool requestsSend;
   bool allAnswersReceived;
-  int lotterypotId;
   final int nrOfchildrenToPick;
 
   Lottery({
@@ -11,7 +10,6 @@ class Lottery {
     this.finished = false,
     this.requestsSend = false,
     this.allAnswersReceived = false,
-    required this.lotterypotId,
     required this.nrOfchildrenToPick,
   });
 
@@ -22,7 +20,6 @@ class Lottery {
       finished: data['finished'] ?? false,
       requestsSend: data['requestsSend'] ?? false,
       allAnswersReceived: data['allAnswersReceived'] ?? false,
-      lotterypotId: data['lotterypotId'] ?? 0,
       nrOfchildrenToPick: data['nrOfchildrenToPick'] ?? 0,
     );
   }
@@ -32,7 +29,6 @@ class Lottery {
         'finished': finished,
         'requestsSend': requestsSend,
         'allAnswersReceived': allAnswersReceived,
-        'lotterypotId': lotterypotId,
         'nrOfchildrenToPick': nrOfchildrenToPick,
       };
 }

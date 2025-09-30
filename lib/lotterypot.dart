@@ -1,23 +1,23 @@
 import 'child.dart';
 
 class LotteryPotEntry {
-  final int childId;
-  bool gotPicked;
+  final String childId;
+  final int entryOrder;
+  bool priorityPick;
 
   LotteryPotEntry({
     required this.childId,
-    this.gotPicked = false,
+    required this.entryOrder,
+    this.priorityPick = false,
   });
 }
 
 class LotteryPot {
   final DateTime startDate;
   final List<LotteryPotEntry> kids;
-  final int lotterypotId;
 
   LotteryPot({
     required this.startDate,
-    required this.kids,
-    required this.lotterypotId,
-  });
+    required List<LotteryPotEntry> kids,
+  }) : kids = List.from(kids)..sort((a, b) => a.entryOrder.compareTo(b.entryOrder));
 }
