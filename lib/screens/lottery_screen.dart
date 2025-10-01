@@ -102,6 +102,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                         firstDate: DateTime(2020),
                         lastDate: DateTime(2100),
                       );
+                      if (!mounted) return;
                       if (picked != null) setState(() => selectedDate = picked);
                     },
                   ),
@@ -146,11 +147,13 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                         'nrOfchildrenToPick': nr,
                       });
                       if (result != null) {
-                        Navigator.of(context, rootNavigator: true).pop(false);
+                        if (context.mounted) {
+                        Navigator.of(context, rootNavigator: true).pop(false);} else {return;}
                       } else {
                         setState(() => errorText = 'Fehler beim Speichern.');
                       }
                     } catch (e) {
+                      if (!mounted) return;
                       setState(() => errorText = 'Fehler beim Speichern: ${e.toString()}');
                     }
                   },

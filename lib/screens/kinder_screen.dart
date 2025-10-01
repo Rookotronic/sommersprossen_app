@@ -57,6 +57,7 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
     .map((doc) => Parent.fromFirestore(doc.id, doc.data()))
     .toList();
     List<Parent> selectedParents = [];
+    if (!mounted) return;
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -143,7 +144,8 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                     });
                     if (result != null) {
                       await _reloadKinder();
-                      Navigator.of(context).pop();
+                      if(context.mounted){
+                      Navigator.of(context).pop();} else {return;}
                     } else {
                       setState(() => errorText = 'Fehler beim Speichern.');
                     }
@@ -189,14 +191,17 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
         builder: (context) => KinderDetailScreen(child: child),
       ),
     );
+    if (!mounted) return;
     if (result is Map && result['delete'] == true && result['id'] != null) {
       // Only delete if user requested deletion
-    final success = await _firestoreService.delete('children', result['id'].toString());
-    if (success) await _reloadKinder();
+      final success = await _firestoreService.delete('children', result['id'].toString());
+      if (!mounted) return;
+      if (success) await _reloadKinder();
     } else if (result is Child) {
       // Update child (even if parentIds is null/empty)
-    final success = await _firestoreService.set('children', result.id.toString(), result.toFirestore());
-    if (success) await _reloadKinder();
+      final success = await _firestoreService.set('children', result.id.toString(), result.toFirestore());
+      if (!mounted) return;
+      if (success) await _reloadKinder();
     } else {
       await _reloadKinder();
     }

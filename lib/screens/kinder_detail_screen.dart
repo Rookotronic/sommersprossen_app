@@ -89,6 +89,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
     );
     // Update child in Firestore
     final success = await _firestoreService.set('children', updated.id.toString(), updated.toFirestore());
+    if (!mounted) return;
     if (success) {
       Navigator.of(context).pop(updated);
     } else {
@@ -121,6 +122,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
     if (confirmed == true) {
       // Delete child from Firestore
       final success = await _firestoreService.delete('children', widget.child.id.toString());
+      if (!mounted) return;
       if (success) {
         Navigator.of(context).pop({'delete': true, 'id': widget.child.id});
       } else {
@@ -145,6 +147,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
     setState(() {
       _parentList = all;
     });
+    if (!mounted) return;
     final result = await showDialog<List<Parent>>(
       context: context,
       builder: (context) {
@@ -190,6 +193,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
       },
     );
     if (result != null) {
+      if (!mounted) return;
       setState(() {
         _selectedParents = result;
       });

@@ -1,8 +1,5 @@
 import 'package:sommersprossen_app/models/child.dart';
 
-import '../models/child.dart';
-import '../models/parent.dart';
-import '../models/lottery.dart';
 import '../models/lotterypot.dart';
 
 class MockData {
@@ -44,7 +41,7 @@ class MockData {
     // Pick two random children to have gotPicked = true
     final kids = List<Child>.from(_children);
     kids.shuffle();
-    final entries = kids.asMap().entries.map((entry) {
+    kids.asMap().entries.map((entry) {
       final idx = entry.key;
       final child = entry.value;
       return LotteryPotEntry(
@@ -53,10 +50,6 @@ class MockData {
         priorityPick: idx < 2,
       );
     }).toList();
-    var lotterypot = LotteryPot(
-      startDate: DateTime(2025, 9, 26),
-      kids: entries
-    );
   }
 
   final int _lastParentId = 100; // highest used parent id

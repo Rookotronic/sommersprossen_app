@@ -22,7 +22,7 @@ class GroupDropdown extends StatelessWidget {
     return Padding(
       padding: padding ?? EdgeInsets.zero,
       child: DropdownButtonFormField<GroupName>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(labelText: label ?? 'Gruppe'),
         items: const [
           DropdownMenuItem(

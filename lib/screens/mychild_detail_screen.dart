@@ -3,7 +3,6 @@ import '../models/child.dart';
 import '../models/parent.dart';
 import '../widgets/parent_list_display.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-// ...existing code...
 
 class MeinKindDetailScreen extends StatelessWidget {
   final List<Child> children;

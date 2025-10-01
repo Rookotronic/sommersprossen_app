@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:logger/logger.dart';
 // This file has been moved to: /Users/lorenztheuer/VS CODE/sommersprossen_app/lib/services/firestore_service.dart
 // Please update your imports accordingly.
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final Logger _logger = Logger();
   FirebaseFirestore get db => _db;
 
   // Generic add
@@ -12,7 +13,7 @@ class FirestoreService {
     try {
       return await _db.collection(collection).add(data);
     } catch (e) {
-      print('Firestore add error: $e');
+  _logger.e('Firestore add error', e);
       return null;
     }
   }
@@ -23,7 +24,7 @@ class FirestoreService {
       await _db.collection(collection).doc(docId).update(data);
       return true;
     } catch (e) {
-      print('Firestore update error: $e');
+  _logger.e('Firestore update error', e);
       return false;
     }
   }
@@ -34,7 +35,7 @@ class FirestoreService {
       await _db.collection(collection).doc(docId).set(data);
       return true;
     } catch (e) {
-      print('Firestore set error: $e');
+  _logger.e('Firestore set error', e);
       return false;
     }
   }
@@ -45,7 +46,7 @@ class FirestoreService {
       await _db.collection(collection).doc(docId).delete();
       return true;
     } catch (e) {
-      print('Firestore delete error: $e');
+  _logger.e('Firestore delete error', e);
       return false;
     }
   }
@@ -55,7 +56,7 @@ class FirestoreService {
     try {
       return await _db.collection(collection).doc(docId).get();
     } catch (e) {
-      print('Firestore get error: $e');
+  _logger.e('Firestore get error', e);
       return null;
     }
   }
@@ -66,7 +67,7 @@ class FirestoreService {
       final snapshot = await _db.collection(collection).get();
       return snapshot.docs;
     } catch (e) {
-      print('Firestore getAll error: $e');
+  _logger.e('Firestore getAll error', e);
       return [];
     }
   }

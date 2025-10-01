@@ -42,11 +42,13 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
           .collection('lotteries')
           .where('finished', isEqualTo: false)
           .get();
+      if (!mounted) return;
       setState(() {
         hasActiveLottery = query.docs.isNotEmpty;
         _loading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         hasActiveLottery = false;
         _loading = false;
@@ -133,6 +135,8 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                     ],
                   ),
                 );
+                if (!mounted) return;
+                // You can handle result here if needed
               },
               tooltip: 'Topf neu befüllen',
               child: const Icon(Icons.refresh),

@@ -5,7 +5,7 @@ import 'eltern_screen.dart';
 import 'kinder_screen.dart';
 import 'lottery_screen.dart';
 import '../models/child.dart';
-import 'meinKind_detail_screen.dart';
+import 'mychild_detail_screen.dart';
 import 'lotterietopf_screen.dart';
 import '../widgets/menu_entry_tile.dart';
 // ...existing code...
