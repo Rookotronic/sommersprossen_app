@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'startup_screen.dart';
+import 'screens/startup_screen.dart';
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -21,7 +21,7 @@ class MainApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSwatch().copyWith(
-          surface: Colors.white,
+          surface: Colors.white, 
         ),
       ),
       home: const StartupScreen(),

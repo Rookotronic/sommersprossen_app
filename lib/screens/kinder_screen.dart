@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import '../utils/controller_lifecycle_mixin.dart';
 import 'kinder_detail_screen.dart';
-import 'eltern_screen.dart';
-import 'mock_data.dart';
-import 'child.dart';
-import 'parent.dart';
+// ...existing code...
+// ...existing code...
+import '../models/child.dart';
+import '../widgets/group_dropdown.dart';
+import '../models/parent.dart';
+import '../services/firestore_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class KinderScreen extends StatefulWidget {
@@ -13,13 +16,12 @@ class KinderScreen extends StatefulWidget {
   State<KinderScreen> createState() => _KinderScreenState();
 }
 
-class _KinderScreenState extends State<KinderScreen> {
+class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMixin {
+  final FirestoreService _firestoreService = FirestoreService();
   List<Child> _kinder = [];
 
   // Simulate backend fetch
-  Future<List> _fetchKinderFromServer() async {
-    return await MockData().fetchChildren();
-  }
+  // ...existing code...
 
   @override
   void initState() {
@@ -42,10 +44,11 @@ class _KinderScreenState extends State<KinderScreen> {
   }
 
   void _addKind() async {
-    final vornameController = TextEditingController();
-    final nachnameController = TextEditingController();
-    GroupName? selectedGroup;
-    String? errorText;
+  final vornameController = createController();
+  final nachnameController = createController();
+  GroupName? selectedGroup;
+  String? errorText;
+  bool isAlpha(String value) => RegExp(r"^[\p{L}'\- ]+$", unicode: true).hasMatch(value);
   // Fetch parents from Firestore, order by last name
   final snapshot = await FirebaseFirestore.instance
     .collection('parents')
@@ -104,19 +107,8 @@ class _KinderScreenState extends State<KinderScreen> {
                         }).toList(),
                       ),
                     ),
-                    DropdownButtonFormField<GroupName>(
-                      initialValue: selectedGroup,
-                      decoration: const InputDecoration(labelText: 'Gruppe'),
-                      items: [
-                        DropdownMenuItem(
-                          value: GroupName.ratz,
-                          child: Text(GroupName.ratz.displayName),
-                        ),
-                        DropdownMenuItem(
-                          value: GroupName.ruebe,
-                          child: Text(GroupName.ruebe.displayName),
-                        ),
-                      ],
+                    GroupDropdown(
+                      value: selectedGroup,
                       onChanged: (value) => setState(() => selectedGroup = value),
                     ),
                     if (errorText != null)
@@ -136,20 +128,36 @@ class _KinderScreenState extends State<KinderScreen> {
                   onPressed: () async {
                     final vorname = vornameController.text.trim();
                     final nachname = nachnameController.text.trim();
-                    if (vorname.isEmpty || nachname.isEmpty || selectedGroup == null) {
-                      setState(() => errorText = 'Vorname, Nachname und Gruppe sind erforderlich.');
+                    if (vorname.isEmpty) {
+                      setState(() => errorText = 'Vorname ist erforderlich.');
+                      return;
+                    }
+                    if (!isAlpha(vorname)) {
+                      setState(() => errorText = 'Vorname: Nur Buchstaben und Sonderzeichen erlaubt.');
+                      return;
+                    }
+                    if (nachname.isEmpty) {
+                      setState(() => errorText = 'Nachname ist erforderlich.');
+                      return;
+                    }
+                    if (!isAlpha(nachname)) {
+                      setState(() => errorText = 'Nachname: Nur Buchstaben und Sonderzeichen erlaubt.');
                       return;
                     }
                     setState(() => errorText = null);
                     // Add child to Firestore
-                    await FirebaseFirestore.instance.collection('children').add({
+                    final result = await _firestoreService.add('children', {
                       'vorname': vorname,
                       'nachname': nachname,
                       'parentIds': selectedParents.isEmpty ? null : selectedParents.map((p) => p.id).toList(),
-                      'gruppe': selectedGroup!.name,
+                      'gruppe': selectedGroup?.name,
                     });
-                    await _reloadKinder();
-                    Navigator.of(context).pop();
+                    if (result != null) {
+                      await _reloadKinder();
+                      Navigator.of(context).pop();
+                    } else {
+                      setState(() => errorText = 'Fehler beim Speichern.');
+                    }
                   },
                   child: const Text('Hinzufügen'),
                 ),
@@ -194,12 +202,12 @@ class _KinderScreenState extends State<KinderScreen> {
     );
     if (result is Map && result['delete'] == true && result['id'] != null) {
       // Only delete if user requested deletion
-      await FirebaseFirestore.instance.collection('children').doc(result['id'].toString()).delete();
-      await _reloadKinder();
+    final success = await _firestoreService.delete('children', result['id'].toString());
+    if (success) await _reloadKinder();
     } else if (result is Child) {
       // Update child (even if parentIds is null/empty)
-      await FirebaseFirestore.instance.collection('children').doc(result.id.toString()).set(result.toFirestore());
-      await _reloadKinder();
+    final success = await _firestoreService.set('children', result.id.toString(), result.toFirestore());
+    if (success) await _reloadKinder();
     } else {
       await _reloadKinder();
     }

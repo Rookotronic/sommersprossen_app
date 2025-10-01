@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 // ...existing code...
 import '../utils/controller_lifecycle_mixin.dart';
-import 'utils/validators.dart';
+import '../utils/validators.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/parent.dart';
-import 'services/firestore_service.dart';
+import '../services/firestore_service.dart';
 
 class ElternScreen extends StatefulWidget {
   const ElternScreen({super.key});

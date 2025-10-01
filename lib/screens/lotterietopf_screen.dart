@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'services/mock_data.dart';
+import '../services/mock_data.dart';
 import '../models/lotterypot.dart';
 import '../services/firestore_service.dart';
 

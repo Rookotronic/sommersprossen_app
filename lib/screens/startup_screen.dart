@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'loading_screen.dart';
 import 'main_menus.dart';
-import 'utils/validators.dart';
+import '../utils/validators.dart';
 
 class StartupScreen extends StatefulWidget {
   const StartupScreen({super.key});

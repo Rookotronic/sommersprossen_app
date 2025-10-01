@@ -1,9 +1,9 @@
-import 'package:sommersprossen_app/child.dart';
+import 'package:sommersprossen_app/models/child.dart';
 
-import 'child.dart';
-import 'parent.dart';
-import 'lottery.dart';
-import 'lotterypot.dart';
+import '../models/child.dart';
+import '../models/parent.dart';
+import '../models/lottery.dart';
+import '../models/lotterypot.dart';
 
 class MockData {
   Child? findChildById(String id) {
@@ -13,21 +13,29 @@ class MockData {
       return null;
     }
   }
-  Future<List<Lottery>> fetchLotteries() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return List.unmodifiable(_lotteries);
+
+  // Fallback for lottery pot and entries
+  LotteryPot get lotterypot {
+    final kids = List<Child>.from(_children);
+    kids.shuffle();
+    final entries = kids.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final child = entry.value;
+      return LotteryPotEntry(
+        childId: child.id,
+        entryOrder: idx,
+        priorityPick: idx < 2,
+      );
+    }).toList();
+    return LotteryPot(
+      startDate: DateTime(2025, 9, 26),
+      kids: entries,
+    );
   }
-  void addLottery(Lottery lottery) => _lotteries.add(lottery);
-  List<Lottery> get lotteries => _lotteries; late final LotteryPot lotterypot;
-  final List<Lottery> _lotteries = [
-    Lottery(
-      date: DateTime(2025, 9, 26),
-      finished: true,
-      requestsSend: true,
-      allAnswersReceived: true,
-      nrOfchildrenToPick: 2,
-    ),
-  ];
+
+  List<LotteryPotEntry> get lotterypotEntries {
+    return lotterypot.kids;
+  }
  
   // Singleton pattern
   static final MockData _instance = MockData._internal();
@@ -45,7 +53,7 @@ class MockData {
         priorityPick: idx < 2,
       );
     }).toList();
-    lotterypot = LotteryPot(
+    var lotterypot = LotteryPot(
       startDate: DateTime(2025, 9, 26),
       kids: entries
     );

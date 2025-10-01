@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'lottery.dart';
+import '../utils/controller_lifecycle_mixin.dart';
+import '../models/lottery.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import '../services/firestore_service.dart';
 
 class LotteryScreen extends StatefulWidget {
   const LotteryScreen({super.key});
@@ -10,7 +12,8 @@ class LotteryScreen extends StatefulWidget {
   State<LotteryScreen> createState() => _LotteryScreenState();
 }
 
-class _LotteryScreenState extends State<LotteryScreen> {
+class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleMixin {
+  final FirestoreService _firestoreService = FirestoreService();
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -63,7 +66,7 @@ class _LotteryScreenState extends State<LotteryScreen> {
               ? null
               : FloatingActionButton(
                   onPressed: () async {
-                    final created = await _showNewLotteryDialog();
+                    await _showNewLotteryDialog();
                     // No need to reload, StreamBuilder auto-updates
                   },
                   tooltip: 'Neue Lotterie starten',
@@ -76,8 +79,8 @@ class _LotteryScreenState extends State<LotteryScreen> {
 
 
   Future<bool?> _showNewLotteryDialog() async {
-    DateTime selectedDate = DateTime.now();
-    final nrController = TextEditingController();
+  DateTime selectedDate = DateTime.now();
+  final nrController = createController();
     String? errorText;
     return showDialog<bool>(
       context: context,
@@ -122,19 +125,34 @@ class _LotteryScreenState extends State<LotteryScreen> {
                 ElevatedButton(
                   onPressed: () async {
                     final nr = int.tryParse(nrController.text);
+                    final now = DateTime.now();
+                    final selectedDay = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+                    final today = DateTime(now.year, now.month, now.day);
                     if (nr == null || nr < 1) {
-                      setState(() => errorText = 'Bitte Datum und gültige Anzahl eingeben.');
+                      setState(() => errorText = 'Bitte eine gültige Anzahl Kinder eingeben.');
+                      return;
+                    }
+                    if (selectedDay.isBefore(today)) {
+                      setState(() => errorText = 'Bitte ein gültiges Datum wählen (nicht in der Vergangenheit).');
                       return;
                     }
                     // Add new lottery to Firestore
-                    await FirebaseFirestore.instance.collection('lotteries').add({
-                      'date': selectedDate.millisecondsSinceEpoch,
-                      'finished': false,
-                      'requestsSend': false,
-                      'allAnswersReceived': false,
-                      'nrOfchildrenToPick': nr,
-                    });
-                    Navigator.of(context, rootNavigator: true).pop(false);
+                    try {
+                      final result = await _firestoreService.add('lotteries', {
+                        'date': selectedDate.millisecondsSinceEpoch,
+                        'finished': false,
+                        'requestsSend': false,
+                        'allAnswersReceived': false,
+                        'nrOfchildrenToPick': nr,
+                      });
+                      if (result != null) {
+                        Navigator.of(context, rootNavigator: true).pop(false);
+                      } else {
+                        setState(() => errorText = 'Fehler beim Speichern.');
+                      }
+                    } catch (e) {
+                      setState(() => errorText = 'Fehler beim Speichern: ${e.toString()}');
+                    }
                   },
                   child: const Text('Erstellen'),
                 ),
