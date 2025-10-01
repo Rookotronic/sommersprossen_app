@@ -110,8 +110,8 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                 );
                 // Optionally handle result here
               },
-              child: const Icon(Icons.refresh),
               tooltip: 'Topf neu befüllen',
+              child: const Icon(Icons.refresh),
             ),
     );
   }

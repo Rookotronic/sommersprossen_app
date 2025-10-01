@@ -1,4 +1,3 @@
-import 'child.dart';
 
 class LotteryPotEntry {
   final String childId;

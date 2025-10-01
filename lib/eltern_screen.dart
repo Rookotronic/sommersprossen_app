@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'parent.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ElternScreen extends StatefulWidget {
   const ElternScreen({super.key});
@@ -11,7 +10,6 @@ class ElternScreen extends StatefulWidget {
 }
 
 class ElternScreenState extends State<ElternScreen> {
-  get _eltern => null;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +53,7 @@ class ElternScreenState extends State<ElternScreen> {
   }
 
   void _showElternDetails(Parent parent) async {
-    final result = await Navigator.of(context).push(
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ElternDetailScreen(parent: parent),
       ),
@@ -63,9 +61,6 @@ class ElternScreenState extends State<ElternScreen> {
     // Firestore updates handled in detail screen
   }
 
-  void _sortEltern() {
-    _eltern.sort((a, b) => a.nachname.toLowerCase().compareTo(b.nachname.toLowerCase()));
-  }
 
   void _addEltern() async {
     final vornameController = TextEditingController();
@@ -174,7 +169,7 @@ class ElternScreenState extends State<ElternScreen> {
 
 class ElternDetailScreen extends StatefulWidget {
   final Parent parent;
-  const ElternDetailScreen({Key? key, required this.parent}) : super(key: key);
+  const ElternDetailScreen({super.key, required this.parent});
 
   @override
   State<ElternDetailScreen> createState() => _ElternDetailScreenState();

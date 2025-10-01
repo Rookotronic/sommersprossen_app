@@ -105,7 +105,7 @@ class _KinderScreenState extends State<KinderScreen> {
                       ),
                     ),
                     DropdownButtonFormField<GroupName>(
-                      value: selectedGroup,
+                      initialValue: selectedGroup,
                       decoration: const InputDecoration(labelText: 'Gruppe'),
                       items: [
                         DropdownMenuItem(

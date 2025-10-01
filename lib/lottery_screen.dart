@@ -66,8 +66,8 @@ class _LotteryScreenState extends State<LotteryScreen> {
                     final created = await _showNewLotteryDialog();
                     // No need to reload, StreamBuilder auto-updates
                   },
-                  child: const Icon(Icons.add),
                   tooltip: 'Neue Lotterie starten',
+                  child: const Icon(Icons.add),
                 ),
         );
       },

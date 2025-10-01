@@ -212,7 +212,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<GroupName>(
-                      value: _selectedGroup,
+                      initialValue: _selectedGroup,
                       decoration: const InputDecoration(labelText: 'Gruppe'),
                       items: [
                         DropdownMenuItem(

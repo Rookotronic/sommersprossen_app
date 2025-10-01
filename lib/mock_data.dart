@@ -51,8 +51,8 @@ class MockData {
     );
   }
 
-  int _lastParentId = 100; // highest used parent id
-  int _lastChildId = 210;  // highest used child id
+  final int _lastParentId = 100; // highest used parent id
+  final int _lastChildId = 210;  // highest used child id
 
   final List<Child> _children = [
     // Sibling group 1 (2 kids, parents 15 & 18)
