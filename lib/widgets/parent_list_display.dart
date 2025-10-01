@@ -19,14 +19,14 @@ class ParentListDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     if (parents.isEmpty) {
       return Padding(
-        padding: padding ?? const EdgeInsets.only(left: 32),
+        padding: padding ?? EdgeInsets.zero,
         child: Text(emptyText, style: style ?? const TextStyle(color: Colors.grey)),
       );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: parents.map((p) => Padding(
-        padding: padding ?? const EdgeInsets.only(left: 32, bottom: 2),
+        padding: padding ?? const EdgeInsets.only(bottom: 2),
         child: Text('${p.nachname}, ${p.vorname}', style: style ?? Theme.of(context).textTheme.bodyLarge),
       )).toList(),
     );

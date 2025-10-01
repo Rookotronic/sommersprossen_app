@@ -220,19 +220,21 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
                       decoration: const InputDecoration(labelText: 'Nachname'),
                     ),
                     const SizedBox(height: 12),
-                    // Eltern field styled like Vorname/Nachname/Gruppe
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: ParentListDisplay(parents: _selectedParents, emptyText: 'Keine'),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: _showParentPicker,
-                          child: const Text('Bearbeiten'),
-                        ),
-                      ],
+                    InputDecorator(
+                      decoration: const InputDecoration(labelText: 'Eltern'),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: ParentListDisplay(parents: _selectedParents, emptyText: 'Keine'),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: _showParentPicker,
+                            child: const Text('Bearbeiten'),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 12),
                     GroupDropdown(
