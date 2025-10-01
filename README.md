@@ -29,6 +29,6 @@ The app is designed for families and administrators to communicate efficiently a
 
 ### 2. Clone the Repository  
 ```bash
-git clone https://github.com/your-username/kindergarten-app.git
+git clone https://github.com/Rookotronic/sommersprossen_app.git
 cd kindergarten-app
 
