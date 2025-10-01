@@ -71,12 +71,16 @@ class _LoginScreenState extends State<LoginScreen> with ControllerLifecycleMixin
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    _userController = createController();
+    _passwordController = createController();
+  }
+
+  @override
   void dispose() {
-  // Lifecycle handled by ControllerLifecycleMixin
-  super.dispose();
-  super.initState();
-  _userController = createController();
-  _passwordController = createController();
+    // Lifecycle handled by ControllerLifecycleMixin
+    super.dispose();
   }
 
   bool _isAlphanumeric(String value) {

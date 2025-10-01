@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import '../utils/controller_lifecycle_mixin.dart';
 import 'kinder_detail_screen.dart';
-// ...existing code...
-// ...existing code...
 import '../models/child.dart';
 import '../widgets/group_dropdown.dart';
 import '../models/parent.dart';
 import '../services/firestore_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../widgets/form_dialog.dart';
 
 class KinderScreen extends StatefulWidget {
   const KinderScreen({super.key});
@@ -58,67 +57,57 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
     .map((doc) => Parent.fromFirestore(doc.id, doc.data()))
     .toList();
     List<Parent> selectedParents = [];
-
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Neues Kind hinzufügen'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: vornameController,
-                      autofocus: true,
-                      decoration: const InputDecoration(labelText: 'Vorname'),
-                    ),
-                    TextField(
-                      controller: nachnameController,
-                      decoration: const InputDecoration(labelText: 'Nachname'),
-                    ),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('Eltern', style: Theme.of(context).textTheme.bodySmall),
-                    ),
-                    SizedBox(
-                      width: 300,
-                      height: 200,
-                      child: ListView(
-                        shrinkWrap: true,
-                        children: parentList.map((parent) {
-                          final isChecked = selectedParents.contains(parent);
-                          return CheckboxListTile(
-                            value: isChecked,
-                            title: Text('${parent.nachname}, ${parent.vorname}'),
-                            onChanged: (checked) {
-                              setState(() {
-                                if (checked == true) {
-                                  if (!selectedParents.contains(parent)) selectedParents.add(parent);
-                                } else {
-                                  selectedParents.remove(parent);
-                                }
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    GroupDropdown(
-                      value: selectedGroup,
-                      onChanged: (value) => setState(() => selectedGroup = value),
-                    ),
-                    if (errorText != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(errorText ?? '', style: const TextStyle(color: Colors.red)),
-                      ),
-                  ],
+            return FormDialog(
+              title: 'Neues Kind hinzufügen',
+              fields: [
+                TextField(
+                  controller: vornameController,
+                  autofocus: true,
+                  decoration: const InputDecoration(labelText: 'Vorname'),
                 ),
-              ),
+                TextField(
+                  controller: nachnameController,
+                  decoration: const InputDecoration(labelText: 'Nachname'),
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Eltern', style: Theme.of(context).textTheme.bodySmall),
+                ),
+                SizedBox(
+                  width: 300,
+                  height: 200,
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: parentList.map((parent) {
+                      final isChecked = selectedParents.contains(parent);
+                      return CheckboxListTile(
+                        value: isChecked,
+                        title: Text('${parent.nachname}, ${parent.vorname}'),
+                        onChanged: (checked) {
+                          setState(() {
+                            if (checked == true) {
+                              if (!selectedParents.contains(parent)) selectedParents.add(parent);
+                            } else {
+                              selectedParents.remove(parent);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+                GroupDropdown(
+                  value: selectedGroup,
+                  onChanged: (value) => setState(() => selectedGroup = value),
+                ),
+              ],
+              errorText: errorText,
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
@@ -159,7 +148,7 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                       setState(() => errorText = 'Fehler beim Speichern.');
                     }
                   },
-                  child: const Text('Hinzufügen'),
+                  child: const Text('Speichern'),
                 ),
               ],
             );
