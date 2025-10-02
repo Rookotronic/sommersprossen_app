@@ -81,7 +81,8 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
   Future<bool?> _showNewLotteryDialog() async {
   DateTime selectedDate = DateTime.now();
   final nrController = createController();
-    String? errorText;
+  final timeOfDayController = createController();
+  String? errorText;
     return showDialog<bool>(
       context: context,
       builder: (context) {
@@ -105,6 +106,10 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                       if (!mounted) return;
                       if (picked != null) setState(() => selectedDate = picked);
                     },
+                  ),
+                  TextField(
+                    controller: timeOfDayController,
+                    decoration: const InputDecoration(labelText: 'Zeitangabe (z.B. Ganztägig, ab 13 Uhr)'),
                   ),
                   TextField(
                     controller: nrController,
@@ -137,7 +142,11 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                       setState(() => errorText = 'Bitte ein gültiges Datum wählen (nicht in der Vergangenheit).');
                       return;
                     }
-                    // Add new lottery to Firestore
+                    // TODO: Replace with cloud function call to create a new lottery entry
+                    // Inputs: selectedDate, timeOfDayController.text.trim(), nr
+                    // Example:
+                    // await callCreateLotteryCloudFunction(date: selectedDate, timeOfDay: timeOfDayController.text.trim(), nrOfChildrenToPick: nr);
+                    // Remove Firestore direct add below when cloud function is ready
                     try {
                       final result = await _firestoreService.add('lotteries', {
                         'date': selectedDate.millisecondsSinceEpoch,
@@ -145,6 +154,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                         'requestsSend': false,
                         'allAnswersReceived': false,
                         'nrOfchildrenToPick': nr,
+                        'timeOfDay': timeOfDayController.text.trim(),
                       });
                       if (result != null) {
                         if (context.mounted) {

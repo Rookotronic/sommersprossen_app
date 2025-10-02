@@ -92,17 +92,13 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                             itemBuilder: (context, index) {
                               final entry = entries![index];
                               final child = MockData().findChildById(entry.childId);
-                              final style = entry.priorityPick
-                                  ? Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)
-                                  : Theme.of(context).textTheme.bodyLarge;
+                              final style = Theme.of(context).textTheme.bodyLarge;
                               return ListTile(
                                 leading: Text('#${entry.entryOrder}'),
                                 title: child != null
                                     ? Text('${child.nachname}, ${child.vorname}', style: style)
                                     : Text('Unbekanntes Kind', style: style),
-                                trailing: entry.priorityPick
-                                    ? const Icon(Icons.star, color: Colors.orange)
-                                    : null,
+                                // No trailing icon for priorityPick
                               );
                             },
                           )

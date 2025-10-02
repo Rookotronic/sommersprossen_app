@@ -21,7 +21,6 @@ class MockData {
       return LotteryPotEntry(
         childId: child.id,
         entryOrder: idx,
-        priorityPick: idx < 2,
       );
     }).toList();
     return LotteryPot(
@@ -47,7 +46,6 @@ class MockData {
       return LotteryPotEntry(
         childId: child.id,
         entryOrder: idx,
-        priorityPick: idx < 2,
       );
     }).toList();
   }

@@ -5,7 +5,6 @@ import '../utils/validators.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/parent.dart';
 import '../services/firestore_service.dart';
-import '../widgets/form_dialog.dart';
 
 class ElternScreen extends StatefulWidget {
   const ElternScreen({super.key});
@@ -76,7 +75,7 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
     String? errorText;
 
   bool isAlpha(String value) => RegExp(r"^[\p{L}'\- ]+$", unicode: true).hasMatch(value);
-  bool isValidEmail(String value) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+\u0000?').hasMatch(value);
+    bool isValidEmail(String value) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+\u0000?').hasMatch(value);
 
     final result = await showDialog<bool>(
       context: context,
@@ -84,25 +83,32 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return FormDialog(
-              title: 'Neue Eltern hinzufügen',
-              fields: [
-                TextField(
-                  controller: vornameController,
-                  autofocus: true,
-                  decoration: const InputDecoration(labelText: 'Vorname'),
-                ),
-                TextField(
-                  controller: nachnameController,
-                  decoration: const InputDecoration(labelText: 'Nachname'),
-                ),
-                TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(labelText: 'Emailadresse'),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-              ],
-              errorText: errorText,
+            return AlertDialog(
+              title: const Text('Neue Eltern hinzufügen'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: vornameController,
+                    autofocus: true,
+                    decoration: const InputDecoration(labelText: 'Vorname'),
+                  ),
+                  TextField(
+                    controller: nachnameController,
+                    decoration: const InputDecoration(labelText: 'Nachname'),
+                  ),
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(labelText: 'Emailadresse'),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  if (errorText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(errorText!, style: const TextStyle(color: Colors.red)),
+                    ),
+                ],
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
@@ -114,21 +120,26 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                     final nachname = nachnameController.text.trim();
                     final email = emailController.text.trim();
                     if (vorname.isEmpty || nachname.isEmpty || email.isEmpty) {
+                      if (!mounted) return;
                       setState(() => errorText = 'Alle Felder sind erforderlich.');
                       return;
                     }
                     if (!isAlpha(vorname)) {
+                      if (!mounted) return;
                       setState(() => errorText = 'Vorname: Nur Buchstaben und Sonderzeichen erlaubt.');
                       return;
                     }
                     if (!isAlpha(nachname)) {
+                      if (!mounted) return;
                       setState(() => errorText = 'Nachname: Nur Buchstaben und Sonderzeichen erlaubt.');
                       return;
                     }
                     if (!isValidEmail(email)) {
+                      if (!mounted) return;
                       setState(() => errorText = 'Bitte gültige Emailadresse eingeben.');
                       return;
                     }
+                    if (!mounted) return;
                     setState(() => errorText = null);
                     try {
                       final result = await _firestoreService.add('parents', {
@@ -138,9 +149,11 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                       });
                       
                       if (result != null) {
-                        if (context.mounted) {Navigator.of(context).pop(true);}
+                        if (!mounted) return;
+                        if(context.mounted) {Navigator.of(context).pop(true);}
                         else {return;}
                       } else {
+                        if (!mounted) return;
                         setState(() => errorText = 'Fehler beim Speichern.');
                       }
                     } catch (e) {
@@ -148,7 +161,7 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                       setState(() => errorText = 'Fehler beim Speichern: ${e.toString()}');
                     }
                   },
-                  child: const Text('Speichern'),
+                  child: const Text('Hinzufügen'),
                 ),
               ],
             );
@@ -265,9 +278,10 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
   }
 
   void _delete() async {
+    if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog( 
         title: const Text('Eltern löschen'),
         content: const Text('Sind Sie sicher, dass Sie diesen Elternteil löschen möchten?'),
         actions: [
@@ -345,7 +359,6 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
                 ),
               ],
             ),
-            // ...removed Passwort senden button...
           ],
         ),
       ),

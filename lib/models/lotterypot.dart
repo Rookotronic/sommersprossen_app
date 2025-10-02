@@ -2,12 +2,10 @@
 class LotteryPotEntry {
   final String childId;
   final int entryOrder;
-  bool priorityPick;
 
   LotteryPotEntry({
     required this.childId,
     required this.entryOrder,
-    this.priorityPick = false,
   });
 }
 
