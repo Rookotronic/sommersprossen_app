@@ -147,7 +147,6 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                         'nachname': nachname,
                         'email': email,
                       });
-                      
                       if (result != null) {
                         if (!mounted) return;
                         if(context.mounted) {Navigator.of(context).pop(true);}

@@ -114,12 +114,31 @@ class AdminMainMenuScreen extends StatelessWidget {
             MenuEntryTile(
               icon: Icons.account_balance_wallet,
               title: 'Lotterietopf',
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const LotterietopfScreen(),
+              onTap: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Lotterietopf öffnen?'),
+                    content: const Text('Bist du sicher, dass du den Lotterietopf öffnen möchtest?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Abbrechen'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('Öffnen'),
+                      ),
+                    ],
                   ),
                 );
+                if (confirmed == true) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const LotterietopfScreen(),
+                    ),
+                  );
+                }
               },
             ),
             MenuEntryTile(
