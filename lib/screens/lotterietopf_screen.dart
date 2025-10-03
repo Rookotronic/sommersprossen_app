@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../services/mock_data.dart';
 import '../models/lotterypot.dart';
 import '../services/firestore_service.dart';
+import '../models/child.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class LotterietopfScreen extends StatefulWidget {
@@ -12,9 +14,14 @@ class LotterietopfScreen extends StatefulWidget {
 }
 
 class _LotterietopfScreenState extends State<LotterietopfScreen> {
+  Future<List<Child>> _fetchChildrenForKids(List<String> childIds) async {
+    final ids = childIds.toSet().toList();
+    if (ids.isEmpty) return [];
+    final query = await _firestoreService.db.collection('children').where(FieldPath.documentId, whereIn: ids).get();
+    return query.docs.map((doc) => Child.fromFirestore(doc.id, doc.data())).toList();
+  }
   final FirestoreService _firestoreService = FirestoreService();
   LotteryPot? lotterypot;
-  List<LotteryPotEntry>? entries;
   bool _loading = true;
   bool hasActiveLottery = false;
 
@@ -27,12 +34,24 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
   }
 
   Future<void> _loadPotData() async {
-    // TODO: Replace with Firestore fetch if needed
-    // For now, use mock data fallback
-    setState(() {
-      lotterypot = MockData().lotterypot;
-      entries = MockData().lotterypotEntries;
-    });
+    setState(() => _loading = true);
+    try {
+      final potDoc = await _firestoreService.db.collection('lotterypot').doc('current').get();
+      if (potDoc.exists) {
+        final data = potDoc.data() as Map<String, dynamic>;
+        lotterypot = LotteryPot.fromFirestore(potDoc.id, data);
+      } else {
+        lotterypot = null;
+      }
+      if (!mounted) return;
+      setState(() => _loading = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Laden des Lotterietopfs: ${e.toString()}')),
+        );
+    }
   }
 
   Future<void> _checkActiveLottery() async {
@@ -63,7 +82,7 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Lotterietopf')),
-      body: _loading || lotterypot == null || entries == null
+      body: _loading || lotterypot == null || lotterypot!.kids.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(24.0),
@@ -76,9 +95,7 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Text(
-                        lotterypot != null
-                            ? 'Startdatum: ${_formatDate(lotterypot!.startDate)}'
-                            : 'Kein Topf geladen',
+                        'Startdatum: ${_formatDate(lotterypot!.startDate)}',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
@@ -86,23 +103,35 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                   Text('Einträge:', style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 12),
                   Expanded(
-                    child: entries != null
-                        ? ListView.builder(
-                            itemCount: entries!.length,
-                            itemBuilder: (context, index) {
-                              final entry = entries![index];
-                              final child = MockData().findChildById(entry.childId);
-                              final style = Theme.of(context).textTheme.bodyLarge;
-                              return ListTile(
-                                leading: Text('#${entry.entryOrder}'),
-                                title: child != null
-                                    ? Text('${child.nachname}, ${child.vorname}', style: style)
-                                    : Text('Unbekanntes Kind', style: style),
-                                // No trailing icon for priorityPick
-                              );
-                            },
-                          )
-                        : const Center(child: Text('Keine Einträge geladen')), 
+                    child: FutureBuilder<List<Child>>(
+                      future: _fetchChildrenForKids(lotterypot!.kids),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return Center(child: Text('Fehler beim Laden der Kinder: ${snapshot.error}'));
+                        }
+                        final children = snapshot.data ?? [];
+                        return ListView.builder(
+                          itemCount: lotterypot!.kids.length,
+                          itemBuilder: (context, index) {
+                            final childId = lotterypot!.kids[index];
+                            final child = children.firstWhere(
+                              (c) => c.id == childId,
+                              orElse: () => Child(id: '', vorname: '', nachname: '', gruppe: GroupName.ratz),
+                            );
+                            final style = Theme.of(context).textTheme.bodyLarge;
+                            return ListTile(
+                              leading: Text('#${index + 1}'),
+                              title: child.id.isNotEmpty
+                                  ? Text('${child.nachname}, ${child.vorname}', style: style)
+                                  : Text('Unbekanntes Kind', style: style),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -122,9 +151,50 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                         child: const Text('Abbrechen'),
                       ),
                       TextButton(
-                        onPressed: () {
-                          // TODO: Call cloud function to refill the pot
-                          Navigator.of(context).pop(true);
+                        onPressed: () async {
+                          try {
+                            final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('createLotteryPot');
+                            await callable.call();
+                            Navigator.of(context).pop(true);
+                          } catch (e, stack) {
+                            Navigator.of(context).pop(false);
+                            if (!mounted) return;
+                            print('Cloud function error: $e');
+                            print('Stack trace: $stack');
+                            String errorMsg;
+                            if (e is FirebaseFunctionsException) {
+                              errorMsg = 'Fehler beim Befüllen des Lotterietopfs:\n'
+                                'Code: 	${e.code}\n'
+                                'Message: ${e.message}\n'
+                                'Details: ${e.details ?? ''}';
+                            } else {
+                              errorMsg = 'Fehler beim Befüllen des Lotterietopfs: ${e.toString()}';
+                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(errorMsg, maxLines: 30, overflow: TextOverflow.visible),
+                                duration: const Duration(seconds: 15),
+                              ),
+                            );
+                            await showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Fehler beim Cloud Function Call'),
+                                content: SizedBox(
+                                  width: double.maxFinite,
+                                  child: SingleChildScrollView(
+                                    child: SelectableText(errorMsg),
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: const Text('OK'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
                         },
                         child: const Text('Neu befüllen'),
                       ),

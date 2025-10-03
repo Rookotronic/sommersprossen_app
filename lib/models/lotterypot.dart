@@ -1,20 +1,29 @@
 
-class LotteryPotEntry {
-  final String childId;
-  final int entryOrder;
 
-  LotteryPotEntry({
-    required this.childId,
-    required this.entryOrder,
-  });
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class LotteryPot {
-  final DateTime startDate;
-  final List<LotteryPotEntry> kids;
+  late final String id;
+  late final DateTime startDate;
+  late final List<String> kids;
 
-  LotteryPot({
-    required this.startDate,
-    required List<LotteryPotEntry> kids,
-  }) : kids = List.from(kids)..sort((a, b) => a.entryOrder.compareTo(b.entryOrder));
-}
+  class LotteryPot {
+    final String id;
+    final DateTime startDate;
+    final List<String> kids;
+
+    LotteryPot({
+      required this.id,
+      required this.startDate,
+      required this.kids,
+    });
+
+    factory LotteryPot.fromFirestore(String id, Map<String, dynamic> data) {
+      return LotteryPot(
+        id: id,
+        startDate: (data['startDate'] is Timestamp)
+            ? (data['startDate'] as Timestamp).toDate()
+            : DateTime.tryParse(data['startDate']?.toString() ?? '') ?? DateTime.now(),
+        kids: (data['kids'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
+      );
+    }
+  }

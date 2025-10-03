@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // ...existing code...
 import '../utils/controller_lifecycle_mixin.dart';
 import '../utils/validators.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/parent.dart';
 import '../services/firestore_service.dart';
@@ -171,24 +172,124 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
     if (!mounted) return;
     if (result == true) {
       final email = emailController.text.trim();
-      // Show info dialog after add-parent dialog is closed
-      showDialog(
+      final usersQuery = FirebaseFirestore.instance.collection('users').where('email', isEqualTo: email).limit(1);
+      bool userFound = false;
+      bool timedOut = false;
+      DateTime startTime = DateTime.now();
+      await showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Neues Passwort gesendet'),
-          content: Text('Ein neues Passwort wurde an $email gesendet.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+        barrierDismissible: false,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return StreamBuilder<QuerySnapshot>(
+                stream: usersQuery.snapshots(),
+                builder: (context, snapshot) {
+                  // Timeout logic
+                  if (!timedOut && DateTime.now().difference(startTime).inSeconds > 30) {
+                    timedOut = true;
+                    Future.microtask(() => Navigator.of(context).pop('timeout'));
+                  }
+                  if (timedOut) {
+                    return AlertDialog(
+                      title: const Text('Zeitüberschreitung'),
+                      content: const Text('Benutzer wurde nicht innerhalb von 30 Sekunden erstellt. Bitte versuchen Sie es erneut.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop('retry'),
+                          child: const Text('Erneut versuchen'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Abbrechen'),
+                        ),
+                      ],
+                    );
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const AlertDialog(
+                      title: Text('Warte auf Benutzererstellung...'),
+                      content: SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return AlertDialog(
+                      title: const Text('Fehler'),
+                      content: Text('Fehler beim Überprüfen der Benutzererstellung: ${snapshot.error}'),
+                      actions: [TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('OK'))],
+                    );
+                  }
+                  if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                    userFound = true;
+                    return AlertDialog(
+                      title: const Text('Passwortwiederherstellungsemail senden?'),
+                      content: Text('Soll eine Passwort-Wiederherstellungs-Email an $email gesendet werden?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Nein'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text('Ja'),
+                        ),
+                      ],
+                    );
+                  }
+                  return const AlertDialog(
+                    title: Text('Warte auf Benutzererstellung...'),
+                    content: SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ).then((sendRecovery) async {
+        if (sendRecovery == 'retry') {
+          // Retry logic: call _addEltern again with same data (optional, or instruct user to retry)
+          // For now, do nothing (user can press Add again)
+          return;
+        }
+        if (userFound && sendRecovery == true) {
+          try {
+            await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+            if (!mounted) return;
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Email gesendet'),
+                content: Text('Eine Passwort-Wiederherstellungs-Email wurde an $email gesendet.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          } catch (e) {
+            if (!mounted) return;
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Fehler'),
+                content: Text('Fehler beim Senden der Email: ${e.toString()}'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }
+        }
+        // After popup, just stay on ElternScreen (no navigation needed)
+      });
+    }
     }
   }
-
-}
 
 class ElternDetailScreen extends StatefulWidget {
   final Parent parent;
