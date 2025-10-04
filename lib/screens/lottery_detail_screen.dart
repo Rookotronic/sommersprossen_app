@@ -57,9 +57,9 @@ class LotteryDetailScreen extends StatelessWidget {
                         child: Row(
                           children: [
                             Expanded(flex: 3, child: Text('Name', style: Theme.of(context).textTheme.bodyMedium)),
-                            Expanded(child: Center(child: Text('Notified', style: Theme.of(context).textTheme.bodyMedium))),
-                            Expanded(child: Center(child: Text('Responded', style: Theme.of(context).textTheme.bodyMedium))),
-                            Expanded(child: Center(child: Text('Need', style: Theme.of(context).textTheme.bodyMedium))),
+                            Expanded(child: Center(child: Text('Benachrichtigt', style: Theme.of(context).textTheme.bodyMedium))),
+                            Expanded(child: Center(child: Text('Geantwortet', style: Theme.of(context).textTheme.bodyMedium))),
+                            Expanded(child: Center(child: Text('Bedarf', style: Theme.of(context).textTheme.bodyMedium))),
                           ],
                         ),
                       ),
@@ -72,18 +72,30 @@ class LotteryDetailScreen extends StatelessWidget {
                               (c) => c.id == entry.childId,
                               orElse: () => Child(id: entry.childId, vorname: '', nachname: '', gruppe: GroupName.ratz),
                             );
+                            final isPicked = entry.picked;
                             return Container(
                               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                               decoration: BoxDecoration(
+                                color: isPicked ? Colors.red.shade700 : null,
                                 border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
                               ),
                               child: Row(
                                 children: [
                                   Expanded(
                                     flex: 3,
-                                    child: child.vorname.isNotEmpty || child.nachname.isNotEmpty
-                                        ? Text('${child.nachname}, ${child.vorname}')
-                                        : Text(child.id),
+                  child: child.vorname.isNotEmpty || child.nachname.isNotEmpty
+                    ? Text(
+                      '${child.nachname}, ${child.vorname}' + (isPicked ? ' (Gezogen)' : ''),
+                      style: isPicked
+                        ? const TextStyle(color: Colors.white)
+                        : null,
+                      )
+                    : Text(
+                      child.id + (isPicked ? ' (Gezogen)' : ''),
+                      style: isPicked
+                        ? const TextStyle(color: Colors.white)
+                        : null,
+                      ),
                                   ),
                                   Expanded(
                                     child: Center(child: _buildBoolCircle(entry.notified)),

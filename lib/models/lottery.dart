@@ -4,12 +4,14 @@ class LotteryChild {
   bool notified;
   bool responded;
   bool need;
+  bool picked;
 
   LotteryChild({
     required this.childId,
     this.notified = false,
     this.responded = false,
     this.need = false,
+    this.picked = false,
   });
 
   factory LotteryChild.fromMap(Map<String, dynamic> map) => LotteryChild(
@@ -17,6 +19,7 @@ class LotteryChild {
     notified: map['notified'] ?? false,
     responded: map['responded'] ?? false,
     need: map['need'] ?? false,
+    picked: map['picked'] ?? false,
   );
 
   Map<String, dynamic> toMap() => {
