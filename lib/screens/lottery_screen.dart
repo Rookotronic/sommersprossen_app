@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../utils/controller_lifecycle_mixin.dart';
 import '../models/lottery.dart';
+import 'lottery_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:intl/intl.dart';
-import '../services/firestore_service.dart';
 
 class LotteryScreen extends StatefulWidget {
   const LotteryScreen({super.key});
@@ -13,7 +14,7 @@ class LotteryScreen extends StatefulWidget {
 }
 
 class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleMixin {
-  final FirestoreService _firestoreService = FirestoreService();
+  
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -56,9 +57,16 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                   style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  'Zu ziehende Kinder: ${lottery.nrOfchildrenToPick}',
+                  'Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}',
                   style: TextStyle(color: textColor),
                 ),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => LotteryDetailScreen(lottery: lottery),
+                    ),
+                  );
+                },
               );
             },
           ),
@@ -110,6 +118,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                   TextField(
                     controller: timeOfDayController,
                     decoration: const InputDecoration(labelText: 'Zeitangabe (z.B. Ganztägig, ab 13 Uhr)'),
+                    maxLength: 15,
                   ),
                   TextField(
                     controller: nrController,
@@ -130,7 +139,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    final nr = int.tryParse(nrController.text);
+                    final nr = int.tryParse(nrController.text.trim());
                     final now = DateTime.now();
                     final selectedDay = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
                     final today = DateTime(now.year, now.month, now.day);
@@ -142,25 +151,21 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                       setState(() => errorText = 'Bitte ein gültiges Datum wählen (nicht in der Vergangenheit).');
                       return;
                     }
-                    // TODO: Replace with cloud function call to create a new lottery entry
-                    // Inputs: selectedDate, timeOfDayController.text.trim(), nr
-                    // Example:
-                    // await callCreateLotteryCloudFunction(date: selectedDate, timeOfDay: timeOfDayController.text.trim(), nrOfChildrenToPick: nr);
-                    // Remove Firestore direct add below when cloud function is ready
                     try {
-                      final result = await _firestoreService.add('lotteries', {
-                        'date': selectedDate.millisecondsSinceEpoch,
-                        'finished': false,
-                        'requestsSend': false,
-                        'allAnswersReceived': false,
-                        'nrOfchildrenToPick': nr,
+                      final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('addLottery');
+                      final result = await callable.call({
+                        'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+                        'nrOfChildrenToPick': nr,
                         'timeOfDay': timeOfDayController.text.trim(),
                       });
-                      if (result != null) {
+                      if (result.data['success'] == true) {
                         if (context.mounted) {
-                        Navigator.of(context, rootNavigator: true).pop(false);} else {return;}
+                          Navigator.of(context, rootNavigator: true).pop(false);
+                        } else {
+                          return;
+                        }
                       } else {
-                        setState(() => errorText = 'Fehler beim Speichern.');
+                        setState(() => errorText = result.data['message'] ?? 'Fehler beim Speichern.');
                       }
                     } catch (e) {
                       if (!mounted) return;

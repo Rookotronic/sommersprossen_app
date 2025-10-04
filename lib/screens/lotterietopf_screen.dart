@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/lotterypot.dart';
 import '../services/firestore_service.dart';
 import '../models/child.dart';
+import '../services/child_service.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class LotterietopfScreen extends StatefulWidget {
@@ -14,12 +14,7 @@ class LotterietopfScreen extends StatefulWidget {
 }
 
 class _LotterietopfScreenState extends State<LotterietopfScreen> {
-  Future<List<Child>> _fetchChildrenForKids(List<String> childIds) async {
-    final ids = childIds.toSet().toList();
-    if (ids.isEmpty) return [];
-    final query = await _firestoreService.db.collection('children').where(FieldPath.documentId, whereIn: ids).get();
-    return query.docs.map((doc) => Child.fromFirestore(doc.id, doc.data())).toList();
-  }
+  // Use shared ChildService for fetching children by IDs
   final FirestoreService _firestoreService = FirestoreService();
   LotteryPot? lotterypot;
   bool _loading = true;
@@ -104,7 +99,7 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                   const SizedBox(height: 12),
                   Expanded(
                     child: FutureBuilder<List<Child>>(
-                      future: _fetchChildrenForKids(lotterypot!.kids),
+                      future: ChildService.fetchChildrenByIds(lotterypot!.kids),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(child: CircularProgressIndicator());

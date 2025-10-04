@@ -31,10 +31,7 @@ class Lottery {
   bool finished;
   bool requestsSend;
   bool allAnswersReceived;
-  final int nrOfchildrenToPick;
-
-// Top-level class for child data in lottery
-
+  final int nrOfChildrenToPick;
   final List<LotteryChild> children;
   final String timeOfDay;
 
@@ -43,18 +40,18 @@ class Lottery {
     this.finished = false,
     this.requestsSend = false,
     this.allAnswersReceived = false,
-    required this.nrOfchildrenToPick,
+    required this.nrOfChildrenToPick,
     required this.children,
     required this.timeOfDay,
   });
   factory Lottery.fromFirestore(dynamic doc) {
     final data = doc.data() as Map<String, dynamic>;
     return Lottery(
-      date: DateTime.fromMillisecondsSinceEpoch(data['date'] ?? 0),
+      date: DateTime.parse(data['date'] ?? ''),
       finished: data['finished'] ?? false,
       requestsSend: data['requestsSend'] ?? false,
       allAnswersReceived: data['allAnswersReceived'] ?? false,
-      nrOfchildrenToPick: data['nrOfchildrenToPick'] ?? 0,
+      nrOfChildrenToPick: data['nrOfChildrenToPick'] ?? 0,
       children: (data['children'] as List<dynamic>? ?? [])
         .map((c) => LotteryChild.fromMap(Map<String, dynamic>.from(c)))
         .toList(),
@@ -68,7 +65,7 @@ class Lottery {
       'finished': finished,
       'requestsSend': requestsSend,
       'allAnswersReceived': allAnswersReceived,
-      'nrOfchildrenToPick': nrOfchildrenToPick,
+      'nrOfchildrenToPick': nrOfChildrenToPick,
   'children': children.map((c) => c.toMap()).toList(),
       'timeOfDay': timeOfDay,
     };
