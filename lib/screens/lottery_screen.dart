@@ -38,8 +38,8 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
             body: Center(child: Text('Fehler beim Laden der Lotterien: ${snapshot.error}')),
           );
         }
-        final docs = snapshot.data?.docs ?? [];
-        final lotteries = docs.map((doc) => Lottery.fromFirestore(doc)).toList();
+  final docs = snapshot.data?.docs ?? [];
+  final lotteries = docs.map((doc) => Lottery.fromFirestore(doc)).toList();
         final hasUnfinished = lotteries.any((l) => !l.finished);
         return Scaffold(
           appBar: AppBar(title: const Text('Losverfahren')),
@@ -47,6 +47,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
             itemCount: lotteries.length,
             itemBuilder: (context, index) {
               final lottery = lotteries[index];
+              final docId = docs[index].id;
               final dateStr = _formatDate(lottery.date);
               final textColor = lottery.finished
                   ? Colors.grey.shade600
@@ -63,7 +64,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => LotteryDetailScreen(lottery: lottery),
+                      builder: (context) => LotteryDetailScreen(lottery: lottery, lotteryId: docId),
                     ),
                   );
                 },

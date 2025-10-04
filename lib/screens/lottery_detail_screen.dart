@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:sommersprossen_app/models/lotterypot.dart';
 import '../models/lottery.dart';
 import '../models/child.dart';
 import '../services/child_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LotteryDetailScreen extends StatelessWidget {
+  final String lotteryId;
+  final Lottery lottery;
+
+  const LotteryDetailScreen({super.key, required this.lottery, required this.lotteryId});
+
   Widget _buildBoolCircle(bool value) {
     return Container(
       width: 18,
@@ -15,8 +22,6 @@ class LotteryDetailScreen extends StatelessWidget {
       ),
     );
   }
-  final Lottery lottery;
-  const LotteryDetailScreen({super.key, required this.lottery});
 
   @override
   @override
@@ -56,10 +61,10 @@ class LotteryDetailScreen extends StatelessWidget {
                         color: Colors.grey.shade200,
                         child: Row(
                           children: [
-                            Expanded(flex: 3, child: Text('Name', style: Theme.of(context).textTheme.bodyMedium)),
-                            Expanded(child: Center(child: Text('Benachrichtigt', style: Theme.of(context).textTheme.bodyMedium))),
-                            Expanded(child: Center(child: Text('Geantwortet', style: Theme.of(context).textTheme.bodyMedium))),
-                            Expanded(child: Center(child: Text('Bedarf', style: Theme.of(context).textTheme.bodyMedium))),
+                            Expanded(flex: 3, child: Text('Name', style: const TextStyle(fontSize: 11))),
+                            Expanded(child: Center(child: Text('Benachrichtigt', style: const TextStyle(fontSize: 11)))),
+                            Expanded(child: Center(child: Text('Geantwortet', style: const TextStyle(fontSize: 11)))),
+                            Expanded(child: Center(child: Text('Bedarf', style: const TextStyle(fontSize: 11)))),
                           ],
                         ),
                       ),
@@ -83,19 +88,19 @@ class LotteryDetailScreen extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     flex: 3,
-                  child: child.vorname.isNotEmpty || child.nachname.isNotEmpty
-                    ? Text(
-                      '${child.nachname}, ${child.vorname}' + (isPicked ? ' (Gezogen)' : ''),
-                      style: isPicked
-                        ? const TextStyle(color: Colors.white)
-                        : null,
-                      )
-                    : Text(
-                      child.id + (isPicked ? ' (Gezogen)' : ''),
-                      style: isPicked
-                        ? const TextStyle(color: Colors.white)
-                        : null,
-                      ),
+                                    child: child.vorname.isNotEmpty || child.nachname.isNotEmpty
+                                        ? Text(
+                                            '${child.nachname}, ${child.vorname}' + (isPicked ? ' (Gezogen)' : ''),
+                                            style: isPicked
+                                                ? const TextStyle(color: Colors.white, fontSize: 11)
+                                                : const TextStyle(fontSize: 11),
+                                          )
+                                        : Text(
+                                            child.id + (isPicked ? ' (Gezogen)' : ''),
+                                            style: isPicked
+                                                ? const TextStyle(color: Colors.white, fontSize: 11)
+                                                : const TextStyle(fontSize: 11),
+                                          ),
                                   ),
                                   Expanded(
                                     child: Center(child: _buildBoolCircle(entry.notified)),
@@ -111,6 +116,69 @@ class LotteryDetailScreen extends StatelessWidget {
                             );
                           },
                         ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('Lotterie löschen'),
+                                content: const Text('Bist du sicher, dass du diese Lotterie löschen möchtest? Dies kann nicht rückgängig gemacht werden.'),
+                                actions: [
+                                  TextButton(
+                                    child: const Text('Abbrechen'),
+                                    onPressed: () => Navigator.of(context).pop(false),
+                                  ),
+                                  TextButton(
+                                    child: const Text('Ja, löschen'),
+                                    onPressed: () async {
+                                      final doubleCheck = await showDialog<bool>(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: const Text('Wirklich löschen?'),
+                                            content: const Text('Bitte bestätige erneut, dass du die Lotterie wirklich löschen willst.'),
+                                            actions: [
+                                              TextButton(
+                                                child: const Text('Nein'),
+                                                onPressed: () => Navigator.of(context).pop(false),
+                                              ),
+                                              TextButton(
+                                                child: const Text('Endgültig löschen'),
+                                                onPressed: () => Navigator.of(context).pop(true),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                      Navigator.of(context).pop(doubleCheck == true);
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                          if (confirmed == true) {
+                            try {
+                              await FirebaseFirestore.instance.collection('lotteries').doc(lotteryId).delete();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Lotterie gelöscht!')),
+                              );
+                              Navigator.of(context).pop();
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Fehler beim Löschen: $e')),
+                              );
+                            }
+                          }
+                        },
+                        child: const Text('Löschen'),
                       ),
                     ],
                   );
