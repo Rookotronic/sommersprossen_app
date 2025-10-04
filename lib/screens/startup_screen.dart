@@ -3,6 +3,7 @@ import '../utils/controller_lifecycle_mixin.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'loading_screen.dart';
 import 'main_menus.dart';
 import '../utils/validators.dart';
@@ -19,6 +20,23 @@ class _StartupScreenState extends State<StartupScreen> {
   void initState() {
     super.initState();
     _initApp();
+    _initFCM();
+  }
+
+  Future<void> _initFCM() async {
+    // Get FCM token and save to Firestore if user is logged in
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final userId = prefs.getString('userId');
+    if (isLoggedIn && userId != null) {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        await FirebaseFirestore.instance.collection('users').doc(userId).update({'fcmToken': token});
+      }
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+        await FirebaseFirestore.instance.collection('users').doc(userId).update({'fcmToken': newToken});
+      });
+    }
   }
 
   Future<void> _initApp() async {

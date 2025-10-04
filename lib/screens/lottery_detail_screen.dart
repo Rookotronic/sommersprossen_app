@@ -26,6 +26,7 @@ class LotteryDetailScreen extends StatelessWidget {
   @override
   @override
   Widget build(BuildContext context) {
+    final showSendButton = !lottery.finished && !lottery.requestsSend && !lottery.allAnswersReceived;
     return Scaffold(
       appBar: AppBar(title: const Text('Lotterie Details')),
       body: Padding(
@@ -33,11 +34,37 @@ class LotteryDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Datum: ${_formatDate(lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text('Zeit: ${lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 8),
-            Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Datum: ${_formatDate(lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Text('Zeit: ${lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
+                      const SizedBox(height: 8),
+                      Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
+                    ],
+                  ),
+                ),
+                if (showSendButton)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12.0, top: 2.0),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        // TODO: Call cloud onCall function to send notifications
+                      },
+                      child: const Text('Benachrichtigungen senden'),
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(height: 16),
             Text('Kinder:', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
