@@ -20,28 +20,9 @@ class _StartupScreenState extends State<StartupScreen> {
   void initState() {
     super.initState();
     _initApp();
-    _initFCM();
-  }
-
-  Future<void> _initFCM() async {
-    // Get FCM token and save to Firestore if user is logged in
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    final userId = prefs.getString('userId');
-    if (isLoggedIn && userId != null) {
-      final token = await FirebaseMessaging.instance.getToken();
-      if (token != null) {
-        await FirebaseFirestore.instance.collection('users').doc(userId).update({'fcmToken': token});
-      }
-      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-        await FirebaseFirestore.instance.collection('users').doc(userId).update({'fcmToken': newToken});
-      });
-    }
   }
 
   Future<void> _initApp() async {
-    // Simulate backend connection
-    await Future.delayed(const Duration(seconds: 2));
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
     final userType = prefs.getString('userType');
@@ -122,6 +103,15 @@ class _LoginScreenState extends State<LoginScreen> with ControllerLifecycleMixin
       );
       final user = credential.user;
       if (user != null) {
+        // Store FCM token after successful login
+        final token = await FirebaseMessaging.instance.getToken();
+        if (token != null) {
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'fcmToken': token});
+        }
+        FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'fcmToken': newToken});
+        });
+
         final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         final userType = doc.data()?['type'] ?? 'parent';
         Widget menu = userType == 'admin' ? const AdminMainMenuScreen() : const ParentMainMenuScreen();
