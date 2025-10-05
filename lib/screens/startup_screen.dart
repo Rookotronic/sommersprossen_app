@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../utils/controller_lifecycle_mixin.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -103,14 +105,22 @@ class _LoginScreenState extends State<LoginScreen> with ControllerLifecycleMixin
       );
       final user = credential.user;
       if (user != null) {
-        // Store FCM token after successful login
-        final token = await FirebaseMessaging.instance.getToken();
-        if (token != null) {
-          await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'fcmToken': token});
+        // Platform-aware FCM logic
+        try {
+          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+            await FirebaseMessaging.instance.requestPermission();
+            final token = await FirebaseMessaging.instance.getToken();
+            if (token != null) {
+              await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'fcmToken': token});
+            }
+            FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+              await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'fcmToken': newToken});
+            });
+          }
+        } catch (e) {
+          // Log error, do not block login
+          print('FCM token error: $e');
         }
-        FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-          await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'fcmToken': newToken});
-        });
 
         final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         final userType = doc.data()?['type'] ?? 'parent';
