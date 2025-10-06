@@ -64,72 +64,58 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Flexible(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Datum: ${_formatDate(_lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
-                            const SizedBox(height: 8),
-                            Text('Zeit: ${_lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
-                            const SizedBox(height: 8),
-                            Text('Zu ziehende Kinder: ${_lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
+                  // Lottery info
+                  Text('Datum: ${_formatDate(_lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  Text('Zeit: ${_lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
+                  const SizedBox(height: 8),
+                  Text('Zu ziehende Kinder: ${_lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
+                  const SizedBox(height: 16),
+                  // Reporting period control
+                  ReportingPeriodControl(
+                    lottery: _lottery,
+                    onEndPeriod: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Meldezeitraum beenden?'),
+                          content: const Text('Bist du sicher, dass du den Meldezeitraum beenden möchtest?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('Abbrechen'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text('Beenden'),
+                            ),
                           ],
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        width: 260,
-                        child: ReportingPeriodControl(
-                          lottery: _lottery,
-                          onEndPeriod: () async {
-                            final confirmed = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Meldezeitraum beenden?'),
-                                content: const Text('Bist du sicher, dass du den Meldezeitraum beenden möchtest?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(false),
-                                    child: const Text('Abbrechen'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(true),
-                                    child: const Text('Beenden'),
-                                  ),
-                                ],
-                              ),
-                            );
-                            if (confirmed == true) {
-                              await FirebaseFirestore.instance
-                                  .collection('lotteries')
-                                  .doc(widget.lotteryId)
-                                  .update({'allAnswersReceived': true});
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Meldezeitraum wurde beendet.')),
-                              );
-                              await _reloadLottery();
-                            }
-                          },
-                        ),
-                      ),
-                if (showSendButton)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12.0, top: 2.0),
-                    child: NotifyParentsButton(
-                      onSuccess: () async {
+                      );
+                      if (confirmed == true) {
+                        await FirebaseFirestore.instance
+                            .collection('lotteries')
+                            .doc(widget.lotteryId)
+                            .update({'allAnswersReceived': true});
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Benachrichtigungen gesendet!')),
+                          const SnackBar(content: Text('Meldezeitraum wurde beendet.')),
                         );
                         await _reloadLottery();
-                      },
-                    ),
+                      }
+                    },
                   ),
-              ],
-            ),
+                  if (showSendButton)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: NotifyParentsButton(
+                        onSuccess: () async {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Benachrichtigungen gesendet!')),
+                          );
+                          await _reloadLottery();
+                        },
+                      ),
+                    ),
             const SizedBox(height: 16),
             Text('Kinder:', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
