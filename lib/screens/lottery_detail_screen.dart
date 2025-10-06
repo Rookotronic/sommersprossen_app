@@ -3,6 +3,7 @@ import '../models/lottery.dart';
 import '../models/child.dart';
 import '../services/child_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class LotteryDetailScreen extends StatelessWidget {
   final String lotteryId;
@@ -57,7 +58,20 @@ class LotteryDetailScreen extends StatelessWidget {
                         foregroundColor: Colors.white,
                       ),
                       onPressed: () async {
-                        // TODO: Call cloud onCall function to send notifications
+                        try {
+                          final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                          final notifyParentsForLottery = functions.httpsCallable('notifyParentsForLottery');
+                          final result = await notifyParentsForLottery(); // No arguments needed
+                          print('Notification sent: ${result.data}');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Benachrichtigungen gesendet!')),
+                          );
+                        } catch (error) {
+                          print('Error sending notification: $error');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Fehler beim Senden der Benachrichtigungen')),
+                          );
+                        }
                       },
                       child: const Text('Benachrichtigungen senden'),
                     ),
@@ -116,7 +130,7 @@ class LotteryDetailScreen extends StatelessWidget {
                                     flex: 3,
                                     child: child.vorname.isNotEmpty || child.nachname.isNotEmpty
                                         ? Text(
-                                            '${child.nachname}, ${child.vorname}' + (isPicked ? ' (Gezogen)' : ''),
+                                            '${child.nachname}, ${child.vorname}${isPicked ? ' (Gezogen)' : ''}',
                                             style: isPicked
                                                 ? const TextStyle(color: Colors.white, fontSize: 11)
                                                 : const TextStyle(fontSize: 11),
