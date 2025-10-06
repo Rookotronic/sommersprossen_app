@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sommersprossen_app/models/lotterypot.dart';
 import '../models/lottery.dart';
 import '../models/child.dart';
 import '../services/child_service.dart';
