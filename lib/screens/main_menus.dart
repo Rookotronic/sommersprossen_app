@@ -166,7 +166,37 @@ class AdminMainMenuScreen extends StatelessWidget {
                                   ),
                                 ),
                               const SizedBox(height: 12),
-                              ReportingPeriodControl(lottery: lottery, onEndPeriod: null),
+                              ReportingPeriodControl(
+                                lottery: lottery,
+                                onEndPeriod: () async {
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Meldezeitraum beenden?'),
+                                      content: const Text('Bist du sicher, dass du den Meldezeitraum beenden möchtest?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(context).pop(false),
+                                          child: const Text('Abbrechen'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.of(context).pop(true),
+                                          child: const Text('Beenden'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirmed == true) {
+                                    await FirebaseFirestore.instance
+                                        .collection('lotteries')
+                                        .doc(lotteryId)
+                                        .update({'allAnswersReceived': true});
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Meldezeitraum wurde beendet.')),
+                                    );
+                                  }
+                                },
+                              ),
                             ],
                           ),
                         ),

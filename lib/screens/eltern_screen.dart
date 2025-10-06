@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 // ...existing code...
 import '../utils/controller_lifecycle_mixin.dart';
@@ -300,6 +301,7 @@ class ElternDetailScreen extends StatefulWidget {
 }
 
 class _ElternDetailScreenState extends State<ElternDetailScreen> with ControllerLifecycleMixin {
+import 'package:cloud_functions/cloud_functions.dart';
   final FirestoreService _firestoreService = FirestoreService();
   // ...existing code...
   late TextEditingController _vornameController;
@@ -401,11 +403,13 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
       ),
     );
     if (confirmed == true) {
-      // Delete parent from Firestore
+      // Call cloud function to delete parent
       try {
-        final success = await _firestoreService.delete('parents', widget.parent.id);
+        final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+        final callable = functions.httpsCallable('deleteParent');
+        final result = await callable({'parentId': widget.parent.id});
         if (!mounted) return;
-        if (success) {
+        if (result.data['success'] == true) {
           Navigator.of(context).pop({'delete': true, 'id': widget.parent.id});
         } else {
           if (!mounted) return;
