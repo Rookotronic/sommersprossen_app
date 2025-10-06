@@ -109,9 +109,10 @@ class MeinKindDetailScreen extends StatelessWidget {
                     final responded = childEntry != null && childEntry['responded'] == true;
                     final need = childEntry != null && childEntry['need'] == true;
                     // Show box if lottery is active or child was picked in latest lottery
-                    final requestsSend = data['requestsSend'] == true;
+                    // Robust check for requestsSend/requestsSent field
+                    final requestsSendRaw = data['requestsSend'] ?? data['requestsSent'];
                     // Show box only if requestsSend is true and lottery is active or child was picked
-                    if (requestsSend && (!finished || picked)) {
+                    if ((requestsSendRaw == true || requestsSendRaw == 'true' || requestsSendRaw == 'True') && (!finished || picked)) {
                       final date = data['date'] ?? '';
                       final timeOfDay = data['timeOfDay'] ?? '';
                       final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? '';
