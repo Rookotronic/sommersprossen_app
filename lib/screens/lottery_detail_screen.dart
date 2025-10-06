@@ -1,3 +1,4 @@
+import '../widgets/lottery_info_box.dart';
 import 'package:sommersprossen_app/widgets/notify_parents_button.dart';
 
 import 'package:flutter/material.dart';
@@ -53,7 +54,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final showSendButton = !_lottery.finished && !_lottery.requestsSend && !_lottery.allAnswersReceived;
+  final showSendButton = !_lottery.finished && !_lottery.requestsSend && !_lottery.allAnswersReceived;
     return Scaffold(
       appBar: AppBar(title: const Text('Lotterie Details')),
       body: _loading
@@ -63,21 +64,27 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Datum: ${_formatDate(_lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      Text('Zeit: ${_lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
-                      const SizedBox(height: 8),
-                      Text('Zu ziehende Kinder: ${_lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
-                    ],
-                  ),
-                ),
+                      Flexible(
+                        flex: 2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Datum: ${_formatDate(_lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(height: 8),
+                            Text('Zeit: ${_lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
+                            const SizedBox(height: 8),
+                            Text('Zu ziehende Kinder: ${_lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      SizedBox(
+                        width: 260,
+                        child: LotteryInfoBox(lottery: _lottery, onEndPeriod: null),
+                      ),
                 if (showSendButton)
                   Padding(
                     padding: const EdgeInsets.only(left: 12.0, top: 2.0),

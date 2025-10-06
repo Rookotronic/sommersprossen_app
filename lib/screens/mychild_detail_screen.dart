@@ -3,6 +3,7 @@ import '../models/child.dart';
 import '../models/parent.dart';
 import '../widgets/parent_list_display.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class MeinKindDetailScreen extends StatelessWidget {
   final List<Child> children;
@@ -99,14 +100,31 @@ class MeinKindDetailScreen extends StatelessWidget {
                     final data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
                     final finished = data['finished'] ?? false;
                     final childrenList = (data['children'] as List<dynamic>? ?? []);
-                    final picked = childrenList.any((c) => c['childId'] == child.id && c['picked'] == true);
+                    final childEntry = childrenList.firstWhere(
+                      (c) => c['childId'] == child.id,
+                      orElse: () => null,
+                    );
+                    final picked = childEntry != null && childEntry['picked'] == true;
+                    final responded = childEntry != null && childEntry['responded'] == true;
+                    final need = childEntry != null && childEntry['need'] == true;
                     // Show box if lottery is active or child was picked in latest lottery
                     if (!finished || picked) {
                       final date = data['date'] ?? '';
                       final timeOfDay = data['timeOfDay'] ?? '';
                       final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? '';
+                      Color boxColor = Colors.blue.shade50;
+                      String stateText = '';
+                      if (responded) {
+                        if (need) {
+                          boxColor = Colors.green.shade300;
+                          stateText = 'Für dieses Kind Bedarf angemeldet!';
+                        } else {
+                          boxColor = Colors.red.shade300;
+                          stateText = 'Für dieses Kind KEINEN Bedarf angemeldet!';
+                        }
+                      }
                       return Card(
-                        color: Colors.blue.shade50,
+                        color: boxColor,
                         margin: const EdgeInsets.fromLTRB(24, 8, 24, 0),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
@@ -118,11 +136,35 @@ class MeinKindDetailScreen extends StatelessWidget {
                               Text('Datum: $date'),
                               Text('Zeit: $timeOfDay'),
                               Text('Zu ziehende Kinder: $nrOfChildrenToPick'),
+                              if (responded) ...[
+                                const SizedBox(height: 12),
+                                Text(
+                                  stateText,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 12),
                               Row(
                                 children: [
                                   ElevatedButton(
-                                    onPressed: () {},
+                                    onPressed: () async {
+                                      try {
+                                        final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                                        final callable = functions.httpsCallable('childHasNeed');
+                                        await callable({'childId': child.id});
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Bedarf gemeldet!')),
+                                        );
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Fehler: $e')),
+                                        );
+                                      }
+                                    },
                                     child: const Text('Bedarf'),
                                   ),
                                   const SizedBox(width: 12),
@@ -131,7 +173,20 @@ class MeinKindDetailScreen extends StatelessWidget {
                                       backgroundColor: Colors.red,
                                       foregroundColor: Colors.white,
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () async {
+                                      try {
+                                        final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                                        final callable = functions.httpsCallable('childHasNoNeed');
+                                        await callable({'childId': child.id});
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Kein Bedarf gemeldet!')),
+                                        );
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Fehler: $e')),
+                                        );
+                                      }
+                                    },
                                     child: const Text('Kein Bedarf'),
                                   ),
                                 ],

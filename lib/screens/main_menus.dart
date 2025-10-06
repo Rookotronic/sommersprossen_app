@@ -5,6 +5,9 @@ import 'package:sommersprossen_app/widgets/notify_parents_button.dart';
 import 'eltern_screen.dart';
 import 'kinder_screen.dart';
 import 'lottery_screen.dart';
+import '../models/lottery.dart';
+import 'lottery_detail_screen.dart';
+import '../widgets/lottery_info_box.dart';
 import '../models/child.dart';
 import 'mychild_detail_screen.dart';
 import 'lotterietopf_screen.dart';
@@ -125,32 +128,50 @@ class AdminMainMenuScreen extends StatelessWidget {
                 final allAnswersReceived = data['allAnswersReceived'] ?? false;
                 final finished = data['finished'] ?? false;
                 final showSendButton = !requestsSend && !finished && !allAnswersReceived;
-                return Card(
-                  color: Colors.blue.shade50,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Aktive Lotterie', style: Theme.of(context).textTheme.titleMedium),
-                        const SizedBox(height: 8),
-                        Text('Datum: $date'),
-                        Text('Zeit: $timeOfDay'),
-                        Text('Zu ziehende Kinder: $nrOfChildrenToPick'),
-                        if (showSendButton)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12.0),
-                            child: NotifyParentsButton(
-                              onSuccess: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Benachrichtigungen gesendet!')),
-                                );
-                              },
-                            ),
+                final lotteryId = docs.first.id;
+                final lottery = Lottery.fromFirestore(docs.first);
+                return InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => LotteryDetailScreen(lotteryId: lotteryId, lottery: lottery),
+                      ),
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      Card(
+                        color: Colors.blue.shade50,
+                        margin: const EdgeInsets.only(bottom: 24),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Aktive Lotterie', style: Theme.of(context).textTheme.titleMedium),
+                              const SizedBox(height: 8),
+                              Text('Datum: $date'),
+                              Text('Zeit: $timeOfDay'),
+                              Text('Zu ziehende Kinder: $nrOfChildrenToPick'),
+                              if (showSendButton)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 12.0),
+                                  child: NotifyParentsButton(
+                                    onSuccess: () {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Benachrichtigungen gesendet!')),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              const SizedBox(height: 12),
+                              LotteryInfoBox(lottery: lottery, onEndPeriod: null),
+                            ],
                           ),
-                      ],
-                    ),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },

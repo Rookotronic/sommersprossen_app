@@ -17,7 +17,7 @@ Widget NotifyParentsButton({required VoidCallback onSuccess}) {
         // Show feedback
         // Use context from builder if needed
       } catch (error) {
-        print('Error sending notification: ${error}');
+        print('Error sending notification: $error');
         // Optionally show error feedback
       }
     },
