@@ -1,6 +1,5 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
-// ...existing code...
 import '../utils/controller_lifecycle_mixin.dart';
 import '../utils/validators.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -301,7 +300,6 @@ class ElternDetailScreen extends StatefulWidget {
 }
 
 class _ElternDetailScreenState extends State<ElternDetailScreen> with ControllerLifecycleMixin {
-import 'package:cloud_functions/cloud_functions.dart';
   final FirestoreService _firestoreService = FirestoreService();
   // ...existing code...
   late TextEditingController _vornameController;
