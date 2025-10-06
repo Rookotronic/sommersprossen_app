@@ -1,15 +1,43 @@
+import 'package:sommersprossen_app/widgets/notify_parents_button.dart';
+
 import 'package:flutter/material.dart';
 import '../models/lottery.dart';
 import '../models/child.dart';
 import '../services/child_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 
-class LotteryDetailScreen extends StatelessWidget {
+class LotteryDetailScreen extends StatefulWidget {
   final String lotteryId;
   final Lottery lottery;
 
   const LotteryDetailScreen({super.key, required this.lottery, required this.lotteryId});
+
+  @override
+  State<LotteryDetailScreen> createState() => _LotteryDetailScreenState();
+}
+
+class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
+  late Lottery _lottery;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _lottery = widget.lottery;
+  }
+
+  Future<void> _reloadLottery() async {
+    setState(() => _loading = true);
+    final doc = await FirebaseFirestore.instance.collection('lotteries').doc(widget.lotteryId).get();
+    if (doc.exists) {
+      setState(() {
+        _lottery = Lottery.fromFirestore(doc);
+        _loading = false;
+      });
+    } else {
+      setState(() => _loading = false);
+    }
+  }
 
   Widget _buildBoolCircle(bool value) {
     return Container(
@@ -24,16 +52,17 @@ class LotteryDetailScreen extends StatelessWidget {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
-    final showSendButton = !lottery.finished && !lottery.requestsSend && !lottery.allAnswersReceived;
+    final showSendButton = !_lottery.finished && !_lottery.requestsSend && !_lottery.allAnswersReceived;
     return Scaffold(
       appBar: AppBar(title: const Text('Lotterie Details')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -41,39 +70,24 @@ class LotteryDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Datum: ${_formatDate(lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
+                      Text('Datum: ${_formatDate(_lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
-                      Text('Zeit: ${lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
+                      Text('Zeit: ${_lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
                       const SizedBox(height: 8),
-                      Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
+                      Text('Zu ziehende Kinder: ${_lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
                     ],
                   ),
                 ),
                 if (showSendButton)
                   Padding(
                     padding: const EdgeInsets.only(left: 12.0, top: 2.0),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: () async {
-                        try {
-                          final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
-                          final notifyParentsForLottery = functions.httpsCallable('notifyParentsForLottery');
-                          final result = await notifyParentsForLottery(); // No arguments needed
-                          print('Notification sent: ${result.data}');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Benachrichtigungen gesendet!')),
-                          );
-                        } catch (error) {
-                          print('Error sending notification: $error');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Fehler beim Senden der Benachrichtigungen')),
-                          );
-                        }
+                    child: NotifyParentsButton(
+                      onSuccess: () async {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Benachrichtigungen gesendet!')),
+                        );
+                        await _reloadLottery();
                       },
-                      child: const Text('Benachrichtigungen senden'),
                     ),
                   ),
               ],
@@ -83,7 +97,7 @@ class LotteryDetailScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Expanded(
               child: FutureBuilder<List<Child>>(
-                future: ChildService.fetchChildrenByIds(lottery.children.map((c) => c.childId).toList()),
+                future: ChildService.fetchChildrenByIds(_lottery.children.map((c) => c.childId).toList()),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -93,7 +107,7 @@ class LotteryDetailScreen extends StatelessWidget {
                   }
                   final children = snapshot.data ?? [];
                   // Ensure children are displayed in saved order, not reversed
-                  final orderedChildren = lottery.children;
+                  final orderedChildren = _lottery.children;
                   return Column(
                     children: [
                       Container(
@@ -206,7 +220,7 @@ class LotteryDetailScreen extends StatelessWidget {
                           );
                           if (confirmed == true) {
                             try {
-                              await FirebaseFirestore.instance.collection('lotteries').doc(lotteryId).delete();
+                              await FirebaseFirestore.instance.collection('lotteries').doc(widget.lotteryId).delete();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Lotterie gelöscht!')),
                               );
