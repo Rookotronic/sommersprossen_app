@@ -73,10 +73,10 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
   final vornameController = createController();
   final nachnameController = createController();
   final emailController = createController();
-    String? errorText;
+  String? errorText;
 
   bool isAlpha(String value) => RegExp(r"^[\p{L}'\- ]+$", unicode: true).hasMatch(value);
-    bool isValidEmail(String value) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+\u0000?').hasMatch(value);
+  bool isValidEmail(String value) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+\u0000?').hasMatch(value);
 
     final result = await showDialog<bool>(
       context: context,
@@ -140,13 +140,24 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                       setState(() => errorText = 'Bitte gültige Emailadresse eingeben.');
                       return;
                     }
+                    // Case-insensitive uniqueness check for email
+                    final emailLower = email.toLowerCase();
+                    final query = await FirebaseFirestore.instance
+                        .collection('parents')
+                        .where('email', isEqualTo: emailLower)
+                        .get();
+                    if (query.docs.isNotEmpty) {
+                      if (!mounted) return;
+                      setState(() => errorText = 'Diese Emailadresse ist bereits vergeben.');
+                      return;
+                    }
                     if (!mounted) return;
                     setState(() => errorText = null);
                     try {
                       final result = await _firestoreService.add('parents', {
                         'vorname': vorname,
                         'nachname': nachname,
-                        'email': email,
+                        'email': emailLower,
                       });
                       if (result != null) {
                         if (!mounted) return;
