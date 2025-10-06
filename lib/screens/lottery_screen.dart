@@ -111,6 +111,10 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                         initialDate: selectedDate,
                         firstDate: DateTime(2020),
                         lastDate: DateTime(2100),
+                        selectableDayPredicate: (date) {
+                          // Disable Saturdays (6) and Sundays (7)
+                          return date.weekday != DateTime.saturday && date.weekday != DateTime.sunday;
+                        },
                       );
                       if (!mounted) return;
                       if (picked != null) setState(() => selectedDate = picked);
