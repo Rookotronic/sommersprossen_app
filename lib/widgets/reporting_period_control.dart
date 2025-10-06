@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/lottery.dart';
 
-class LotteryInfoBox extends StatelessWidget {
+class ReportingPeriodControl extends StatelessWidget {
   final Lottery lottery;
   final VoidCallback? onEndPeriod;
-  const LotteryInfoBox({super.key, required this.lottery, this.onEndPeriod});
+  const ReportingPeriodControl({super.key, required this.lottery, this.onEndPeriod});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class LotteryInfoBox extends StatelessWidget {
           backgroundColor: Colors.grey.shade300,
           color: Colors.blue,
         ),
-        Text('${(percent * 100).toStringAsFixed(0)}% (${respondedChildren}/${totalChildren})', style: const TextStyle(fontSize: 11)),
+        Text('${(percent * 100).toStringAsFixed(0)}% ($respondedChildren/$totalChildren)', style: const TextStyle(fontSize: 11)),
         const SizedBox(height: 8),
         SizedBox(
           width: 180,

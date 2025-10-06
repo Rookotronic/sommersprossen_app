@@ -1,4 +1,4 @@
-import '../widgets/lottery_info_box.dart';
+import '../widgets/reporting_period_control.dart';
 import 'package:sommersprossen_app/widgets/notify_parents_button.dart';
 
 import 'package:flutter/material.dart';
@@ -83,7 +83,38 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                       const SizedBox(width: 16),
                       SizedBox(
                         width: 260,
-                        child: LotteryInfoBox(lottery: _lottery, onEndPeriod: null),
+                        child: ReportingPeriodControl(
+                          lottery: _lottery,
+                          onEndPeriod: () async {
+                            final confirmed = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Meldezeitraum beenden?'),
+                                content: const Text('Bist du sicher, dass du den Meldezeitraum beenden möchtest?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(false),
+                                    child: const Text('Abbrechen'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    child: const Text('Beenden'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirmed == true) {
+                              await FirebaseFirestore.instance
+                                  .collection('lotteries')
+                                  .doc(widget.lotteryId)
+                                  .update({'allAnswersReceived': true});
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Meldezeitraum wurde beendet.')),
+                              );
+                              await _reloadLottery();
+                            }
+                          },
+                        ),
                       ),
                 if (showSendButton)
                   Padding(

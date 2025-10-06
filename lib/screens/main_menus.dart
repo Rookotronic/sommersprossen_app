@@ -7,7 +7,7 @@ import 'kinder_screen.dart';
 import 'lottery_screen.dart';
 import '../models/lottery.dart';
 import 'lottery_detail_screen.dart';
-import '../widgets/lottery_info_box.dart';
+import '../widgets/reporting_period_control.dart';
 import '../models/child.dart';
 import 'mychild_detail_screen.dart';
 import 'lotterietopf_screen.dart';
@@ -166,7 +166,7 @@ class AdminMainMenuScreen extends StatelessWidget {
                                   ),
                                 ),
                               const SizedBox(height: 12),
-                              LotteryInfoBox(lottery: lottery, onEndPeriod: null),
+                              ReportingPeriodControl(lottery: lottery, onEndPeriod: null),
                             ],
                           ),
                         ),
