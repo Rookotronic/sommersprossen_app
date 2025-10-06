@@ -29,59 +29,122 @@ class MeinKindDetailScreen extends StatelessWidget {
           future: _fetchParentsForChild(child),
           builder: (context, snapshot) {
             final parents = snapshot.data ?? [];
-            return Card(
-              elevation: 6,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              margin: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+            return Column(
+              children: [
+                Card(
+                  elevation: 6,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  margin: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 32,
-                          backgroundColor: Colors.blue.shade100,
-                          child: Icon(Icons.child_care, size: 36, color: Colors.blue.shade700),
-                        ),
-                        const SizedBox(width: 20),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
                           children: [
-                            Text(child.vorname, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                            Text(child.nachname, style: Theme.of(context).textTheme.titleMedium),
+                            CircleAvatar(
+                              radius: 32,
+                              backgroundColor: Colors.blue.shade100,
+                              child: Icon(Icons.child_care, size: 36, color: Colors.blue.shade700),
+                            ),
+                            const SizedBox(width: 20),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(child.vorname, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                Text(child.nachname, style: Theme.of(context).textTheme.titleMedium),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 28),
+                        Row(
+                          children: [
+                            Icon(Icons.groups, color: Colors.blue.shade400),
+                            const SizedBox(width: 8),
+                            Text('Eltern:', style: Theme.of(context).textTheme.titleMedium),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        ParentListDisplay(parents: parents),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Icon(Icons.groups_2, color: Colors.blue.shade400),
+                            const SizedBox(width: 8),
+                            Text('Gruppe:', style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(width: 8),
+                            Chip(
+                              label: Text(child.gruppe.displayName, style: const TextStyle(color: Colors.white)),
+                              backgroundColor: Colors.blue,
+                            ),
                           ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 28),
-                    Row(
-                      children: [
-                        Icon(Icons.groups, color: Colors.blue.shade400),
-                        const SizedBox(width: 8),
-                        Text('Eltern:', style: Theme.of(context).textTheme.titleMedium),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    ParentListDisplay(parents: parents),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Icon(Icons.groups_2, color: Colors.blue.shade400),
-                        const SizedBox(width: 8),
-                        Text('Gruppe:', style: Theme.of(context).textTheme.titleMedium),
-                        const SizedBox(width: 8),
-                        Chip(
-                          label: Text(child.gruppe.displayName, style: const TextStyle(color: Colors.white)),
-                          backgroundColor: Colors.blue,
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                // Lottery info box below each child card
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('lotteries')
+                      .orderBy('date', descending: true)
+                      .limit(1)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    final data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
+                    final finished = data['finished'] ?? false;
+                    final childrenList = (data['children'] as List<dynamic>? ?? []);
+                    final picked = childrenList.any((c) => c['childId'] == child.id && c['picked'] == true);
+                    // Show box if lottery is active or child was picked in latest lottery
+                    if (!finished || picked) {
+                      final date = data['date'] ?? '';
+                      final timeOfDay = data['timeOfDay'] ?? '';
+                      final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? '';
+                      return Card(
+                        color: Colors.blue.shade50,
+                        margin: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Aktive Lotterie', style: Theme.of(context).textTheme.titleMedium),
+                              const SizedBox(height: 8),
+                              Text('Datum: $date'),
+                              Text('Zeit: $timeOfDay'),
+                              Text('Zu ziehende Kinder: $nrOfChildrenToPick'),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {},
+                                    child: const Text('Bedarf'),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    onPressed: () {},
+                                    child: const Text('Kein Bedarf'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
             );
           },
         );
