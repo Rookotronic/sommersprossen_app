@@ -99,6 +99,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                     }
                     final data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
                     final finished = data['finished'] ?? false;
+                    final allAnswersReceived = data['allAnswersReceived'] == true;
                     final childrenList = (data['children'] as List<dynamic>? ?? []);
                     final childEntry = childrenList.firstWhere(
                       (c) => c['childId'] == child.id,
@@ -148,7 +149,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                                 ),
                               ],
                               const SizedBox(height: 12),
-                              Row(
+                              if (!allAnswersReceived) Row(
                                 children: [
                                   ElevatedButton(
                                     onPressed: () async {
