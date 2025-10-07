@@ -156,6 +156,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                               orElse: () => Child(id: entry.childId, vorname: '', nachname: '', gruppe: GroupName.ratz),
                             );
                             final isPicked = entry.picked;
+                            final requestsSend = _lottery.requestsSend == true;
                             return Container(
                               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                               decoration: BoxDecoration(
@@ -189,6 +190,40 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                   Expanded(
                                     child: Center(child: _buildBoolCircle(entry.need)),
                                   ),
+                                  if (!requestsSend)
+                                    IconButton(
+                                      icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                                      tooltip: 'Kind entfernen',
+                                      onPressed: () async {
+                                        final confirmed = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text('Kind entfernen'),
+                                            content: const Text('Möchtest du dieses Kind wirklich aus der Lotterie entfernen?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, false),
+                                                child: const Text('Abbrechen'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, true),
+                                                child: const Text('Entfernen'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        if (confirmed == true) {
+                                          // Remove child from lottery in Firestore
+                                          final updatedChildren = List<Map<String, dynamic>>.from(_lottery.children)
+                                            ..removeWhere((c) => c['childId'] == child.id);
+                      await FirebaseFirestore.instance
+                        .collection('lotteries')
+                        .doc(widget.lotteryId)
+                        .update({'children': updatedChildren});
+                                          await _reloadLottery();
+                                        }
+                                      },
+                                    ),
                                 ],
                               ),
                             );
