@@ -33,11 +33,11 @@ class MeinKindDetailScreen extends StatelessWidget {
             return Column(
               children: [
                 Card(
-                  elevation: 6,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  margin: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,40 +45,42 @@ class MeinKindDetailScreen extends StatelessWidget {
                         Row(
                           children: [
                             CircleAvatar(
-                              radius: 32,
+                              radius: 24,
                               backgroundColor: Colors.blue.shade100,
-                              child: Icon(Icons.child_care, size: 36, color: Colors.blue.shade700),
+                              child: Icon(Icons.child_care, size: 28, color: Colors.blue.shade700),
                             ),
-                            const SizedBox(width: 20),
+                            const SizedBox(width: 12),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(child.vorname, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                                Text(child.nachname, style: Theme.of(context).textTheme.titleMedium),
+                                Text(child.vorname, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                Text(child.nachname, style: Theme.of(context).textTheme.bodyMedium),
                               ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 12),
                         Row(
                           children: [
-                            Icon(Icons.groups, color: Colors.blue.shade400),
-                            const SizedBox(width: 8),
-                            Text('Eltern:', style: Theme.of(context).textTheme.titleMedium),
+                            Icon(Icons.groups, color: Colors.blue.shade400, size: 18),
+                            const SizedBox(width: 6),
+                            Text('Eltern:', style: Theme.of(context).textTheme.bodyMedium),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         ParentListDisplay(parents: parents),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
-                            Icon(Icons.groups_2, color: Colors.blue.shade400),
-                            const SizedBox(width: 8),
-                            Text('Gruppe:', style: Theme.of(context).textTheme.titleMedium),
-                            const SizedBox(width: 8),
+                            Icon(Icons.groups_2, color: Colors.blue.shade400, size: 18),
+                            const SizedBox(width: 6),
+                            Text('Gruppe:', style: Theme.of(context).textTheme.bodyMedium),
+                            const SizedBox(width: 6),
                             Chip(
                               label: Text(child.gruppe.displayName, style: const TextStyle(color: Colors.white)),
                               backgroundColor: Colors.blue,
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
                             ),
                           ],
                         ),
