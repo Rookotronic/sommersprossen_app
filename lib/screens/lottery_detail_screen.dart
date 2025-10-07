@@ -208,9 +208,11 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                                 ),
                                               );
                                               if (confirmed == true) {
-                                                // Remove child from lottery in Firestore
-                                                final updatedChildren = List<Map<String, dynamic>>.from(_lottery.children)
-                                                  ..removeWhere((c) => c['childId'] == child.id);
+                                                // Remove child from lottery in Firestore (LotteryChild objects)
+                            final updatedChildren = _lottery.children
+                              .where((c) => c.childId != child.id)
+                              .map((c) => c.toMap())
+                              .toList();
                                                 await FirebaseFirestore.instance
                                                     .collection('lotteries')
                                                     .doc(widget.lotteryId)
