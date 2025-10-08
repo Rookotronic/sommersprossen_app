@@ -6,21 +6,28 @@ import '../widgets/group_dropdown.dart';
 import '../models/parent.dart';
 import '../widgets/parent_list_display.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-// ...existing code...
 import '../services/firestore_service.dart';
 
 
+/// Detailbildschirm zur Anzeige und Bearbeitung eines Kindes.
+///
+/// Zeigt die Details eines Kindes, ermöglicht das Bearbeiten von Namen, Eltern und Gruppe,
+/// sowie das Löschen des Kindes aus Firestore.
 class KinderDetailScreen extends StatefulWidget {
   final Child child;
   const KinderDetailScreen({super.key, required this.child});
 
   @override
+  /// Erstellt den State für den KinderDetailScreen.
+  @override
   State<KinderDetailScreen> createState() => _KinderDetailScreenState();
 }
 
+/// State-Klasse für KinderDetailScreen.
+///
+/// Beinhaltet die Logik zum Bearbeiten und Löschen eines Kindes sowie das Auswählen der Eltern.
 class _KinderDetailScreenState extends State<KinderDetailScreen> with ControllerLifecycleMixin {
   final FirestoreService _firestoreService = FirestoreService();
-  // ...existing code...
   late TextEditingController _vornameController;
   late TextEditingController _nachnameController;
   GroupName? _selectedGroup;
@@ -28,6 +35,8 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
   List<Parent> _selectedParents = [];
   bool _loadingParents = true;
 
+  @override
+  /// Initialisiert die Controller und lädt die Elternliste.
   @override
   void initState() {
     super.initState();
@@ -37,6 +46,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
     _loadParents();
   }
 
+  /// Lädt die Eltern aus Firestore und setzt die Auswahl entsprechend dem Kind.
   Future<void> _loadParents() async {
   // Fetch parents from Firestore, order by last name
   final snapshot = await FirebaseFirestore.instance
@@ -49,7 +59,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
     setState(() {
       _parentList = parentList;
       // Always match selected parents to the child's parentIds (handle null)
-  final childParentIds = widget.child.parentIds;
+  final childParentIds = widget.child.parentIds ?? [];
   _selectedParents = parentList.where((p) => childParentIds.contains(p.id)).toList();
       _loadingParents = false;
     });
@@ -61,6 +71,9 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
   super.dispose();
   }
 
+  /// Speichert die Änderungen am Kind in Firestore.
+  ///
+  /// Validiert die Eingaben und zeigt Fehler-Snackbars bei ungültigen Daten.
   void _save() async {
     final vorname = _vornameController.text.trim();
     final nachname = _nachnameController.text.trim();
@@ -97,6 +110,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
     }
   }
 
+  /// Löscht das Kind nach Bestätigung aus Firestore.
   void _delete() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -131,6 +145,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
     }
   }
 
+  /// Öffnet einen Dialog zur Auswahl der Eltern für das Kind.
   void _showParentPicker() async {
     // Fetch parents from Firestore, order by last name
     final snapshot = await FirebaseFirestore.instance
@@ -200,6 +215,8 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
     }
   }
 
+  @override
+  /// Baut das UI für die Detailansicht und Bearbeitung eines Kindes.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
