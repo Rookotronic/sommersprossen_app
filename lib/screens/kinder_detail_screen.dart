@@ -49,8 +49,8 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
     setState(() {
       _parentList = parentList;
       // Always match selected parents to the child's parentIds (handle null)
-      final childParentIds = widget.child.parentIds ?? [];
-      _selectedParents = parentList.where((p) => childParentIds.contains(p.id)).toList();
+  final childParentIds = widget.child.parentIds;
+  _selectedParents = parentList.where((p) => childParentIds.contains(p.id)).toList();
       _loadingParents = false;
     });
   }
@@ -142,7 +142,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
         .toList();
     final childParentIds = _selectedParents.isNotEmpty
         ? _selectedParents.map((p) => p.id).toList()
-        : (widget.child.parentIds ?? []);
+  : widget.child.parentIds;
     final List<Parent> tempSelected = all.where((p) => childParentIds.contains(p.id)).toList();
     setState(() {
       _parentList = all;

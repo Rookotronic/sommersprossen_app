@@ -11,7 +11,7 @@ class MeinKindDetailScreen extends StatelessWidget {
   const MeinKindDetailScreen({super.key, required this.children});
 
   Future<List<Parent>> _fetchParentsForChild(Child child) async {
-    if (child.parentIds == null || child.parentIds!.isEmpty) {
+    if (child.parentIds.isEmpty) {
       return [];
     }
     final snapshot = await FirebaseFirestore.instance
