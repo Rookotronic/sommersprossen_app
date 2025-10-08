@@ -39,7 +39,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (_) => MyChildHistoryScreen(
                           childId: child.id,
-                          childName: child.vorname + ' ' + child.nachname,
+                          childName: '${child.vorname} ${child.nachname}',
                         ),
                       ),
                     );
@@ -139,7 +139,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                           ? '${child.vorname} muss Zuhause bleiben!'
                           : '${child.vorname} wird betreut!';
                       String dateText = 'Datum: ${lotteryDate.day.toString().padLeft(2, '0')}.${lotteryDate.month.toString().padLeft(2, '0')}.${lotteryDate.year}';
-                      return Container(
+                      return SizedBox(
                         width: double.infinity,
                         child: Card(
                           elevation: 4,

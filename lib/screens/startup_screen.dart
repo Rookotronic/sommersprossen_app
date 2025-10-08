@@ -5,6 +5,7 @@ import '../utils/controller_lifecycle_mixin.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'loading_screen.dart';
 import 'main_menus.dart';
@@ -65,6 +66,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> with ControllerLifecycleMixin {
+  final _logger = Logger();
   Future<void> _resetPassword(BuildContext context) async {
     final email = _userController.text.trim();
     if (!isValidEmail(email)) {
@@ -144,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> with ControllerLifecycleMixin
           }
         } catch (e) {
           // Log error, do not block login
-          print('FCM token error: $e');
+          _logger.e('FCM token error', e);
         }
 
         final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();

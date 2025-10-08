@@ -43,22 +43,22 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           final doc = snapshot.data!;
-          final _lottery = Lottery.fromFirestore(doc);
-          final showSendButton = !_lottery.finished && !_lottery.requestsSend && !_lottery.allAnswersReceived;
+          final lottery = Lottery.fromFirestore(doc);
+          final showSendButton = !lottery.finished && !lottery.requestsSend && !lottery.allAnswersReceived;
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ...existing code for lottery info, controls, children list, etc...
-                Text('Datum: ${_formatDate(_lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
+                Text('Datum: ${_formatDate(lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
-                Text('Zeit: ${_lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
+                Text('Zeit: ${lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 8),
-                Text('Zu ziehende Kinder: ${_lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
+                Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 16),
                 ReportingPeriodControl(
-                  lottery: _lottery,
+                  lottery: lottery,
                   onEndPeriod: () async {
                     final confirmed = await showDialog<bool>(
                       context: context,
@@ -91,7 +91,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                 if (showSendButton)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: NotifyParentsButton(
+                    child: notifyparentsbutton(
                       onSuccess: () async {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Benachrichtigungen gesendet!')),
@@ -104,7 +104,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                 const SizedBox(height: 8),
                 Expanded(
                   child: FutureBuilder<List<Child>>(
-                    future: ChildService.fetchChildrenByIds(_lottery.children.map((c) => c.childId).toList()),
+                    future: ChildService.fetchChildrenByIds(lottery.children.map((c) => c.childId).toList()),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
@@ -113,7 +113,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                         return Center(child: Text('Fehler beim Laden der Kinder: ${snapshot.error}'));
                       }
                       final children = snapshot.data ?? [];
-                      final orderedChildren = _lottery.children;
+                      final orderedChildren = lottery.children;
                       return Column(
                         children: [
                           Container(
@@ -138,7 +138,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                   orElse: () => Child(id: entry.childId, vorname: '', nachname: '', gruppe: GroupName.ratz),
                                 );
                                 final isPicked = entry.picked;
-                                final requestsSend = _lottery.requestsSend == true;
+                                final requestsSend = lottery.requestsSend == true;
                                 return Container(
                                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                                   decoration: BoxDecoration(
@@ -189,7 +189,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                                     ),
                                                   );
                                                   if (confirmed == true) {
-                                                    final updatedChildren = _lottery.children
+                                                    final updatedChildren = lottery.children
                                                       .where((c) => c.childId != child.id)
                                                       .map((c) => c.toMap())
                                                       .toList();

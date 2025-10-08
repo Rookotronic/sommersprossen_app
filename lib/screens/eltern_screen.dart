@@ -199,7 +199,13 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                   // Timeout logic
                   if (!timedOut && DateTime.now().difference(startTime).inSeconds > 30) {
                     timedOut = true;
-                    Future.microtask(() => Navigator.of(context).pop('timeout'));
+                    
+                      Future.microtask(() {
+                        if (context.mounted) {
+                                     Navigator.of(context).pop('timeout');
+               }
+                });
+                    
                   }
                   if (timedOut) {
                     return AlertDialog(

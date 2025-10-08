@@ -1,7 +1,9 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
-Widget NotifyParentsButton({required VoidCallback onSuccess}) {
+Widget notifyparentsbutton({required VoidCallback onSuccess}) {
+  final logger = Logger();
   return ElevatedButton(
     style: ElevatedButton.styleFrom(
       backgroundColor: Colors.blue,
@@ -12,12 +14,12 @@ Widget NotifyParentsButton({required VoidCallback onSuccess}) {
         final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
         final notifyParentsForLottery = functions.httpsCallable('notifyParentsForLottery');
         final result = await notifyParentsForLottery();
-        print('Notification sent: ${result.data}');
+  logger.i('Notification sent: ${result.data}');
         onSuccess();
         // Show feedback
         // Use context from builder if needed
       } catch (error) {
-        print('Error sending notification: $error');
+  logger.e('Error sending notification', error);
         // Optionally show error feedback
       }
     },
