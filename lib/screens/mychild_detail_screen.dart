@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/child.dart';
 import '../models/parent.dart';
 import '../widgets/parent_list_display.dart';
+import 'mychild_history_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
@@ -32,88 +33,141 @@ class MeinKindDetailScreen extends StatelessWidget {
             final parents = snapshot.data ?? [];
             return Column(
               children: [
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 24,
-                              backgroundColor: Colors.blue.shade100,
-                              child: Icon(Icons.child_care, size: 28, color: Colors.blue.shade700),
-                            ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(child.vorname, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                Text(child.nachname, style: Theme.of(context).textTheme.bodyMedium),
-                              ],
-                            ),
-                          ],
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => MyChildHistoryScreen(
+                          childId: child.id,
+                          childName: child.vorname + ' ' + child.nachname,
                         ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(Icons.groups, color: Colors.blue.shade400, size: 18),
-                            const SizedBox(width: 6),
-                            Text('Eltern:', style: Theme.of(context).textTheme.bodyMedium),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        ParentListDisplay(parents: parents),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Icon(Icons.groups_2, color: Colors.blue.shade400, size: 18),
-                            const SizedBox(width: 6),
-                            Text('Gruppe:', style: Theme.of(context).textTheme.bodyMedium),
-                            const SizedBox(width: 6),
-                            Chip(
-                              label: Text(child.gruppe.displayName, style: const TextStyle(color: Colors.white)),
-                              backgroundColor: Colors.blue,
-                              visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
+                    );
+                  },
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 24,
+                                backgroundColor: Colors.blue.shade100,
+                                child: Icon(Icons.child_care, size: 28, color: Colors.blue.shade700),
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(child.vorname, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                  Text(child.nachname, style: Theme.of(context).textTheme.bodyMedium),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Icon(Icons.groups, color: Colors.blue.shade400, size: 18),
+                              const SizedBox(width: 6),
+                              Text('Eltern:', style: Theme.of(context).textTheme.bodyMedium),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          ParentListDisplay(parents: parents),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Icon(Icons.groups_2, color: Colors.blue.shade400, size: 18),
+                              const SizedBox(width: 6),
+                              Text('Gruppe:', style: Theme.of(context).textTheme.bodyMedium),
+                              const SizedBox(width: 6),
+                              Chip(
+                                label: Text(child.gruppe.displayName, style: const TextStyle(color: Colors.white)),
+                                backgroundColor: Colors.blue,
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 // Lottery info box below each child card
                 StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('lotteries')
-                      .orderBy('date', descending: true)
-                      .limit(1)
-                      .snapshots(),
+          stream: FirebaseFirestore.instance
+            .collection('lotteries')
+            .orderBy('createdAt', descending: true)
+            .limit(1)
+            .snapshots(),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                       return const SizedBox.shrink();
                     }
                     final data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
                     final finished = data['finished'] ?? false;
-                    final allAnswersReceived = data['allAnswersReceived'] == true;
                     final childrenList = (data['children'] as List<dynamic>? ?? []);
                     final childEntry = childrenList.firstWhere(
                       (c) => c['childId'] == child.id,
                       orElse: () => null,
                     );
                     final picked = childEntry != null && childEntry['picked'] == true;
+                    DateTime? lotteryDate;
+                    if (data['date'] is Timestamp) {
+                      lotteryDate = (data['date'] as Timestamp).toDate();
+                    } else if (data['date'] is String) {
+                      // Try to parse ISO8601 string
+                      try {
+                        lotteryDate = DateTime.parse(data['date'] as String);
+                      } catch (_) {
+                        lotteryDate = null;
+                      }
+                    }
+                    final now = DateTime.now();
+                    // Show result info box if finished and UNTIL 2 days have passed after lottery start
+                    if (finished && lotteryDate != null && now.isBefore(lotteryDate.add(const Duration(days: 1)))) {
+                      Color boxColor = picked ? Colors.red.shade300 : Colors.green.shade300;
+                      String resultText = picked
+                          ? '${child.vorname} muss Zuhause bleiben!'
+                          : '${child.vorname} wird betreut!';
+                      String dateText = 'Datum: ${lotteryDate.day.toString().padLeft(2, '0')}.${lotteryDate.month.toString().padLeft(2, '0')}.${lotteryDate.year}';
+                      return Container(
+                        width: double.infinity,
+                        child: Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                          color: boxColor,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Ergebnis Lotterie', style: Theme.of(context).textTheme.titleMedium),
+                                const SizedBox(height: 8),
+                                Text(dateText, style: Theme.of(context).textTheme.bodyMedium),
+                                const SizedBox(height: 8),
+                                Text(resultText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    // Show old info box only if not finished
+                    final allAnswersReceived = data['allAnswersReceived'] == true;
                     final responded = childEntry != null && childEntry['responded'] == true;
                     final need = childEntry != null && childEntry['need'] == true;
-                    // Show box if lottery is active or child was picked in latest lottery
-                    // Robust check for requestsSend/requestsSent field
-                      final requestsSend = data['requestsSend'] == true || data['requestsSent'] == true;
-                      if (requestsSend && (!finished || picked)) {
+                    final requestsSend = data['requestsSend'] == true || data['requestsSent'] == true;
+                    if (requestsSend && !finished) {
                       final date = data['date'] ?? '';
                       final timeOfDay = data['timeOfDay'] ?? '';
                       final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? '';
