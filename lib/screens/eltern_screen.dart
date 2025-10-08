@@ -76,8 +76,6 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
   final emailController = createController();
   String? errorText;
 
-  bool isAlpha(String value) => RegExp(r"^[\p{L}'\- ]+$", unicode: true).hasMatch(value);
-  bool isValidEmail(String value) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+\u0000?').hasMatch(value);
 
     final result = await showDialog<bool>(
       context: context,
