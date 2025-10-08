@@ -8,6 +8,7 @@ import 'lottery_screen.dart';
 import '../models/lottery.dart';
 import 'lottery_detail_screen.dart';
 import '../widgets/reporting_period_control.dart';
+import '../widgets/confirmation_dialog.dart';
 import '../models/child.dart';
 import 'mychild_detail_screen.dart';
 import 'lotterietopf_screen.dart';
@@ -169,22 +170,11 @@ class AdminMainMenuScreen extends StatelessWidget {
                               ReportingPeriodControl(
                                 lottery: lottery,
                                 onEndPeriod: () async {
-                                  final confirmed = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Meldezeitraum beenden?'),
-                                      content: const Text('Bist du sicher, dass du den Meldezeitraum beenden möchtest?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(false),
-                                          child: const Text('Abbrechen'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(true),
-                                          child: const Text('Beenden'),
-                                        ),
-                                      ],
-                                    ),
+                                  final confirmed = await showConfirmationDialog(
+                                    context,
+                                    title: 'Meldezeitraum beenden?',
+                                    content: 'Bist du sicher, dass du den Meldezeitraum beenden möchtest?',
+                                    confirmText: 'Beenden',
                                   );
                                   if (confirmed == true) {
                                     await FirebaseFirestore.instance
@@ -222,22 +212,11 @@ class AdminMainMenuScreen extends StatelessWidget {
               icon: Icons.account_balance_wallet,
               title: 'Lotterietopf',
               onTap: () async {
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Lotterietopf öffnen?'),
-                    content: const Text('Bist du sicher, dass du den Lotterietopf öffnen möchtest?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Abbrechen'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Öffnen'),
-                      ),
-                    ],
-                  ),
+                final confirmed = await showConfirmationDialog(
+                  context,
+                  title: 'Lotterietopf öffnen?',
+                  content: 'Bist du sicher, dass du den Lotterietopf öffnen möchtest?',
+                  confirmText: 'Öffnen',
                 );
                 if (confirmed == true) {
                   Navigator.of(context).push(

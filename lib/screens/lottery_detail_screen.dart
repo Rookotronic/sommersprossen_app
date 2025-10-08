@@ -1,9 +1,13 @@
+
+
 import '../widgets/reporting_period_control.dart';
-import 'package:sommersprossen_app/widgets/notify_parents_button.dart';
+import '../widgets/notify_parents_button.dart';
+import 'package:sommersprossen_app/widgets/confirmation_dialog.dart';
 
 import 'package:flutter/material.dart';
 import '../models/lottery.dart';
 import '../models/child.dart';
+import '../utils/date_format.dart';
 import '../services/child_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -51,7 +55,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ...existing code for lottery info, controls, children list, etc...
-                Text('Datum: ${_formatDate(lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
+                Text('Datum: ${formatDate(lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Text('Zeit: ${lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 8),
@@ -60,22 +64,11 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                 ReportingPeriodControl(
                   lottery: lottery,
                   onEndPeriod: () async {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Meldezeitraum beenden?'),
-                        content: const Text('Bist du sicher, dass du den Meldezeitraum beenden möchtest?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('Abbrechen'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text('Beenden'),
-                          ),
-                        ],
-                      ),
+                    final confirmed = await showConfirmationDialog(
+                      context,
+                      title: 'Meldezeitraum beenden?',
+                      content: 'Bist du sicher, dass du den Meldezeitraum beenden möchtest?',
+                      confirmText: 'Beenden',
                     );
                     if (confirmed == true) {
                       await FirebaseFirestore.instance
@@ -171,22 +164,11 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                                 icon: const Icon(Icons.delete, size: 18, color: Colors.red),
                                                 tooltip: 'Kind entfernen',
                                                 onPressed: () async {
-                                                  final confirmed = await showDialog<bool>(
-                                                    context: context,
-                                                    builder: (context) => AlertDialog(
-                                                      title: const Text('Kind entfernen'),
-                                                      content: const Text('Möchtest du dieses Kind wirklich aus der Lotterie entfernen?'),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () => Navigator.pop(context, false),
-                                                          child: const Text('Abbrechen'),
-                                                        ),
-                                                        TextButton(
-                                                          onPressed: () => Navigator.pop(context, true),
-                                                          child: const Text('Entfernen'),
-                                                        ),
-                                                      ],
-                                                    ),
+                                                  final confirmed = await showConfirmationDialog(
+                                                    context,
+                                                    title: 'Kind entfernen',
+                                                    content: 'Möchtest du dieses Kind wirklich aus der Lotterie entfernen?',
+                                                    confirmText: 'Entfernen',
                                                   );
                                                   if (confirmed == true) {
                                                     final updatedChildren = lottery.children
@@ -225,46 +207,24 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                               foregroundColor: Colors.white,
                             ),
                             onPressed: () async {
-                              final confirmed = await showDialog<bool>(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text('Lotterie löschen'),
-                                    content: const Text('Bist du sicher, dass du diese Lotterie löschen möchtest? Dies kann nicht rückgängig gemacht werden.'),
-                                    actions: [
-                                      TextButton(
-                                        child: const Text('Abbrechen'),
-                                        onPressed: () => Navigator.of(context).pop(false),
-                                      ),
-                                      TextButton(
-                                        child: const Text('Ja, löschen'),
-                                        onPressed: () async {
-                                          final doubleCheck = await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) {
-                                              return AlertDialog(
-                                                title: const Text('Wirklich löschen?'),
-                                                content: const Text('Bitte bestätige erneut, dass du die Lotterie wirklich löschen willst.'),
-                                                actions: [
-                                                  TextButton(
-                                                    child: const Text('Nein'),
-                                                    onPressed: () => Navigator.of(context).pop(false),
-                                                  ),
-                                                  TextButton(
-                                                    child: const Text('Endgültig löschen'),
-                                                    onPressed: () => Navigator.of(context).pop(true),
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
-                                          Navigator.of(context).pop(doubleCheck == true);
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
+                              final confirmed = await showConfirmationDialog(
+                                context,
+                                title: 'Lotterie löschen',
+                                content: 'Bist du sicher, dass du diese Lotterie löschen möchtest? Dies kann nicht rückgängig gemacht werden.',
+                                confirmText: 'Ja, löschen',
                               );
+                              if (confirmed == true) {
+                                final doubleCheck = await showConfirmationDialog(
+                                  context,
+                                  title: 'Wirklich löschen?',
+                                  content: 'Bitte bestätige erneut, dass du die Lotterie wirklich löschen willst.',
+                                  confirmText: 'Endgültig löschen',
+                                  cancelText: 'Nein',
+                                );
+                                if (doubleCheck == true) {
+                                  // ...existing code for deletion...
+                                }
+                              }
                               if (confirmed == true) {
                                 try {
                                   await FirebaseFirestore.instance.collection('lotteries').doc(widget.lotteryId).delete();
@@ -294,7 +254,5 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-  }
+  // ...existing code...
 }

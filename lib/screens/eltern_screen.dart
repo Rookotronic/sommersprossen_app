@@ -2,6 +2,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import '../utils/controller_lifecycle_mixin.dart';
 import '../utils/validators.dart';
+import '../widgets/confirmation_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/parent.dart';
@@ -344,27 +345,47 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
     final email = _emailController.text.trim();
     if (vorname.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vorname ist erforderlich.')));
+      await showErrorDialog(
+        context,
+        title: 'Fehler',
+        content: 'Vorname ist erforderlich.',
+      );
       return;
     }
     if (!isAlpha(vorname)) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vorname: Nur Buchstaben und Sonderzeichen erlaubt.')));
+      await showErrorDialog(
+        context,
+        title: 'Fehler',
+        content: 'Vorname: Nur Buchstaben und Sonderzeichen erlaubt.',
+      );
       return;
     }
     if (nachname.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nachname ist erforderlich.')));
+      await showErrorDialog(
+        context,
+        title: 'Fehler',
+        content: 'Nachname ist erforderlich.',
+      );
       return;
     }
     if (!isAlpha(nachname)) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nachname: Nur Buchstaben und Sonderzeichen erlaubt.')));
+      await showErrorDialog(
+        context,
+        title: 'Fehler',
+        content: 'Nachname: Nur Buchstaben und Sonderzeichen erlaubt.',
+      );
       return;
     }
     if (email.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Emailadresse ist erforderlich.')));
+      await showErrorDialog(
+        context,
+        title: 'Fehler',
+        content: 'Emailadresse ist erforderlich.',
+      );
       return;
     }
     if (!isValidEmail(email)) {

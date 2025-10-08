@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../models/lotterypot.dart';
 import '../services/firestore_service.dart';
 import '../models/child.dart';
+import '../utils/date_format.dart';
 import '../services/child_service.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:sommersprossen_app/widgets/confirmation_dialog.dart';
 
 
 class LotterietopfScreen extends StatefulWidget {
@@ -43,9 +45,11 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Laden des Lotterietopfs: ${e.toString()}')),
-        );
+            await showErrorDialog(
+              context,
+              title: 'Fehler beim Laden des Lotterietopfs',
+              content: e.toString(),
+            );
     }
   }
 
@@ -90,7 +94,7 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Text(
-                        'Startdatum: ${_formatDate(lotterypot!.startDate)}',
+                        'Startdatum: ${formatDate(lotterypot!.startDate)}',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
@@ -205,7 +209,5 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-  }
+  // ...existing code...
 }
