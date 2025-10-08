@@ -8,16 +8,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/parent.dart';
 import '../services/firestore_service.dart';
 
+/// Hauptbildschirm zur Anzeige und Verwaltung der Elternliste.
+///
+/// Zeigt alle Eltern aus Firestore, ermöglicht das Hinzufügen neuer Eltern
+/// und das Anzeigen/Bearbeiten/Löschen einzelner Eltern.
 class ElternScreen extends StatefulWidget {
   const ElternScreen({super.key});
 
   @override
+  /// Erstellt den State für den ElternScreen.
+  @override
   State<ElternScreen> createState() => ElternScreenState();
 }
 
+/// State-Klasse für ElternScreen.
+///
+/// Beinhaltet die Logik zum Anzeigen, Hinzufügen und Bearbeiten von Eltern.
 class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixin {
   final FirestoreService _firestoreService = FirestoreService();
 
+  /// Baut das UI für die Elternliste und den FloatingActionButton zum Hinzufügen.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,6 +69,9 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
     );
   }
 
+  /// Öffnet den Detailbildschirm für einen Elternteil.
+  ///
+  /// [parent] Der Elternteil, dessen Details angezeigt werden sollen.
   void _showElternDetails(Parent parent) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -70,6 +83,10 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
   }
 
 
+  /// Öffnet einen Dialog zum Hinzufügen eines neuen Elternteils.
+  ///
+  /// Validiert die Eingaben, prüft auf E-Mail-Einzigartigkeit und legt den Elternteil in Firestore an.
+  /// Anschließend wird ggf. eine Passwort-Wiederherstellungs-Email angeboten.
   void _addEltern() async {
   final vornameController = createController();
   final nachnameController = createController();
@@ -307,14 +324,20 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
     }
   }
 
+/// Detailbildschirm zur Anzeige und Bearbeitung eines Elternteils.
 class ElternDetailScreen extends StatefulWidget {
   final Parent parent;
   const ElternDetailScreen({super.key, required this.parent});
 
   @override
+  /// Erstellt den State für den ElternDetailScreen.
+  @override
   State<ElternDetailScreen> createState() => _ElternDetailScreenState();
 }
 
+/// State-Klasse für ElternDetailScreen.
+///
+/// Beinhaltet die Logik zum Bearbeiten und Löschen eines Elternteils.
 class _ElternDetailScreenState extends State<ElternDetailScreen> with ControllerLifecycleMixin {
   final FirestoreService _firestoreService = FirestoreService();
   // ...existing code...
@@ -337,6 +360,9 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
   }
 
 
+  /// Speichert die Änderungen am Elternteil in Firestore.
+  ///
+  /// Validiert die Eingaben und zeigt Fehlerdialoge bei ungültigen Daten.
   Future<void> _save() async {
     final vorname = _vornameController.text.trim();
     final nachname = _nachnameController.text.trim();
@@ -413,6 +439,7 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
     }
   }
 
+  /// Löscht den Elternteil nach Bestätigung und ruft die entsprechende Cloud Function auf.
   void _delete() async {
     if (!mounted) return;
     final confirmed = await showDialog<bool>(
@@ -456,6 +483,8 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
     }
   }
 
+  @override
+  /// Baut das UI für die Detailansicht und Bearbeitung eines Elternteils.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
