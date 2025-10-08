@@ -65,6 +65,31 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> with ControllerLifecycleMixin {
+  Future<void> _resetPassword(BuildContext context) async {
+    final email = _userController.text.trim();
+    if (!isValidEmail(email)) {
+      setState(() {
+        _errorMessage = 'Bitte gültige Email-Adresse eingeben.';
+      });
+      return;
+    }
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Passwort-Reset Email wurde gesendet!')),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = 'Fehler: ${e.message ?? e.code}';
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Unbekannter Fehler beim Passwort-Reset.';
+      });
+    }
+  }
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _userController;
   late final TextEditingController _passwordController;
@@ -222,6 +247,13 @@ class _LoginScreenState extends State<LoginScreen> with ControllerLifecycleMixin
                     },
                     child: const Text('Login'),
                   ),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    _resetPassword(context);
+                  },
+                  child: const Text('Passwort vergessen?'),
                 ),
               ],
             ),
