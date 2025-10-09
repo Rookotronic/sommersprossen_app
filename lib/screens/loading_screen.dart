@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 
+/// Ein einfacher Ladebildschirm mit Logo und Fortschrittsanzeige.
+///
+/// Wird angezeigt, während die App initialisiert oder Daten lädt.
 class LoadingScreen extends StatelessWidget {
+  /// Erstellt eine Instanz des Ladebildschirms.
   const LoadingScreen({super.key});
 
+  @override
+  /// Baut das UI für den Ladebildschirm mit Logo und Fortschrittsanzeige.
   @override
   Widget build(BuildContext context) {
     return Scaffold(

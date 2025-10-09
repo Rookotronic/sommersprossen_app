@@ -15,9 +15,14 @@ import 'lotterietopf_screen.dart';
 import '../widgets/menu_entry_tile.dart';
 import '../widgets/logout_button.dart';
 
+/// Hauptmenü für Eltern.
+///
+/// Zeigt die Kinder des eingeloggten Elternteils und ermöglicht die Navigation zu deren Detailansicht.
 class ParentMainMenuScreen extends StatelessWidget {
+  /// Erstellt eine Instanz des Eltern-Hauptmenüs.
   const ParentMainMenuScreen({super.key});
 
+  /// Holt die Dokumenten-ID des eingeloggten Elternteils aus Firestore.
   Future<String?> _getParentDocId() async {
     final email = FirebaseAuth.instance.currentUser?.email;
     if (email == null) return null;
@@ -30,6 +35,7 @@ class ParentMainMenuScreen extends StatelessWidget {
     return snap.docs.first.id;
   }
 
+  /// Baut das UI für das Eltern-Hauptmenü.
   @override
   Widget build(BuildContext context) {
     final email = FirebaseAuth.instance.currentUser?.email ?? '';
@@ -76,9 +82,14 @@ class ParentMainMenuScreen extends StatelessWidget {
   }
 }
 
+/// Hauptmenü für Administratoren.
+///
+/// Zeigt die wichtigsten Verwaltungsfunktionen und die aktive Lotterie für Admins.
 class AdminMainMenuScreen extends StatelessWidget {
+  /// Erstellt eine Instanz des Admin-Hauptmenüs.
   const AdminMainMenuScreen({super.key});
 
+  /// Holt den Benutzernamen aus der aktuellen Email-Adresse.
   String get userName {
     final email = FirebaseAuth.instance.currentUser?.email ?? '';
     if (email.contains('@')) {
@@ -87,6 +98,7 @@ class AdminMainMenuScreen extends StatelessWidget {
     return email;
   }
 
+  /// Baut das UI für das Admin-Hauptmenü.
   @override
   Widget build(BuildContext context) {
     return Scaffold(

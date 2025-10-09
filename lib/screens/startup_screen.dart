@@ -193,6 +193,7 @@ class _LoginScreenState extends State<LoginScreen> with ControllerLifecycleMixin
                   ),
                   textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.emailAddress,
+                  autofillHints: const [AutofillHints.email],
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
@@ -218,6 +219,7 @@ class _LoginScreenState extends State<LoginScreen> with ControllerLifecycleMixin
                       },
                     ),
                   ),
+                  autofillHints: const [AutofillHints.password],
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.done,
                   validator: (value) {

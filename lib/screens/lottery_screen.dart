@@ -6,21 +6,32 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:intl/intl.dart';
 
+/// Bildschirm zur Anzeige und Verwaltung aller Lotterien.
+///
+/// Zeigt eine Liste aller Lotterien, ermöglicht das Starten einer neuen Lotterie und die Anzeige von Details.
 class LotteryScreen extends StatefulWidget {
+  /// Erstellt eine Instanz des Lotterie-Bildschirms.
   const LotteryScreen({super.key});
 
   @override
   State<LotteryScreen> createState() => _LotteryScreenState();
 }
 
+/// State-Klasse für LotteryScreen.
+///
+/// Beinhaltet die Logik zum Laden, Anzeigen und Erstellen von Lotterien.
 class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleMixin {
   
   @override
+  /// Wird bei Abhängigkeitsänderungen aufgerufen und triggert einen Rebuild.
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    setState(() {}); // Triggers rebuild every time the screen is shown
+  setState(() {});
   }
 
+  @override
+  /// Baut das UI für die Anzeige und Verwaltung der Lotterien.
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -76,7 +87,6 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
               : FloatingActionButton(
                   onPressed: () async {
                     await _showNewLotteryDialog();
-                    // No need to reload, StreamBuilder auto-updates
                   },
                   tooltip: 'Neue Lotterie starten',
                   child: const Icon(Icons.add),
@@ -87,6 +97,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
   }
 
 
+  /// Öffnet einen Dialog zum Erstellen einer neuen Lotterie.
   Future<bool?> _showNewLotteryDialog() async {
   DateTime selectedDate = DateTime.now();
   final nrController = createController();
@@ -112,7 +123,6 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                         firstDate: DateTime(2020),
                         lastDate: DateTime(2100),
                         selectableDayPredicate: (date) {
-                          // Disable Saturdays (6) and Sundays (7)
                           return date.weekday != DateTime.saturday && date.weekday != DateTime.sunday;
                         },
                       );
@@ -187,6 +197,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
     );
   }
 
+  /// Formatiert ein Datum als String im Format dd.MM.yyyy.
   String _formatDate(DateTime date) {
     try {
       return DateFormat('dd.MM.yyyy').format(date);

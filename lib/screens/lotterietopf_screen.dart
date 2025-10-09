@@ -8,28 +8,36 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:sommersprossen_app/widgets/confirmation_dialog.dart';
 
 
+/// Bildschirm zur Anzeige und Verwaltung des Lotterietopfs.
+///
+/// Zeigt die aktuellen Einträge im Lotterietopf und ermöglicht das Befüllen über eine Cloud Function.
 class LotterietopfScreen extends StatefulWidget {
+  /// Erstellt eine Instanz des Lotterietopf-Bildschirms.
   const LotterietopfScreen({super.key});
 
   @override
   State<LotterietopfScreen> createState() => _LotterietopfScreenState();
 }
 
+/// State-Klasse für LotterietopfScreen.
+///
+/// Beinhaltet die Logik zum Laden, Anzeigen und Befüllen des Lotterietopfs.
 class _LotterietopfScreenState extends State<LotterietopfScreen> {
-  // Use shared ChildService for fetching children by IDs
   final FirestoreService _firestoreService = FirestoreService();
   LotteryPot? lotterypot;
   bool _loading = true;
   bool hasActiveLottery = false;
 
   @override
+  /// Initialisiert den Screen und lädt die Lotterietopf-Daten.
+  @override
   void initState() {
     super.initState();
     _loadPotData();
     _checkActiveLottery();
-
   }
 
+  /// Lädt die aktuellen Lotterietopf-Daten aus Firestore.
   Future<void> _loadPotData() async {
     setState(() => _loading = true);
     try {
@@ -53,6 +61,7 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
     }
   }
 
+  /// Prüft, ob eine aktive Lotterie existiert.
   Future<void> _checkActiveLottery() async {
     setState(() => _loading = true);
     try {
@@ -77,6 +86,8 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
     }
   }
 
+  @override
+  /// Baut das UI für die Anzeige und Verwaltung des Lotterietopfs.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -201,7 +212,6 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                   ),
                 );
                 if (!mounted) return;
-                // You can handle result here if needed
               },
               tooltip: 'Topf neu befüllen',
               child: const Icon(Icons.refresh),
@@ -209,5 +219,4 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
     );
   }
 
-  // ...existing code...
 }

@@ -11,19 +11,28 @@ import '../utils/date_format.dart';
 import '../services/child_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Bildschirm zur Anzeige und Verwaltung der Details einer Lotterie.
+///
+/// Zeigt alle relevanten Informationen zur Lotterie, ermöglicht das Beenden des Meldezeitraums,
+/// das Senden von Benachrichtigungen und das Löschen der Lotterie.
 class LotteryDetailScreen extends StatefulWidget {
+  /// Die ID der Lotterie in Firestore.
   final String lotteryId;
+  /// Das Lotterie-Objekt mit allen relevanten Daten.
   final Lottery lottery;
 
+  /// Erstellt eine Instanz des Lotterie-Detailbildschirms.
   const LotteryDetailScreen({super.key, required this.lottery, required this.lotteryId});
 
   @override
   State<LotteryDetailScreen> createState() => _LotteryDetailScreenState();
 }
 
+/// State-Klasse für LotteryDetailScreen.
+///
+/// Beinhaltet die Logik zur Anzeige, Bearbeitung und Löschung einer Lotterie.
 class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
-  // Remove local _lottery and _loading, use StreamBuilder instead
-
+  /// Baut einen farbigen Kreis zur Anzeige von booleschen Statuswerten.
   Widget _buildBoolCircle(bool value) {
     return Container(
       width: 18,
@@ -36,6 +45,8 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
     );
   }
 
+  @override
+  /// Baut das UI für die Anzeige und Verwaltung der Lotterie-Details.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -254,5 +265,4 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
     );
   }
 
-  // ...existing code...
 }
