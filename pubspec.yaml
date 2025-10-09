@@ -22,6 +22,10 @@ dev_dependencies:
     sdk: flutter
   flutter_launcher_icons: ^0.13.1
   flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.3.10
+flutter_native_splash:
+  image: assets/Sommersprossen_Logo.png
+  color: "#ffffff"
 flutter_icons:
   android: true
   ios: true
