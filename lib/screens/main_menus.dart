@@ -103,7 +103,7 @@ class AdminMainMenuScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Main Menu'),
+        title: Text('Hallo $userName!'),
         actions: const [LogoutButton()],
       ),
       body: Padding(
@@ -111,11 +111,8 @@ class AdminMainMenuScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Hallo $userName!',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 16),
+            // Reduce gap between greeting and first menu point
+            const SizedBox(height: 4),
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('lotteries')

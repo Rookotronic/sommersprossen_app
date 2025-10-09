@@ -4,6 +4,9 @@ import 'screens/startup_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
+/// Einstiegspunkt der App.
+///
+/// Initialisiert Firebase und startet die Hauptanwendung.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -12,6 +15,9 @@ void main() async {
   runApp(const MainApp());
 }
 
+/// Haupt-Widget der App.
+///
+/// Setzt das globale Theme und zeigt den Startbildschirm.
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
