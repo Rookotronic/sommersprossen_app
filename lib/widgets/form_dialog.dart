@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Dialog zur Anzeige eines Formulars mit Validierungs- und Fehleranzeige.
 class FormDialog extends StatelessWidget {
   final String title;
   final List<Widget> fields;

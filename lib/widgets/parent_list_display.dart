@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/parent.dart';
 
+/// Widget zur Anzeige einer Liste von Eltern.
+///
+/// Zeigt die Eltern als Textliste oder einen Platzhaltertext, wenn die Liste leer ist.
 class ParentListDisplay extends StatelessWidget {
   final List<Parent> parents;
   final String emptyText;

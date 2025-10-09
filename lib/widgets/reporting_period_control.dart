@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/lottery.dart';
 
+/// Widget zur Anzeige und Steuerung des Meldezeitraums einer Lotterie.
+///
+/// Zeigt einen Fortschrittsbalken und einen Button zum Beenden des Zeitraums.
 class ReportingPeriodControl extends StatelessWidget {
   final Lottery lottery;
   final VoidCallback? onEndPeriod;

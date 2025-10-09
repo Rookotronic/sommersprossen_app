@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// ListTile für einen Menüeintrag mit Icon und Titel.
 class MenuEntryTile extends StatelessWidget {
   final IconData icon;
   final String title;

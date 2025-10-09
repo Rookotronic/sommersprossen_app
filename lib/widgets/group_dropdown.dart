@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/child.dart';
 
+/// Dropdown zur Auswahl einer Gruppe (Ratz oder Rübe).
 class GroupDropdown extends StatelessWidget {
   final GroupName? value;
   final void Function(GroupName?)? onChanged;

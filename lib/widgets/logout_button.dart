@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/startup_screen.dart';
 
+/// Button zum Ausloggen des aktuellen Benutzers.
+///
+/// Führt ein Sign-Out durch und navigiert zum Startbildschirm.
 class LogoutButton extends StatelessWidget {
   const LogoutButton({super.key});
 

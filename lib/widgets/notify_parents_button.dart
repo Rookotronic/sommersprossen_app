@@ -2,6 +2,9 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
+/// Button zum Versenden von Benachrichtigungen an Eltern.
+///
+/// Ruft eine Cloud Function auf und zeigt Feedback an.
 Widget notifyparentsbutton({required VoidCallback onSuccess}) {
   final logger = Logger();
   return ElevatedButton(
