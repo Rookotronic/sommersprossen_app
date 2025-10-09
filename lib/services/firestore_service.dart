@@ -1,3 +1,4 @@
+import '../models/child.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logger/logger.dart';
 
@@ -12,6 +13,20 @@ import 'package:logger/logger.dart';
 /// await firestoreService.add('users', {'name': 'Alice'});
 /// ```
 class FirestoreService {
+  /// Gets all children from Firestore, sorted by Nachname (case-insensitive).
+  Future<List<Child>> getSortedChildren() async {
+    try {
+      final snapshot = await _db.collection('children').orderBy('nachname').get();
+      final list = snapshot.docs
+          .map((doc) => Child.fromFirestore(doc.id, doc.data()))
+          .toList();
+      list.sort((a, b) => a.nachname.toLowerCase().compareTo(b.nachname.toLowerCase()));
+      return list;
+    } catch (e) {
+      _logger.e('Firestore getSortedChildren error', e);
+      return [];
+    }
+  }
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   FirebaseFirestore get db => _db;
   final Logger _logger = Logger();

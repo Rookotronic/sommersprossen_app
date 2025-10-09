@@ -31,10 +31,10 @@ Future<bool?> showConfirmationDialog(
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: Text(confirmText),
           style: confirmColor != null
               ? TextButton.styleFrom(foregroundColor: confirmColor)
               : null,
+          child: Text(confirmText),
         ),
       ],
     ),
