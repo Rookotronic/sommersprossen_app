@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
   shared_preferences: ^2.5.3
   cloud_firestore: ^6.0.2
-  logger: ^1.4.0
+  logger: ^2.6.2
   firebase_auth: ^6.1.0
   intl: ^0.20.2
   cloud_functions: ^6.0.2
@@ -21,7 +21,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
   flutter_lints: ^6.0.0
   flutter_native_splash: ^2.3.10
 flutter_native_splash:

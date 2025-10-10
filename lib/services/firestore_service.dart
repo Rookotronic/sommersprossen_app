@@ -23,7 +23,7 @@ class FirestoreService {
       list.sort((a, b) => a.nachname.toLowerCase().compareTo(b.nachname.toLowerCase()));
       return list;
     } catch (e) {
-      _logger.e('Firestore getSortedChildren error', e);
+  _logger.e('Firestore getSortedChildren error: $e');
       return [];
     }
   }
@@ -40,7 +40,7 @@ class FirestoreService {
     try {
       return await _db.collection(collection).add(data);
     } catch (e) {
-      _logger.e('Firestore add error', e);
+  _logger.e('Firestore add error: $e');
       return null;
     }
   }
@@ -55,7 +55,7 @@ class FirestoreService {
       await _db.collection(collection).doc(docId).update(data);
       return true;
     } catch (e) {
-      _logger.e('Firestore update error', e);
+  _logger.e('Firestore update error: $e');
       return false;
     }
   }
@@ -70,7 +70,7 @@ class FirestoreService {
       await _db.collection(collection).doc(docId).set(data);
       return true;
     } catch (e) {
-      _logger.e('Firestore set error', e);
+  _logger.e('Firestore set error: $e');
       return false;
     }
   }
@@ -85,7 +85,7 @@ class FirestoreService {
       await _db.collection(collection).doc(docId).delete();
       return true;
     } catch (e) {
-      _logger.e('Firestore delete error', e);
+  _logger.e('Firestore delete error: $e');
       return false;
     }
   }
@@ -99,7 +99,7 @@ class FirestoreService {
     try {
       return await _db.collection(collection).doc(docId).get();
     } catch (e) {
-      _logger.e('Firestore get error', e);
+  _logger.e('Firestore get error: $e');
       return null;
     }
   }
@@ -115,7 +115,7 @@ class FirestoreService {
       final snapshot = await _db.collection(collection).get();
       return snapshot.docs;
     } catch (e) {
-      _logger.e('Firestore getAllDocs error', e);
+  _logger.e('Firestore getAllDocs error: $e');
       return [];
     }
   }

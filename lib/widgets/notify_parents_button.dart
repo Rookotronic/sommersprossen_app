@@ -17,12 +17,12 @@ Widget notifyparentsbutton({required VoidCallback onSuccess}) {
         final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
         final notifyParentsForLottery = functions.httpsCallable('notifyParentsForLottery');
         final result = await notifyParentsForLottery();
-  logger.i('Notification sent: ${result.data}');
+          logger.i('Notification sent: ${result.data}');
         onSuccess();
         // Show feedback
         // Use context from builder if needed
       } catch (error) {
-  logger.e('Error sending notification', error);
+          logger.e('Error sending notification: $error');
         // Optionally show error feedback
       }
     },

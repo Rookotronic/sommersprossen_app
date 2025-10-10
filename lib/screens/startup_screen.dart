@@ -154,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> with ControllerLifecycleMixin
           }
         } catch (e) {
           // Log error, do not block login
-          _logger.e('FCM token error', e);
+          _logger.e('FCM token error: $e');
         }
 
         final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
