@@ -3,6 +3,7 @@
 import '../widgets/reporting_period_control.dart';
 import '../widgets/notify_parents_button.dart';
 import 'package:sommersprossen_app/widgets/confirmation_dialog.dart';
+import '../widgets/print_lottery_button.dart';
 
 import 'package:flutter/material.dart';
 import '../models/lottery.dart';
@@ -212,6 +213,12 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
+                          // Print button only if lottery.finished == true
+                          if (lottery.finished)
+                            ...[
+                              PrintLotteryButton(lottery: lottery, children: children),
+                              const SizedBox(height: 8),
+                            ],
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
