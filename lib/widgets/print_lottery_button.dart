@@ -83,7 +83,7 @@ class PrintLotteryButton extends StatelessWidget {
                           ),
                         ],
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ],

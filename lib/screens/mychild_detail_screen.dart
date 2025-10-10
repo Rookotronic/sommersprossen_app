@@ -6,10 +6,17 @@ import 'mychild_history_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
+/// Zeigt die Detailansicht für ein oder mehrere Kinder an.
+///
+/// Listet alle Kinderkarten mit Eltern, Gruppe und Lotterie-Status auf.
 class MeinKindDetailScreen extends StatelessWidget {
+  /// Die anzuzeigenden Kinder.
   final List<Child> children;
+
+  /// Erstellt die Detailansicht für die übergebenen Kinder.
   const MeinKindDetailScreen({super.key, required this.children});
 
+  /// Holt die Eltern für ein bestimmtes Kind aus Firestore.
   Future<List<Parent>> _fetchParentsForChild(Child child) async {
     if (child.parentIds.isEmpty) {
       return [];
@@ -21,6 +28,7 @@ class MeinKindDetailScreen extends StatelessWidget {
     return snapshot.docs.map((doc) => Parent.fromFirestore(doc.id, doc.data())).toList();
   }
 
+  /// Baut die UI für die Kinder-Detailansicht.
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -54,6 +62,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Zeigt die Basisdaten des Kindes an
                           Row(
                             children: [
                               CircleAvatar(
@@ -72,6 +81,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 12),
+                          // Zeigt die Elternliste an
                           Row(
                             children: [
                               Icon(Icons.groups, color: Colors.blue.shade400, size: 18),
@@ -82,6 +92,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                           const SizedBox(height: 4),
                           ParentListDisplay(parents: parents),
                           const SizedBox(height: 10),
+                          // Zeigt die Gruppenzugehörigkeit an
                           Row(
                             children: [
                               Icon(Icons.groups_2, color: Colors.blue.shade400, size: 18),
@@ -101,7 +112,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Lottery info box below each child card
+                // Zeigt die Lotterie-Info-Box unter jeder Kinderkarte an
                 StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
             .collection('lotteries')

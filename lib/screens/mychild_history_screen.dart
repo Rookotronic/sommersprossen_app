@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Zeigt die Lotterie-Historie für ein bestimmtes Kind an.
+///
+/// Listet alle vergangenen Lotterien und deren Ergebnis für das Kind auf.
 class MyChildHistoryScreen extends StatelessWidget {
+  /// Die ID des Kindes, dessen Historie angezeigt wird.
   final String childId;
+  /// Der Name des Kindes (für die AppBar).
   final String childName;
+
+  /// Erstellt die Historienansicht für das übergebene Kind.
   const MyChildHistoryScreen({super.key, required this.childId, required this.childName});
 
+  /// Baut die UI für die Historienansicht des Kindes.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,6 +29,7 @@ class MyChildHistoryScreen extends StatelessWidget {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
+          // Holt und filtert die Lotterie-Historie für das Kind
           final docs = snapshot.data!.docs;
           final history = <Map<String, dynamic>>[];
           for (var doc in docs) {
@@ -42,6 +51,7 @@ class MyChildHistoryScreen extends StatelessWidget {
           if (history.isEmpty) {
             return const Center(child: Text('Keine Historie gefunden.'));
           }
+          // Baut die Liste der Historieneinträge
           return ListView.builder(
             itemCount: history.length,
             itemBuilder: (context, index) {
@@ -69,6 +79,7 @@ class MyChildHistoryScreen extends StatelessWidget {
               } else {
                 cardColor = Colors.orange.shade300;
               }
+              // Baut die Kartenansicht für jeden Historieneintrag
               return Card(
                 margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 color: cardColor,

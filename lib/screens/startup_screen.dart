@@ -11,20 +11,27 @@ import 'loading_screen.dart';
 import 'main_menus.dart';
 import '../utils/validators.dart';
 
+/// Startbildschirm der App.
+///
+/// Prüft den Login-Status und leitet den Nutzer zum passenden Hauptmenü oder Login weiter.
 class StartupScreen extends StatefulWidget {
+  /// Erstellt den Startbildschirm.
   const StartupScreen({super.key});
 
   @override
   State<StartupScreen> createState() => _StartupScreenState();
 }
 
+/// State für den Startbildschirm.
 class _StartupScreenState extends State<StartupScreen> {
+  /// Initialisiert die App und prüft den Login-Status.
   @override
   void initState() {
     super.initState();
     _initApp();
   }
 
+  /// Prüft, ob der Nutzer eingeloggt ist und navigiert entsprechend.
   Future<void> _initApp() async {
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
@@ -52,6 +59,7 @@ class _StartupScreenState extends State<StartupScreen> {
     }
   }
 
+  /// Zeigt einen Ladebildschirm während der Initialisierung.
   @override
   Widget build(BuildContext context) {
     return const LoadingScreen();
