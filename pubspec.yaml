@@ -1,39 +1,49 @@
+
+# Project metadata
 name: sommersprossen_app
-description: "A new Flutter project."
-publish_to: 'none'
+description: "Kindergarten attendance and lottery app."
+publish_to: 'none' # This app is not published to pub.dev
 version: 0.1.0
 
+# Dart SDK constraint
 environment:
   sdk: ^3.9.2
 
+# Main dependencies
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^2.5.3
-  cloud_firestore: ^6.0.2
-  logger: ^2.6.2
-  firebase_auth: ^6.1.0
-  intl: ^0.20.2
-  cloud_functions: ^6.0.2
-  firebase_messaging: ^16.0.2
-  printing: ^5.11.0
+  shared_preferences: ^2.5.3 # Local storage for user/session data
+  cloud_firestore: ^6.0.2 # Firestore database
+  logger: ^2.6.2 # Logging utility
+  firebase_auth: ^6.1.0 # Firebase authentication
+  intl: ^0.20.2 # Internationalization
+  cloud_functions: ^6.0.2 # Firebase Cloud Functions
+  firebase_messaging: ^16.0.2 # Push notifications
+  printing: ^5.11.0 # PDF and print support
 
+# Development dependencies
 dev_dependencies:
   flutter_test:
-    sdk: flutter
-  flutter_launcher_icons: ^0.14.4
-  flutter_lints: ^6.0.0
-  flutter_native_splash: ^2.3.10
+  flutter_launcher_icons: ^0.14.4 # App icon generation
+  flutter_lints: ^6.0.0 # Recommended lints
+  flutter_native_splash: ^2.3.10 # Splash screen
+
+# Splash screen configuration
 flutter_native_splash:
   image: assets/Sommersprossen_Logo.png
   color: "#ffffff"
+
+# App icon configuration
 flutter_icons:
   android: true
   ios: true
   image_path: "assets/icon.png"
-  flutter_lints: ^6.0.0
 
+
+# Flutter settings
 flutter:
   uses-material-design: true
   assets:
     - assets/Sommersprossen_Logo.png
+    # Add other assets here as needed
