@@ -121,7 +121,14 @@ class AdminMainMenuScreen extends StatelessWidget {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SizedBox();
+                  return Card(
+                    color: Colors.blue.shade50,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text('Keine aktive Lotterie vorhanden.', style: Theme.of(context).textTheme.bodyLarge),
+                    ),
+                  );
                 }
                 if (snapshot.hasError) {
                   return const SizedBox();

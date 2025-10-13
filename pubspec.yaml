@@ -21,10 +21,12 @@ dependencies:
   cloud_functions: ^6.0.2 # Firebase Cloud Functions
   firebase_messaging: ^16.0.2 # Push notifications
   printing: ^5.11.0 # PDF and print support
+  firebase_core: ^4.1.1
 
 # Development dependencies
 dev_dependencies:
   flutter_test:
+    sdk: flutter
   flutter_launcher_icons: ^0.14.4 # App icon generation
   flutter_lints: ^6.0.0 # Recommended lints
   flutter_native_splash: ^2.3.10 # Splash screen

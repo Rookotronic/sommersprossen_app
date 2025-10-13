@@ -55,8 +55,20 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance.collection('lotteries').doc(widget.lotteryId).snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData || !snapshot.data!.exists) {
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.data!.exists) {
+            // If the lottery was deleted, pop the screen and show a message
+            Future.microtask(() {
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Lotterie wurde gelöscht.')),
+                );
+              }
+            });
+            return const SizedBox();
           }
           final doc = snapshot.data!;
           final lottery = Lottery.fromFirestore(doc);

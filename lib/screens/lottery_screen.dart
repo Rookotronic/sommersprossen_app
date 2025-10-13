@@ -5,6 +5,17 @@ import 'lottery_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:intl/intl.dart';
+import '../models/child.dart';
+
+/// Zeitoptionen für die Lotterie, einfach änderbar.
+const List<String> kTimeOptions = [
+  '11:00',
+  '12:00',
+  '13:00',
+  '14:00',
+  '15:00',
+  'end',
+];
 
 /// Bildschirm zur Anzeige und Verwaltung aller Lotterien.
 ///
@@ -49,8 +60,21 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
             body: Center(child: Text('Fehler beim Laden der Lotterien: ${snapshot.error}')),
           );
         }
-  final docs = snapshot.data?.docs ?? [];
-  final lotteries = docs.map((doc) => Lottery.fromFirestore(doc)).toList();
+        final docs = snapshot.data?.docs ?? [];
+        if (docs.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Losverfahren')),
+            body: const Center(child: Text('Keine Lotterien vorhanden.')),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () async {
+                await _showNewLotteryDialog();
+              },
+              tooltip: 'Neue Lotterie starten',
+              child: const Icon(Icons.add),
+            ),
+          );
+        }
+        final lotteries = docs.map((doc) => Lottery.fromFirestore(doc)).toList();
         final hasUnfinished = lotteries.any((l) => !l.finished);
         return Scaffold(
           appBar: AppBar(title: const Text('Losverfahren')),
@@ -101,7 +125,8 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
   Future<bool?> _showNewLotteryDialog() async {
   DateTime selectedDate = DateTime.now();
   final nrController = createController();
-  final timeOfDayController = createController();
+  String endFirstPartOfDay = kTimeOptions.first;
+  String selectedGroup = 'Beide';
   String? errorText;
     return showDialog<bool>(
       context: context,
@@ -113,6 +138,20 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  DropdownButtonFormField<String>(
+                    value: selectedGroup,
+                    decoration: const InputDecoration(labelText: 'Gruppe'),
+                    items: [
+                      const DropdownMenuItem(value: 'Beide', child: Text('Beide')),
+                      ...GroupName.values.map((g) => DropdownMenuItem(
+                        value: g.name,
+                        child: Text(g.displayName),
+                      ))
+                    ],
+                    onChanged: (value) {
+                      if (value != null) setState(() => selectedGroup = value);
+                    },
+                  ),
                   ListTile(
                     title: Text(_formatDate(selectedDate)),
                     trailing: const Icon(Icons.calendar_today),
@@ -130,10 +169,18 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                       if (picked != null) setState(() => selectedDate = picked);
                     },
                   ),
-                  TextField(
-                    controller: timeOfDayController,
-                    decoration: const InputDecoration(labelText: 'Zeitangabe (z.B. Ganztägig, ab 13 Uhr)'),
-                    maxLength: 15,
+                  DropdownButtonFormField<String>(
+                    initialValue: endFirstPartOfDay,
+                    decoration: const InputDecoration(labelText: 'Ende des ersten Tagesabschnitts'),
+                    items: kTimeOptions
+                        .map((time) => DropdownMenuItem(
+                              value: time,
+                              child: Text(time),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) setState(() => endFirstPartOfDay = value);
+                    },
                   ),
                   TextField(
                     controller: nrController,
@@ -171,7 +218,8 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                       final result = await callable.call({
                         'date': DateFormat('yyyy-MM-dd').format(selectedDate),
                         'nrOfChildrenToPick': nr,
-                        'timeOfDay': timeOfDayController.text.trim(),
+                        'timeOfDay': endFirstPartOfDay,
+                        'group': selectedGroup,
                       });
                       if (result.data['success'] == true) {
                         if (context.mounted) {
