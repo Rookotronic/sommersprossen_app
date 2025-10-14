@@ -139,7 +139,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedGroup,
+                    initialValue: selectedGroup,
                     decoration: const InputDecoration(labelText: 'Gruppe'),
                     items: [
                       const DropdownMenuItem(value: 'Beide', child: Text('Beide')),
@@ -213,12 +213,16 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                       setState(() => errorText = 'Bitte ein gültiges Datum wählen (nicht in der Vergangenheit).');
                       return;
                     }
+                    // Validate endFirstPartOfDay
+                    final validEndFirstPartOfDay = (endFirstPartOfDay.isNotEmpty && kTimeOptions.contains(endFirstPartOfDay))
+                      ? endFirstPartOfDay
+                      : kTimeOptions.first;
                     try {
                       final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('addLottery');
                       final result = await callable.call({
                         'date': DateFormat('yyyy-MM-dd').format(selectedDate),
                         'nrOfChildrenToPick': nr,
-                        'timeOfDay': endFirstPartOfDay,
+                        'endFirstPartOfDay': validEndFirstPartOfDay,
                         'group': selectedGroup,
                       });
                       if (result.data['success'] == true) {
