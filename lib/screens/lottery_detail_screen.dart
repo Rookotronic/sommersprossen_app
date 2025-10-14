@@ -81,7 +81,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                 // ...existing code for lottery info, controls, children list, etc...
                 Text('Datum: ${formatDate(lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
-                Text('Zeit: ${lottery.timeOfDay}', style: Theme.of(context).textTheme.bodyLarge),
+                Text('Zeit: ${lottery.endFirstPartOfDay}', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 8),
                 Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 16),

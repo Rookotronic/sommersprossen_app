@@ -35,7 +35,7 @@ class PrintLotteryButton extends StatelessWidget {
                 pw.Text('Lotterie Details', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 8),
                 pw.Text('Datum: ${formatDate(lottery.date)}'),
-                pw.Text('Zeit: ${lottery.timeOfDay}'),
+                pw.Text('Zeit: ${lottery.endFirstPartOfDay}'),
                 pw.Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}'),
                 pw.SizedBox(height: 16),
                 pw.Text('Kinder:', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
