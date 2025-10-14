@@ -83,6 +83,8 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                 const SizedBox(height: 8),
                 Text('Zeit: ${lottery.endFirstPartOfDay}', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 8),
+                Text('Gruppe: ${lottery.group}', style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(height: 8),
                 Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 16),
                 ReportingPeriodControl(
