@@ -14,7 +14,7 @@ const List<String> kTimeOptions = [
   '13:00',
   '14:00',
   '15:00',
-  'end',
+  'Ende',
 ];
 
 /// Bildschirm zur Anzeige und Verwaltung aller Lotterien.
@@ -214,13 +214,15 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                     decoration: const InputDecoration(labelText: 'Anzahl Kinder zu ziehen'),
                   ),
                   // Information field (always last)
-                  TextField(
-                    controller: infoController,
-                    maxLength: 300,
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Information',
-                      hintText: 'Weitere Details zum Losverfahren, z.B. Grund, wer ist krank, etc.',
+                  Flexible(
+                    child: TextField(
+                      controller: infoController,
+                      maxLength: 300,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        labelText: 'Information',
+                        hintText: 'Weitere Details zum Losverfahren',
+                      ),
                     ),
                   ),
                   if (errorText != null)

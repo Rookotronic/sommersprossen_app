@@ -1,7 +1,10 @@
+import '../widgets/lottery_result_box.dart';
+import '../widgets/active_lottery_box.dart';
 import 'package:flutter/material.dart';
 import '../models/child.dart';
 import '../models/parent.dart';
-import '../widgets/parent_list_display.dart';
+
+import '../widgets/child_details_box.dart';
 import 'mychild_history_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -41,7 +44,9 @@ class MeinKindDetailScreen extends StatelessWidget {
             final parents = snapshot.data ?? [];
             return Column(
               children: [
-                GestureDetector(
+                ChildDetailsBox(
+                  child: child,
+                  parents: parents,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -52,65 +57,6 @@ class MeinKindDetailScreen extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Zeigt die Basisdaten des Kindes an
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 24,
-                                backgroundColor: Colors.blue.shade100,
-                                child: Icon(Icons.child_care, size: 28, color: Colors.blue.shade700),
-                              ),
-                              const SizedBox(width: 12),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(child.vorname, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                  Text(child.nachname, style: Theme.of(context).textTheme.bodyMedium),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          // Zeigt die Elternliste an
-                          Row(
-                            children: [
-                              Icon(Icons.groups, color: Colors.blue.shade400, size: 18),
-                              const SizedBox(width: 6),
-                              Text('Eltern:', style: Theme.of(context).textTheme.bodyMedium),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          ParentListDisplay(parents: parents),
-                          const SizedBox(height: 10),
-                          // Zeigt die Gruppenzugehörigkeit an
-                          Row(
-                            children: [
-                              Icon(Icons.groups_2, color: Colors.blue.shade400, size: 18),
-                              const SizedBox(width: 6),
-                              Text('Gruppe:', style: Theme.of(context).textTheme.bodyMedium),
-                              const SizedBox(width: 6),
-                              Chip(
-                                label: Text(child.gruppe.displayName, style: const TextStyle(color: Colors.white)),
-                                backgroundColor: Colors.blue,
-                                visualDensity: VisualDensity.compact,
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ),
                 // Zeigt die Lotterie-Info-Box unter jeder Kinderkarte an
                 StreamBuilder<QuerySnapshot>(
@@ -156,33 +102,14 @@ class MeinKindDetailScreen extends StatelessWidget {
                         String resultText = picked
                             ? '${child.vorname} muss Zuhause bleiben!'
                             : '${child.vorname} wird betreut!';
-                        String dateText = 'Datum: ${lotteryDate.day.toString().padLeft(2, '0')}.${lotteryDate.month.toString().padLeft(2, '0')}.${lotteryDate.year}';
-                        relevantBoxes.add(SizedBox(
-                          width: double.infinity,
-                          child: Card(
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                            color: boxColor,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Ergebnis Lotterie', style: Theme.of(context).textTheme.titleMedium),
-                                  const SizedBox(height: 8),
-                                  Text(dateText, style: Theme.of(context).textTheme.bodyMedium),
-                                  if (information.isNotEmpty) ...[
-                                    const SizedBox(height: 8),
-                                    Text('Info: $information', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
-                                  ],
-                                  const SizedBox(height: 8),
-                                  Text(resultText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                                ],
-                              ),
-                            ),
+                        relevantBoxes.add(
+                          LotteryResultBox(
+                            date: lotteryDate,
+                            information: information,
+                            resultText: resultText,
+                            boxColor: boxColor,
                           ),
-                        ));
+                        );
                         continue;
                       }
                       // Show old info box only if not finished
@@ -191,9 +118,6 @@ class MeinKindDetailScreen extends StatelessWidget {
                       final need = childEntry != null && childEntry['need'] == true;
                       final requestsSend = data['requestsSend'] == true || data['requestsSent'] == true;
                       if (requestsSend && !finished) {
-                        final date = data['date'] ?? '';
-                        final timeOfDay = data['timeOfDay'] ?? '';
-                        final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? '';
                         Color boxColor = Colors.blue.shade50;
                         String stateText = '';
                         if (responded) {
@@ -205,82 +129,45 @@ class MeinKindDetailScreen extends StatelessWidget {
                             stateText = 'Für dieses Kind KEINEN Bedarf angemeldet!';
                           }
                         }
-                        relevantBoxes.add(Card(
-                          color: boxColor,
-                          margin: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Aktive Lotterie', style: Theme.of(context).textTheme.titleMedium),
-                                const SizedBox(height: 8),
-                                Text('Datum: $date'),
-                                Text('Zeit: $timeOfDay'),
-                                Text('Zu ziehende Kinder: $nrOfChildrenToPick'),
-                                if (information.isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  Text('Info: $information', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
-                                ],
-                                if (responded) ...[
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    stateText,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                                const SizedBox(height: 12),
-                                if (!allAnswersReceived) Row(
-                                  children: [
-                                    ElevatedButton(
-                                      onPressed: () async {
-                                        try {
-                                          final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
-                                          final callable = functions.httpsCallable('childHasNeed');
-                                          await callable({'childId': child.id});
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Bedarf gemeldet!')),
-                                          );
-                                        } catch (e) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Fehler: $e')),
-                                          );
-                                        }
-                                      },
-                                      child: const Text('Bedarf'),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red,
-                                        foregroundColor: Colors.white,
-                                      ),
-                                      onPressed: () async {
-                                        try {
-                                          final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
-                                          final callable = functions.httpsCallable('childHasNoNeed');
-                                          await callable({'childId': child.id});
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Kein Bedarf gemeldet!')),
-                                          );
-                                        } catch (e) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Fehler: $e')),
-                                          );
-                                        }
-                                      },
-                                      child: const Text('Kein Bedarf'),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                        relevantBoxes.add(
+                          ActiveLotteryBox(
+                            date: lotteryDate,
+                            information: information,
+                            responded: responded,
+                            need: need,
+                            allAnswersReceived: allAnswersReceived,
+                            stateText: stateText,
+                            boxColor: boxColor,
+                            onNeed: () async {
+                              try {
+                                final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                                final callable = functions.httpsCallable('childHasNeed');
+                                await callable({'childId': child.id});
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Bedarf gemeldet!')),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Fehler: $e')),
+                                );
+                              }
+                            },
+                            onNoNeed: () async {
+                              try {
+                                final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                                final callable = functions.httpsCallable('childHasNoNeed');
+                                await callable({'childId': child.id});
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Kein Bedarf gemeldet!')),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Fehler: $e')),
+                                );
+                              }
+                            },
                           ),
-                        ));
+                        );
                       }
                     }
                     if (relevantBoxes.isEmpty) {
