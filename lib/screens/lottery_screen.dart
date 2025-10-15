@@ -61,60 +61,59 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
           );
         }
         final docs = snapshot.data?.docs ?? [];
-        if (docs.isEmpty) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Losverfahren')),
-            body: const Center(child: Text('Keine Lotterien vorhanden.')),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () async {
-                await _showNewLotteryDialog();
-              },
-              tooltip: 'Neue Lotterie starten',
-              child: const Icon(Icons.add),
-            ),
-          );
-        }
         final lotteries = docs.map((doc) => Lottery.fromFirestore(doc)).toList();
-        final hasUnfinished = lotteries.any((l) => !l.finished);
+        // Find all active unfinished lotteries
+        final activeLotteries = lotteries.where((l) => !l.finished).toList();
+        bool showAddButton = false;
+        if (activeLotteries.isEmpty) {
+          showAddButton = true;
+        } else if (activeLotteries.length == 1 && activeLotteries.first.group != 'Beide') {
+          showAddButton = true;
+        }
         return Scaffold(
           appBar: AppBar(title: const Text('Losverfahren')),
-          body: ListView.builder(
-            itemCount: lotteries.length,
-            itemBuilder: (context, index) {
-              final lottery = lotteries[index];
-              final docId = docs[index].id;
-              final dateStr = _formatDate(lottery.date);
-              final textColor = lottery.finished
-                  ? Colors.grey.shade600
-                  : Theme.of(context).textTheme.bodyLarge?.color;
-              return ListTile(
-                title: Text(
-                  dateStr,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+          body: docs.isEmpty
+              ? const Center(child: Text('Keine Lotterien vorhanden.'))
+              : ListView.builder(
+                  itemCount: lotteries.length,
+                  itemBuilder: (context, index) {
+                    final lottery = lotteries[index];
+                    final docId = docs[index].id;
+                    final dateStr = _formatDate(lottery.date);
+                    final textColor = lottery.finished
+                        ? Colors.grey.shade600
+                        : Theme.of(context).textTheme.bodyLarge?.color;
+                    return ListTile(
+                      title: Text(
+                        dateStr,
+                        style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        'Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}',
+                        style: TextStyle(color: textColor),
+                      ),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => LotteryDetailScreen(lottery: lottery, lotteryId: docId),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
-                subtitle: Text(
-                  'Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}',
-                  style: TextStyle(color: textColor),
-                ),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => LotteryDetailScreen(lottery: lottery, lotteryId: docId),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-          floatingActionButton: hasUnfinished
-              ? null
-              : FloatingActionButton(
+          floatingActionButton: showAddButton
+              ? FloatingActionButton(
                   onPressed: () async {
-                    await _showNewLotteryDialog();
+                    // Pass the single active lottery if present, else null
+                    await _showNewLotteryDialog(
+                      activeLottery: (activeLotteries.length == 1) ? activeLotteries.first : null,
+                    );
                   },
                   tooltip: 'Neue Lotterie starten',
                   child: const Icon(Icons.add),
-                ),
+                )
+              : null,
         );
       },
     );
@@ -122,12 +121,22 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
 
 
   /// Öffnet einen Dialog zum Erstellen einer neuen Lotterie.
-  Future<bool?> _showNewLotteryDialog() async {
-  DateTime selectedDate = DateTime.now();
-  final nrController = createController();
-  String endFirstPartOfDay = kTimeOptions.first;
-  String selectedGroup = 'Beide';
-  String? errorText;
+  Future<bool?> _showNewLotteryDialog({Lottery? activeLottery}) async {
+    DateTime selectedDate = DateTime.now();
+    final nrController = createController();
+    String endFirstPartOfDay = kTimeOptions.first;
+    String selectedGroup = 'Beide';
+    bool groupLocked = false;
+    // If there is an active lottery and its group is not 'Beide', preselect the other group and lock selection
+    if (activeLottery != null && activeLottery.group != 'Beide') {
+      if (activeLottery.group == 'ratz') {
+        selectedGroup = 'ruebe';
+      } else if (activeLottery.group == 'ruebe') {
+        selectedGroup = 'ratz';
+      }
+      groupLocked = true;
+    }
+    String? errorText;
     return showDialog<bool>(
       context: context,
       builder: (context) {
@@ -138,20 +147,22 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedGroup,
-                    decoration: const InputDecoration(labelText: 'Gruppe'),
-                    items: [
-                      const DropdownMenuItem(value: 'Beide', child: Text('Beide')),
-                      ...GroupName.values.map((g) => DropdownMenuItem(
-                        value: g.name,
-                        child: Text(g.displayName),
-                      ))
-                    ],
-                    onChanged: (value) {
-                      if (value != null) setState(() => selectedGroup = value);
-                    },
-                  ),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedGroup,
+                      decoration: const InputDecoration(labelText: 'Gruppe'),
+                      items: [
+                        const DropdownMenuItem(value: 'Beide', child: Text('Beide')),
+                        ...GroupName.values.map((g) => DropdownMenuItem(
+                          value: g.name,
+                          child: Text(g.displayName),
+                        ))
+                      ],
+                      onChanged: groupLocked
+                          ? null
+                          : (value) {
+                              if (value != null) setState(() => selectedGroup = value);
+                            },
+                    ),
                   ListTile(
                     title: Text(_formatDate(selectedDate)),
                     trailing: const Icon(Icons.calendar_today),
@@ -170,7 +181,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                     },
                   ),
                   DropdownButtonFormField<String>(
-                    initialValue: endFirstPartOfDay,
+                      initialValue: endFirstPartOfDay,
                     decoration: const InputDecoration(labelText: 'Ende des ersten Tagesabschnitts'),
                     items: kTimeOptions
                         .map((time) => DropdownMenuItem(
