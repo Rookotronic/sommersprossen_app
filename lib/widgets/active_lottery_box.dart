@@ -28,7 +28,7 @@ class ActiveLotteryBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       color: boxColor,
-      margin: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
