@@ -58,35 +58,39 @@ class ActiveLotteryTile extends StatelessWidget {
               if (showSendButton)
                 Padding(
                   padding: const EdgeInsets.only(top: 12.0),
-                  child: notifyparentsbutton(
-                    lotteryId: lotteryId,
-                    onSuccess: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Benachrichtigungen gesendet!')),
-                      );
-                    },
+                  child: Center(
+                    child: notifyparentsbutton(
+                      lotteryId: lotteryId,
+                      onSuccess: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Benachrichtigungen gesendet!')),
+                        );
+                      },
+                    ),
                   ),
                 ),
               const SizedBox(height: 12),
-              ReportingPeriodControl(
-                lottery: lottery,
-                onEndPeriod: () async {
-                  final confirmed = await showConfirmationDialog(
-                    context,
-                    title: 'Meldezeitraum beenden?',
-                    content: 'Bist du sicher, dass du den Meldezeitraum beenden möchtest?',
-                    confirmText: 'Beenden',
-                  );
-                  if (confirmed == true) {
-                    await FirebaseFirestore.instance
-                        .collection('lotteries')
-                        .doc(lotteryId)
-                        .update({'allAnswersReceived': true});
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Meldezeitraum wurde beendet.')),
+              Center(
+                child: ReportingPeriodControl(
+                  lottery: lottery,
+                  onEndPeriod: () async {
+                    final confirmed = await showConfirmationDialog(
+                      context,
+                      title: 'Meldezeitraum beenden?',
+                      content: 'Bist du sicher, dass du den Meldezeitraum beenden möchtest?',
+                      confirmText: 'Beenden',
                     );
-                  }
-                },
+                    if (confirmed == true) {
+                      await FirebaseFirestore.instance
+                          .collection('lotteries')
+                          .doc(lotteryId)
+                          .update({'allAnswersReceived': true});
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Meldezeitraum wurde beendet.')),
+                      );
+                    }
+                  },
+                ),
               ),
             ],
           ),

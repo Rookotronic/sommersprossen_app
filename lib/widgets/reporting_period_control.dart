@@ -29,24 +29,29 @@ class ReportingPeriodControl extends StatelessWidget {
         ),
         Text('${(percent * 100).toStringAsFixed(0)}% ($respondedChildren/$totalChildren)', style: const TextStyle(fontSize: 11)),
         const SizedBox(height: 8),
-        SizedBox(
-          width: 180,
-          child: ElevatedButton(
-            onPressed: onEndPeriod,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
-              textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-              alignment: Alignment.center,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 180,
+              child: ElevatedButton(
+                onPressed: onEndPeriod,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
+                  textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  alignment: Alignment.center,
+                ),
+                child: const Text(
+                  'Meldezeitraum beenden!',
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
-            child: const Text(
-              'Meldezeitraum beenden!',
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
+          ],
         ),
       ],
     );

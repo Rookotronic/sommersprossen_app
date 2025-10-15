@@ -196,7 +196,11 @@ class AdminMainMenuScreen extends StatelessWidget {
                     children: docs.map((doc) {
                       final lotteryId = doc.id;
                       final lottery = Lottery.fromFirestore(doc);
-                      return ActiveLotteryTile(lottery: lottery, lotteryId: lotteryId);
+                      return Row(
+                        children: [
+                          Expanded(child: ActiveLotteryTile(lottery: lottery, lotteryId: lotteryId)),
+                        ],
+                      );
                     }).toList(),
                   );
                 },
