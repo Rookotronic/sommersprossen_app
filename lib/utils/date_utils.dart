@@ -19,4 +19,8 @@ class DateUtils {
         return '';
     }
   }
+
+  static String formatWeekdayDate(DateTime date) {
+    return '${weekdayName(date)} ${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+  }
 }

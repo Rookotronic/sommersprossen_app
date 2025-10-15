@@ -5,6 +5,7 @@ import '../widgets/notify_parents_button.dart';
 import '../widgets/reporting_period_control.dart';
 import '../widgets/confirmation_dialog.dart';
 import '../screens/lottery_detail_screen.dart';
+import '../utils/date_utils.dart' as custom_date_utils;
 
 class ActiveLotteryTile extends StatelessWidget {
   final Lottery lottery;
@@ -33,7 +34,7 @@ class ActiveLotteryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final groupDisplay = getGroupDisplay(lottery.group);
     final showSendButton = !lottery.requestsSend && !lottery.finished && !lottery.allAnswersReceived;
-    final dateStr = lottery.date.toString().split(' ')[0];
+  final dateStr = custom_date_utils.DateUtils.formatWeekdayDate(lottery.date);
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () {
@@ -53,7 +54,7 @@ class ActiveLotteryTile extends StatelessWidget {
             children: [
               Text('Aktive Lotterie ($groupDisplay)', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
-              Text('Datum: $dateStr'),
+              Text(dateStr),
               if (showSendButton)
                 Padding(
                   padding: const EdgeInsets.only(top: 12.0),

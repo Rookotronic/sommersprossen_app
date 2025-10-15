@@ -38,9 +38,9 @@ class ActiveLotteryBox extends StatelessWidget {
             Text('Aktive Lotterie', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(
-        date != null
-          ? '${custom_date_utils.DateUtils.weekdayName(date!)} ${date!.day.toString().padLeft(2, '0')}.${date!.month.toString().padLeft(2, '0')}.${date!.year}'
-          : 'unbekannt',
+              date != null
+                  ? custom_date_utils.DateUtils.formatWeekdayDate(date!)
+                  : 'unbekannt',
             ),
             if (information.isNotEmpty) ...[
               const SizedBox(height: 8),

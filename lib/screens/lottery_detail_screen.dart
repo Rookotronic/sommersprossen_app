@@ -8,7 +8,8 @@ import '../widgets/print_lottery_button.dart';
 import 'package:flutter/material.dart';
 import '../models/lottery.dart';
 import '../models/child.dart';
-import '../utils/date_format.dart';
+
+import '../utils/date_utils.dart' as custom_date_utils;
 import '../services/child_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -79,11 +80,11 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ...existing code for lottery info, controls, children list, etc...
-                Text('Datum: ${formatDate(lottery.date)}', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Text('Zeit: ${lottery.endFirstPartOfDay}', style: Theme.of(context).textTheme.bodyLarge),
+                Text(custom_date_utils.DateUtils.formatWeekdayDate(lottery.date), style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Text('Gruppe: ${lottery.group == 'Beide' ? 'Beide' : GroupName.values.firstWhere((g) => g.name == lottery.group).displayName}', style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(height: 8),
+                Text('Zeit: ${lottery.endFirstPartOfDay}', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 8),
                 Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 16),

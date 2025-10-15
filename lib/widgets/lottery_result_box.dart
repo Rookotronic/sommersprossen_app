@@ -33,7 +33,7 @@ class LotteryResultBox extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
         date != null
-          ? '${custom_date_utils.DateUtils.weekdayName(date!)} ${date!.day.toString().padLeft(2, '0')}.${date!.month.toString().padLeft(2, '0')}.${date!.year}'
+          ? custom_date_utils.DateUtils.formatWeekdayDate(date!)
           : 'unbekannt',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
