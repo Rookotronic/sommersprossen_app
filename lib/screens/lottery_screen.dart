@@ -80,13 +80,27 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                     final lottery = lotteries[index];
                     final docId = docs[index].id;
                     final dateStr = _formatDate(lottery.date);
+                    final groupStr = lottery.group == 'Beide'
+                        ? 'Beide'
+                        : GroupName.values.firstWhere((g) => g.name == lottery.group).displayName;
                     final textColor = lottery.finished
                         ? Colors.grey.shade600
                         : Theme.of(context).textTheme.bodyLarge?.color;
                     return ListTile(
-                      title: Text(
-                        dateStr,
-                        style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+                      title: RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: dateStr,
+                              style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+                            ),
+                            TextSpan(
+                              text: '  $groupStr',
+                              style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                          style: DefaultTextStyle.of(context).style,
+                        ),
                       ),
                       subtitle: Text(
                         'Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}',
