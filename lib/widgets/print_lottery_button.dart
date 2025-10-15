@@ -4,7 +4,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import '../models/lottery.dart';
 import '../models/child.dart';
-import '../utils/date_format.dart';
+import '../models/child.dart' show GroupName, GroupNameDisplay;
+import '../utils/date_utils.dart' as custom_date_utils;
 
 /// Button to print the details of a finished lottery as a PDF.
 /// The PDF layout closely matches the detail screen.
@@ -25,8 +26,8 @@ class PrintLotteryButton extends StatelessWidget {
       ),
       onPressed: () async {
         final pdf = pw.Document();
-        // Sort children by surname
         final sortedChildren = [...children]..sort((a, b) => a.nachname.compareTo(b.nachname));
+        // Info section
         pdf.addPage(
           pw.Page(
             build: (context) => pw.Column(
@@ -34,9 +35,15 @@ class PrintLotteryButton extends StatelessWidget {
               children: [
                 pw.Text('Lotterie Details', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 8),
-                pw.Text('Datum: ${formatDate(lottery.date)}'),
+                pw.Text(custom_date_utils.DateUtils.formatWeekdayDate(lottery.date)),
+                pw.Text('Gruppe: ${lottery.group == 'Beide' ? 'Beide' : GroupName.values.firstWhere((g) => g.name == lottery.group).displayName}'),
                 pw.Text('Zeit: ${lottery.endFirstPartOfDay}'),
                 pw.Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}'),
+                if (lottery.information.isNotEmpty) ...[
+                  pw.SizedBox(height: 12),
+                  pw.Text(lottery.information, style: pw.TextStyle(fontSize: 12, color: PdfColors.grey800)),
+                  pw.SizedBox(height: 8),
+                ],
                 pw.SizedBox(height: 16),
                 pw.Text('Kinder:', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 8),
@@ -56,13 +63,13 @@ class PrintLotteryButton extends StatelessWidget {
                       final isPicked = entry.picked;
                       return pw.TableRow(
                         decoration: isPicked
-                            ? const pw.BoxDecoration(color: PdfColors.grey300)
+                            ? const pw.BoxDecoration(color: PdfColors.pink100)
                             : null,
                         children: [
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(4),
                             child: pw.Text(
-                              '${child.nachname}, ${child.vorname}${isPicked ? ' (Gezogen)' : ''}',
+                              '${child.vorname} ${child.nachname}${isPicked ? ' (Gezogen)' : ''}',
                               style: pw.TextStyle(fontSize: 11),
                             ),
                           ),
