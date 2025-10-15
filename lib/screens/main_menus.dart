@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sommersprossen_app/widgets/notify_parents_button.dart';
 import 'eltern_screen.dart';
 import 'kinder_screen.dart';
 import 'lottery_screen.dart';
 import '../models/lottery.dart';
-import 'lottery_detail_screen.dart';
-import '../widgets/reporting_period_control.dart';
+import '../widgets/active_lottery_tile.dart';
 import '../widgets/confirmation_dialog.dart';
 import '../models/child.dart';
 import 'mychild_detail_screen.dart';
@@ -86,6 +84,63 @@ class ParentMainMenuScreen extends StatelessWidget {
 ///
 /// Zeigt die wichtigsten Verwaltungsfunktionen und die aktive Lotterie für Admins.
 class AdminMainMenuScreen extends StatelessWidget {
+  /// Returns the list of menu entry tiles for the admin main menu.
+  List<Widget> _buildMenuEntryTiles(BuildContext context) {
+    return [
+      MenuEntryTile(
+        icon: Icons.shuffle,
+        title: 'Losverfahren',
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const LotteryScreen(),
+            ),
+          );
+        },
+      ),
+      MenuEntryTile(
+        icon: Icons.account_balance_wallet,
+        title: 'Lotterietopf',
+        onTap: () async {
+          final confirmed = await showConfirmationDialog(
+            context,
+            title: 'Lotterietopf öffnen?',
+            content: 'Bist du sicher, dass du den Lotterietopf öffnen möchtest?',
+            confirmText: 'Öffnen',
+          );
+          if (confirmed == true) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const LotterietopfScreen(),
+              ),
+            );
+          }
+        },
+      ),
+      MenuEntryTile(
+        icon: Icons.child_care,
+        title: 'Kinder',
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const KinderScreen(),
+            ),
+          );
+        },
+      ),
+      MenuEntryTile(
+        icon: Icons.people,
+        title: 'Eltern',
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const ElternScreen(),
+            ),
+          );
+        },
+      ),
+    ];
+  }
   /// Erstellt eine Instanz des Admin-Hauptmenüs.
   const AdminMainMenuScreen({super.key});
 
@@ -106,186 +161,50 @@ class AdminMainMenuScreen extends StatelessWidget {
         title: Text('Hallo $userName!'),
         actions: const [LogoutButton()],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Reduce gap between greeting and first menu point
-            const SizedBox(height: 4),
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('lotteries')
-                  .where('finished', isEqualTo: false)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Card(
-                    color: Colors.blue.shade50,
-                    margin: const EdgeInsets.only(bottom: 24),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text('Lade aktive Lotterien...', style: Theme.of(context).textTheme.bodyLarge),
-                    ),
-                  );
-                }
-                if (snapshot.hasError) {
-                  return const SizedBox();
-                }
-                final docs = snapshot.data?.docs ?? [];
-                if (docs.isEmpty) {
-                  return Card(
-                    color: Colors.blue.shade50,
-                    margin: const EdgeInsets.only(bottom: 24),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text('Keine aktive Lotterie vorhanden.', style: Theme.of(context).textTheme.bodyLarge),
-                    ),
-                  );
-                }
-                return Column(
-                  children: docs.map((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    final date = data['date'] ?? '';
-                    final timeOfDay = data['timeOfDay'] ?? '';
-                    final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? '';
-                    final requestsSend = data['requestsSend'] ?? false;
-                    final allAnswersReceived = data['allAnswersReceived'] ?? false;
-                    final finished = data['finished'] ?? false;
-                    final groupRaw = data['group'] ?? '';
-                    String groupDisplay;
-                    switch (groupRaw.toLowerCase()) {
-                      case 'ratz':
-                        groupDisplay = 'Gruppe Ratz';
-                        break;
-                      case 'ruebe':
-                        groupDisplay = 'Gruppe Rübe';
-                        break;
-                      case 'beide':
-                        groupDisplay = 'Beide Gruppen';
-                        break;
-                      default:
-                        groupDisplay = 'Gruppe unbekannt';
-                    }
-                    final showSendButton = !requestsSend && !finished && !allAnswersReceived;
-                    final lotteryId = doc.id;
-                    final lottery = Lottery.fromFirestore(doc);
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => LotteryDetailScreen(lotteryId: lotteryId, lottery: lottery),
-                          ),
-                        );
-                      },
-                      child: Card(
-                        color: Colors.blue.shade50,
-                        margin: const EdgeInsets.only(bottom: 24),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Aktive Lotterie ($groupDisplay)', style: Theme.of(context).textTheme.titleMedium),
-                              const SizedBox(height: 8),
-                              Text('Datum: $date'),
-                              if (showSendButton)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 12.0),
-                                  child: notifyparentsbutton(
-                                    lotteryId: lotteryId,
-                                    onSuccess: () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Benachrichtigungen gesendet!')),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              const SizedBox(height: 12),
-                              ReportingPeriodControl(
-                                lottery: lottery,
-                                onEndPeriod: () async {
-                                  final confirmed = await showConfirmationDialog(
-                                    context,
-                                    title: 'Meldezeitraum beenden?',
-                                    content: 'Bist du sicher, dass du den Meldezeitraum beenden möchtest?',
-                                    confirmText: 'Beenden',
-                                  );
-                                  if (confirmed == true) {
-                                    await FirebaseFirestore.instance
-                                        .collection('lotteries')
-                                        .doc(lotteryId)
-                                        .update({'allAnswersReceived': true});
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Meldezeitraum wurde beendet.')),
-                                    );
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Reduce gap between greeting and first menu point
+              const SizedBox(height: 4),
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('lotteries')
+                    .where('finished', isEqualTo: false)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Card(
+                      color: Colors.blue.shade50,
+                      margin: const EdgeInsets.only(bottom: 24),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text('Lade aktive Lotterien...', style: Theme.of(context).textTheme.bodyLarge),
                       ),
                     );
-                  }).toList(),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            MenuEntryTile(
-              icon: Icons.shuffle,
-              title: 'Losverfahren',
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const LotteryScreen(),
-                  ),
-                );
-              },
-            ),
-            MenuEntryTile(
-              icon: Icons.account_balance_wallet,
-              title: 'Lotterietopf',
-              onTap: () async {
-                final confirmed = await showConfirmationDialog(
-                  context,
-                  title: 'Lotterietopf öffnen?',
-                  content: 'Bist du sicher, dass du den Lotterietopf öffnen möchtest?',
-                  confirmText: 'Öffnen',
-                );
-                if (confirmed == true) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const LotterietopfScreen(),
-                    ),
+                  }
+                  if (snapshot.hasError) {
+                    return const SizedBox();
+                  }
+                  final docs = snapshot.data?.docs ?? [];
+                  if (docs.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return Column(
+                    children: docs.map((doc) {
+                      final lotteryId = doc.id;
+                      final lottery = Lottery.fromFirestore(doc);
+                      return ActiveLotteryTile(lottery: lottery, lotteryId: lotteryId);
+                    }).toList(),
                   );
-                }
-              },
-            ),
-            MenuEntryTile(
-              icon: Icons.child_care,
-              title: 'Kinder',
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const KinderScreen(),
-                  ),
-                );
-              },
-            ),
-            MenuEntryTile(
-              icon: Icons.people,
-              title: 'Eltern',
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const ElternScreen(),
-                  ),
-                );
-              },
-            ),
-          ],
+                },
+              ),
+              const SizedBox(height: 16),
+              ..._buildMenuEntryTiles(context),
+            ],
+          ),
         ),
       ),
     );
