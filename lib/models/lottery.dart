@@ -45,25 +45,22 @@ class Lottery {
   final DateTime date;
   /// Timestamp when the lottery was created.
   final DateTime createdAt;
-
-
   /// End of first part of day for the lottery event (e.g. '13:00', 'end').
   final String endFirstPartOfDay;
-
   /// Group for the lottery event ("Beide", "ratz", "ruebe").
   final String group;
-
   /// Number of children to pick in the lottery.
   final int nrOfChildrenToPick;
   /// List of children participating in the lottery.
   final List<LotteryChild> children;
-
   /// Whether the lottery is finished.
   final bool finished;
   /// Whether requests have been sent to parents.
   final bool requestsSend;
   /// Whether all answers have been received from parents or the admin has closed the reporting period.
   final bool allAnswersReceived;
+  /// Additional information for the lottery event.
+  final String information;
 
   /// Creates a [Lottery] instance.
   Lottery({
@@ -74,8 +71,9 @@ class Lottery {
     this.allAnswersReceived = false,
     required this.nrOfChildrenToPick,
     required this.children,
-  required this.endFirstPartOfDay,
+    required this.endFirstPartOfDay,
     required this.group,
+    this.information = '',
   });
 
   /// Creates a [Lottery] from Firestore document data.
@@ -84,13 +82,14 @@ class Lottery {
       final data = doc.data() as Map<String, dynamic>;
       final dateRaw = data['date'];
       final createdAtRaw = data['createdAt'];
-      final finished = data['finished'] ?? false;
-      final requestsSend = data['requestsSend'] ?? false;
-      final allAnswersReceived = data['allAnswersReceived'] ?? false;
-      final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? 0;
-      final childrenRaw = data['children'];
-  final endFirstPartOfDay = data['endFirstPartOfDay'] ?? data['timeOfDay'] ?? '';
-  final group = data['group'] ?? 'Beide';
+    final finished = data['finished'] ?? false;
+    final requestsSend = data['requestsSend'] ?? false;
+    final allAnswersReceived = data['allAnswersReceived'] ?? false;
+    final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? 0;
+    final childrenRaw = data['children'];
+    final endFirstPartOfDay = data['endFirstPartOfDay'] ?? data['timeOfDay'] ?? '';
+    final group = data['group'] ?? 'Beide';
+    final information = (data['information'] ?? '').toString();
 
       DateTime date;
       if (dateRaw is String && dateRaw.isNotEmpty) {
@@ -130,8 +129,9 @@ class Lottery {
         allAnswersReceived: allAnswersReceived,
         nrOfChildrenToPick: nrOfChildrenToPick,
         children: children,
-  endFirstPartOfDay: endFirstPartOfDay,
-  group: group,
+        endFirstPartOfDay: endFirstPartOfDay,
+        group: group,
+        information: information,
       );
     } catch (e) {
       // Optionally log error here
@@ -149,8 +149,9 @@ class Lottery {
       'allAnswersReceived': allAnswersReceived,
       'nrOfChildrenToPick': nrOfChildrenToPick,
       'children': children.map((c) => c.toMap()).toList(),
-  'endFirstPartOfDay': endFirstPartOfDay,
-  'group': group,
+      'endFirstPartOfDay': endFirstPartOfDay,
+      'group': group,
+      'information': information,
     };
   }
 }

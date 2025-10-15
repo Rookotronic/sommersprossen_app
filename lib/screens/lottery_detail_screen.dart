@@ -34,6 +34,62 @@ class LotteryDetailScreen extends StatefulWidget {
 ///
 /// Beinhaltet die Logik zur Anzeige, Bearbeitung und Löschung einer Lotterie.
 class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
+  Future<void> _editInformation(BuildContext context, String currentInfo) async {
+    final controller = TextEditingController(text: currentInfo);
+    String? errorText;
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: const Text('Information bearbeiten'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: controller,
+                  maxLines: 4,
+                  maxLength: 300,
+                  decoration: InputDecoration(
+                    hintText: 'Information zur Lotterie',
+                    errorText: errorText,
+                  ),
+                  onChanged: (value) {
+                    if (value.length > 300) {
+                      setState(() => errorText = 'Maximal 300 Zeichen erlaubt');
+                    } else {
+                      setState(() => errorText = null);
+                    }
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Abbrechen'),
+              ),
+              ElevatedButton(
+                onPressed: controller.text.length > 300
+                    ? null
+                    : () => Navigator.of(context).pop(controller.text),
+                child: const Text('Speichern'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (result != null && result != currentInfo) {
+      await FirebaseFirestore.instance
+          .collection('lotteries')
+          .doc(widget.lotteryId)
+          .update({'information': result});
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Information aktualisiert.')),
+      );
+    }
+  }
   /// Baut einen farbigen Kreis zur Anzeige von booleschen Statuswerten.
   Widget _buildBoolCircle(bool value) {
     return Container(
@@ -87,7 +143,39 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                 Text('Zeit: ${lottery.endFirstPartOfDay}', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 8),
                 Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
-                const SizedBox(height: 16),
+                if (lottery.information.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          lottery.information,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade900),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 20),
+                        tooltip: 'Bearbeiten',
+                        onPressed: () => _editInformation(context, lottery.information),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ]
+                else ...[
+                  Row(
+                    children: [
+                      Expanded(child: const SizedBox()),
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 20),
+                        tooltip: 'Information hinzufügen',
+                        onPressed: () => _editInformation(context, ''),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 ReportingPeriodControl(
                   lottery: lottery,
                   onEndPeriod: () async {
