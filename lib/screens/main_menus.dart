@@ -117,10 +117,23 @@ class AdminMainMenuScreen extends StatelessWidget {
               stream: FirebaseFirestore.instance
                   .collection('lotteries')
                   .where('finished', isEqualTo: false)
-                  .limit(1)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Card(
+                    color: Colors.blue.shade50,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text('Lade aktive Lotterien...', style: Theme.of(context).textTheme.bodyLarge),
+                    ),
+                  );
+                }
+                if (snapshot.hasError) {
+                  return const SizedBox();
+                }
+                final docs = snapshot.data?.docs ?? [];
+                if (docs.isEmpty) {
                   return Card(
                     color: Colors.blue.shade50,
                     margin: const EdgeInsets.only(bottom: 24),
@@ -130,35 +143,43 @@ class AdminMainMenuScreen extends StatelessWidget {
                     ),
                   );
                 }
-                if (snapshot.hasError) {
-                  return const SizedBox();
-                }
-                final docs = snapshot.data?.docs ?? [];
-                if (docs.isEmpty) {
-                  return const SizedBox();
-                }
-                final data = docs.first.data() as Map<String, dynamic>;
-                final date = data['date'] ?? '';
-                final timeOfDay = data['timeOfDay'] ?? '';
-                final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? '';
-                final requestsSend = data['requestsSend'] ?? false;
-                final allAnswersReceived = data['allAnswersReceived'] ?? false;
-                final finished = data['finished'] ?? false;
-                final showSendButton = !requestsSend && !finished && !allAnswersReceived;
-                final lotteryId = docs.first.id;
-                final lottery = Lottery.fromFirestore(docs.first);
-                return InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => LotteryDetailScreen(lotteryId: lotteryId, lottery: lottery),
-                      ),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Card(
+                return Column(
+                  children: docs.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    final date = data['date'] ?? '';
+                    final timeOfDay = data['timeOfDay'] ?? '';
+                    final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? '';
+                    final requestsSend = data['requestsSend'] ?? false;
+                    final allAnswersReceived = data['allAnswersReceived'] ?? false;
+                    final finished = data['finished'] ?? false;
+                    final groupRaw = data['group'] ?? '';
+                    String groupDisplay;
+                    switch (groupRaw.toLowerCase()) {
+                      case 'ratz':
+                        groupDisplay = 'Gruppe Ratz';
+                        break;
+                      case 'ruebe':
+                        groupDisplay = 'Gruppe Rübe';
+                        break;
+                      case 'beide':
+                        groupDisplay = 'Beide Gruppen';
+                        break;
+                      default:
+                        groupDisplay = 'Gruppe unbekannt';
+                    }
+                    final showSendButton = !requestsSend && !finished && !allAnswersReceived;
+                    final lotteryId = doc.id;
+                    final lottery = Lottery.fromFirestore(doc);
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => LotteryDetailScreen(lotteryId: lotteryId, lottery: lottery),
+                          ),
+                        );
+                      },
+                      child: Card(
                         color: Colors.blue.shade50,
                         margin: const EdgeInsets.only(bottom: 24),
                         child: Padding(
@@ -166,11 +187,9 @@ class AdminMainMenuScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Aktive Lotterie', style: Theme.of(context).textTheme.titleMedium),
+                              Text('Aktive Lotterie ($groupDisplay)', style: Theme.of(context).textTheme.titleMedium),
                               const SizedBox(height: 8),
                               Text('Datum: $date'),
-                              Text('Zeit: $timeOfDay'),
-                              Text('Zu ziehende Kinder: $nrOfChildrenToPick'),
                               if (showSendButton)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 12.0),
@@ -208,8 +227,8 @@ class AdminMainMenuScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  }).toList(),
                 );
               },
             ),
