@@ -128,6 +128,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                       final data = doc.data() as Map<String, dynamic>;
                       final group = data['group'] ?? 'Beide';
                       final finished = data['finished'] ?? false;
+                      final information = (data['information'] ?? '').toString().trim();
                       // Only show lottery info if group matches child's group or is 'Beide'
                       if (group != 'Beide' && group != child.gruppe.name) {
                         continue;
@@ -171,6 +172,10 @@ class MeinKindDetailScreen extends StatelessWidget {
                                   Text('Ergebnis Lotterie', style: Theme.of(context).textTheme.titleMedium),
                                   const SizedBox(height: 8),
                                   Text(dateText, style: Theme.of(context).textTheme.bodyMedium),
+                                  if (information.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Text('Info: $information', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
+                                  ],
                                   const SizedBox(height: 8),
                                   Text(resultText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                                 ],
@@ -213,6 +218,10 @@ class MeinKindDetailScreen extends StatelessWidget {
                                 Text('Datum: $date'),
                                 Text('Zeit: $timeOfDay'),
                                 Text('Zu ziehende Kinder: $nrOfChildrenToPick'),
+                                if (information.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text('Info: $information', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
+                                ],
                                 if (responded) ...[
                                   const SizedBox(height: 12),
                                   Text(

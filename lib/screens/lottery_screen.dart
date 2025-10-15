@@ -138,6 +138,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
   Future<bool?> _showNewLotteryDialog({Lottery? activeLottery}) async {
     DateTime selectedDate = DateTime.now();
     final nrController = createController();
+    final infoController = TextEditingController();
     String endFirstPartOfDay = kTimeOptions.first;
     String selectedGroup = 'Beide';
     bool groupLocked = false;
@@ -161,22 +162,22 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                    DropdownButtonFormField<String>(
-                      initialValue: selectedGroup,
-                      decoration: const InputDecoration(labelText: 'Gruppe'),
-                      items: [
-                        const DropdownMenuItem(value: 'Beide', child: Text('Beide')),
-                        ...GroupName.values.map((g) => DropdownMenuItem(
-                          value: g.name,
-                          child: Text(g.displayName),
-                        ))
-                      ],
-                      onChanged: groupLocked
-                          ? null
-                          : (value) {
-                              if (value != null) setState(() => selectedGroup = value);
-                            },
-                    ),
+                  DropdownButtonFormField<String>(
+                    initialValue: selectedGroup,
+                    decoration: const InputDecoration(labelText: 'Gruppe'),
+                    items: [
+                      const DropdownMenuItem(value: 'Beide', child: Text('Beide')),
+                      ...GroupName.values.map((g) => DropdownMenuItem(
+                        value: g.name,
+                        child: Text(g.displayName),
+                      ))
+                    ],
+                    onChanged: groupLocked
+                        ? null
+                        : (value) {
+                            if (value != null) setState(() => selectedGroup = value);
+                          },
+                  ),
                   ListTile(
                     title: Text(_formatDate(selectedDate)),
                     trailing: const Icon(Icons.calendar_today),
@@ -195,7 +196,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                     },
                   ),
                   DropdownButtonFormField<String>(
-                      initialValue: endFirstPartOfDay,
+                    initialValue: endFirstPartOfDay,
                     decoration: const InputDecoration(labelText: 'Ende des ersten Tagesabschnitts'),
                     items: kTimeOptions
                         .map((time) => DropdownMenuItem(
@@ -211,6 +212,16 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                     controller: nrController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Anzahl Kinder zu ziehen'),
+                  ),
+                  // Information field (always last)
+                  TextField(
+                    controller: infoController,
+                    maxLength: 300,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Information',
+                      hintText: 'Weitere Details zum Losverfahren, z.B. Grund, wer ist krank, etc.',
+                    ),
                   ),
                   if (errorText != null)
                     Padding(
@@ -249,6 +260,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                         'nrOfChildrenToPick': nr,
                         'endFirstPartOfDay': validEndFirstPartOfDay,
                         'group': selectedGroup,
+                        'information': infoController.text.trim(),
                       });
                       if (result.data['success'] == true) {
                         if (context.mounted) {
