@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/date_utils.dart' as custom_date_utils;
 
 class LotteryResultBox extends StatelessWidget {
   final DateTime? date;
@@ -28,12 +29,12 @@ class LotteryResultBox extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Ergebnis Lotterie', style: Theme.of(context).textTheme.titleMedium),
+              Text('Ergebnis der Lotterie', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               Text(
-                date != null
-                    ? 'Datum: ${date!.day.toString().padLeft(2, '0')}.${date!.month.toString().padLeft(2, '0')}.${date!.year}'
-                    : 'Datum: unbekannt',
+        date != null
+          ? '${custom_date_utils.DateUtils.weekdayName(date!)} ${date!.day.toString().padLeft(2, '0')}.${date!.month.toString().padLeft(2, '0')}.${date!.year}'
+          : 'unbekannt',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               if (information.isNotEmpty) ...[
