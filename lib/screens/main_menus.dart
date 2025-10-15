@@ -175,6 +175,7 @@ class AdminMainMenuScreen extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.only(top: 12.0),
                                   child: notifyparentsbutton(
+                                    lotteryId: lotteryId,
                                     onSuccess: () {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(content: Text('Benachrichtigungen gesendet!')),

@@ -111,6 +111,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: notifyparentsbutton(
+                      lotteryId: widget.lotteryId,
                       onSuccess: () async {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Benachrichtigungen gesendet!')),

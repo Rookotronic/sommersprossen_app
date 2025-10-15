@@ -117,156 +117,167 @@ class MeinKindDetailScreen extends StatelessWidget {
           stream: FirebaseFirestore.instance
             .collection('lotteries')
             .orderBy('createdAt', descending: true)
-            .limit(1)
             .snapshots(),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                       return const SizedBox.shrink();
                     }
-                    final data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
-                    final finished = data['finished'] ?? false;
-                    final childrenList = (data['children'] as List<dynamic>? ?? []);
-                    final childEntry = childrenList.firstWhere(
-                      (c) => c['childId'] == child.id,
-                      orElse: () => null,
-                    );
-                    final picked = childEntry != null && childEntry['picked'] == true;
-                    DateTime? lotteryDate;
-                    if (data['date'] is Timestamp) {
-                      lotteryDate = (data['date'] as Timestamp).toDate();
-                    } else if (data['date'] is String) {
-                      // Try to parse ISO8601 string
-                      try {
-                        lotteryDate = DateTime.parse(data['date'] as String);
-                      } catch (_) {
-                        lotteryDate = null;
-                      }
-                    }
                     final now = DateTime.now();
-                    // Show result info box if finished and UNTIL 2 days have passed after lottery start
-                    if (finished && lotteryDate != null && now.isBefore(lotteryDate.add(const Duration(days: 1)))) {
-                      Color boxColor = picked ? Colors.red.shade300 : Colors.green.shade300;
-                      String resultText = picked
-                          ? '${child.vorname} muss Zuhause bleiben!'
-                          : '${child.vorname} wird betreut!';
-                      String dateText = 'Datum: ${lotteryDate.day.toString().padLeft(2, '0')}.${lotteryDate.month.toString().padLeft(2, '0')}.${lotteryDate.year}';
-                      return SizedBox(
-                        width: double.infinity,
-                        child: Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    final relevantBoxes = <Widget>[];
+                    for (final doc in snapshot.data!.docs) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final group = data['group'] ?? 'Beide';
+                      final finished = data['finished'] ?? false;
+                      // Only show lottery info if group matches child's group or is 'Beide'
+                      if (group != 'Beide' && group != child.gruppe.name) {
+                        continue;
+                      }
+                      final childrenList = (data['children'] as List<dynamic>? ?? []);
+                      final childEntry = childrenList.firstWhere(
+                        (c) => c['childId'] == child.id,
+                        orElse: () => null,
+                      );
+                      final picked = childEntry != null && childEntry['picked'] == true;
+                      DateTime? lotteryDate;
+                      if (data['date'] is Timestamp) {
+                        lotteryDate = (data['date'] as Timestamp).toDate();
+                      } else if (data['date'] is String) {
+                        // Try to parse ISO8601 string
+                        try {
+                          lotteryDate = DateTime.parse(data['date'] as String);
+                        } catch (_) {
+                          lotteryDate = null;
+                        }
+                      }
+                      // Show result info box if finished and UNTIL 2 days have passed after lottery start
+                      if (finished && lotteryDate != null && now.isBefore(lotteryDate.add(const Duration(days: 1)))) {
+                        Color boxColor = picked ? Colors.red.shade300 : Colors.green.shade300;
+                        String resultText = picked
+                            ? '${child.vorname} muss Zuhause bleiben!'
+                            : '${child.vorname} wird betreut!';
+                        String dateText = 'Datum: ${lotteryDate.day.toString().padLeft(2, '0')}.${lotteryDate.month.toString().padLeft(2, '0')}.${lotteryDate.year}';
+                        relevantBoxes.add(SizedBox(
+                          width: double.infinity,
+                          child: Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                            color: boxColor,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Ergebnis Lotterie', style: Theme.of(context).textTheme.titleMedium),
+                                  const SizedBox(height: 8),
+                                  Text(dateText, style: Theme.of(context).textTheme.bodyMedium),
+                                  const SizedBox(height: 8),
+                                  Text(resultText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ));
+                        continue;
+                      }
+                      // Show old info box only if not finished
+                      final allAnswersReceived = data['allAnswersReceived'] == true;
+                      final responded = childEntry != null && childEntry['responded'] == true;
+                      final need = childEntry != null && childEntry['need'] == true;
+                      final requestsSend = data['requestsSend'] == true || data['requestsSent'] == true;
+                      if (requestsSend && !finished) {
+                        final date = data['date'] ?? '';
+                        final timeOfDay = data['timeOfDay'] ?? '';
+                        final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? '';
+                        Color boxColor = Colors.blue.shade50;
+                        String stateText = '';
+                        if (responded) {
+                          if (need) {
+                            boxColor = Colors.green.shade300;
+                            stateText = 'Für dieses Kind Bedarf angemeldet!';
+                          } else {
+                            boxColor = Colors.red.shade300;
+                            stateText = 'Für dieses Kind KEINEN Bedarf angemeldet!';
+                          }
+                        }
+                        relevantBoxes.add(Card(
                           color: boxColor,
+                          margin: const EdgeInsets.fromLTRB(24, 8, 24, 0),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            padding: const EdgeInsets.all(16.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Ergebnis Lotterie', style: Theme.of(context).textTheme.titleMedium),
+                                Text('Aktive Lotterie', style: Theme.of(context).textTheme.titleMedium),
                                 const SizedBox(height: 8),
-                                Text(dateText, style: Theme.of(context).textTheme.bodyMedium),
-                                const SizedBox(height: 8),
-                                Text(resultText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text('Datum: $date'),
+                                Text('Zeit: $timeOfDay'),
+                                Text('Zu ziehende Kinder: $nrOfChildrenToPick'),
+                                if (responded) ...[
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    stateText,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 12),
+                                if (!allAnswersReceived) Row(
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        try {
+                                          final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                                          final callable = functions.httpsCallable('childHasNeed');
+                                          await callable({'childId': child.id});
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Bedarf gemeldet!')),
+                                          );
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Fehler: $e')),
+                                          );
+                                        }
+                                      },
+                                      child: const Text('Bedarf'),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red,
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      onPressed: () async {
+                                        try {
+                                          final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                                          final callable = functions.httpsCallable('childHasNoNeed');
+                                          await callable({'childId': child.id});
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Kein Bedarf gemeldet!')),
+                                          );
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Fehler: $e')),
+                                          );
+                                        }
+                                      },
+                                      child: const Text('Kein Bedarf'),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
-                        ),
-                      );
-                    }
-                    // Show old info box only if not finished
-                    final allAnswersReceived = data['allAnswersReceived'] == true;
-                    final responded = childEntry != null && childEntry['responded'] == true;
-                    final need = childEntry != null && childEntry['need'] == true;
-                    final requestsSend = data['requestsSend'] == true || data['requestsSent'] == true;
-                    if (requestsSend && !finished) {
-                      final date = data['date'] ?? '';
-                      final timeOfDay = data['timeOfDay'] ?? '';
-                      final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? '';
-                      Color boxColor = Colors.blue.shade50;
-                      String stateText = '';
-                      if (responded) {
-                        if (need) {
-                          boxColor = Colors.green.shade300;
-                          stateText = 'Für dieses Kind Bedarf angemeldet!';
-                        } else {
-                          boxColor = Colors.red.shade300;
-                          stateText = 'Für dieses Kind KEINEN Bedarf angemeldet!';
-                        }
+                        ));
                       }
-                      return Card(
-                        color: boxColor,
-                        margin: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Aktive Lotterie', style: Theme.of(context).textTheme.titleMedium),
-                              const SizedBox(height: 8),
-                              Text('Datum: $date'),
-                              Text('Zeit: $timeOfDay'),
-                              Text('Zu ziehende Kinder: $nrOfChildrenToPick'),
-                              if (responded) ...[
-                                const SizedBox(height: 12),
-                                Text(
-                                  stateText,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(height: 12),
-                              if (!allAnswersReceived) Row(
-                                children: [
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      try {
-                                        final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
-                                        final callable = functions.httpsCallable('childHasNeed');
-                                        await callable({'childId': child.id});
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Bedarf gemeldet!')),
-                                        );
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Fehler: $e')),
-                                        );
-                                      }
-                                    },
-                                    child: const Text('Bedarf'),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                      foregroundColor: Colors.white,
-                                    ),
-                                    onPressed: () async {
-                                      try {
-                                        final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
-                                        final callable = functions.httpsCallable('childHasNoNeed');
-                                        await callable({'childId': child.id});
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Kein Bedarf gemeldet!')),
-                                        );
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Fehler: $e')),
-                                        );
-                                      }
-                                    },
-                                    child: const Text('Kein Bedarf'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
                     }
-                    return const SizedBox.shrink();
+                    if (relevantBoxes.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(children: relevantBoxes);
                   },
                 ),
               ],
