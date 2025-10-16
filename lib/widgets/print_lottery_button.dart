@@ -60,16 +60,16 @@ class PrintLotteryButton extends StatelessWidget {
                     ),
                     ...sortedChildren.map((child) {
                       final entry = lottery.children.firstWhere((e) => e.childId == child.id);
-                      final isPicked = entry.picked;
+                      final showGezogen = lottery.finished && entry.picked;
                       return pw.TableRow(
-                        decoration: isPicked
+                        decoration: showGezogen
                             ? const pw.BoxDecoration(color: PdfColors.pink100)
                             : null,
                         children: [
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(4),
                             child: pw.Text(
-                              '${child.vorname} ${child.nachname}${isPicked ? ' (Gezogen)' : ''}',
+                              '${child.vorname} ${child.nachname}${showGezogen ? ' (gezogen)' : ''}',
                               style: pw.TextStyle(fontSize: 11),
                             ),
                           ),

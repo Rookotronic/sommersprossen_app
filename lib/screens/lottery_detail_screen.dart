@@ -162,7 +162,8 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                         return Center(child: Text('Fehler beim Laden der Kinder: ${snapshot.error}'));
                       }
                       final children = snapshot.data ?? [];
-                      return Column(
+                      return ListView(
+                        padding: EdgeInsets.zero,
                         children: [
                           ChildrenListSection(
                             lottery: lottery,

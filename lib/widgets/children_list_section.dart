@@ -41,6 +41,7 @@ class ChildrenListSection extends StatelessWidget {
             (c) => c.id == lotteryChild.childId,
             orElse: () => Child(id: '', vorname: '', nachname: '', gruppe: GroupName.ratz),
           );
+          final showGezogen = lottery.finished && lotteryChild.picked;
           return Container(
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
             decoration: BoxDecoration(
@@ -53,7 +54,10 @@ class ChildrenListSection extends StatelessWidget {
                   flex: 3,
                   child: Row(
                     children: [
-                      Text('${child.vorname} ${child.nachname}', style: const TextStyle(fontSize: 13)),
+                      Text(
+                        '${child.vorname} ${child.nachname}${showGezogen ? ' (gezogen)' : ''}',
+                        style: const TextStyle(fontSize: 13),
+                      ),
                       if (!lottery.requestsSend)
                         IconButton(
                           icon: const Icon(Icons.delete, size: 18, color: Colors.red),
