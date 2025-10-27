@@ -4,7 +4,6 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import '../models/lottery.dart';
 import '../models/child.dart';
-import '../models/child.dart' show GroupName, GroupNameDisplay;
 import '../utils/date_utils.dart' as custom_date_utils;
 
 /// Button to print the details of a finished lottery as a PDF.

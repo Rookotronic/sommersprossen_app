@@ -131,65 +131,102 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                   onPressed: () => Navigator.of(context).pop(false),
                   child: const Text('Abbrechen'),
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final vorname = vornameController.text.trim();
-                    final nachname = nachnameController.text.trim();
-                    final email = emailController.text.trim();
-                    if (vorname.isEmpty || nachname.isEmpty || email.isEmpty) {
-                      if (!mounted) return;
-                      setState(() => errorText = 'Alle Felder sind erforderlich.');
-                      return;
-                    }
-                    if (!isAlpha(vorname)) {
-                      if (!mounted) return;
-                      setState(() => errorText = 'Vorname: Nur Buchstaben und Sonderzeichen erlaubt.');
-                      return;
-                    }
-                    if (!isAlpha(nachname)) {
-                      if (!mounted) return;
-                      setState(() => errorText = 'Nachname: Nur Buchstaben und Sonderzeichen erlaubt.');
-                      return;
-                    }
-                    if (!isValidEmail(email)) {
-                      if (!mounted) return;
-                      setState(() => errorText = 'Bitte gültige Emailadresse eingeben.');
-                      return;
-                    }
-                    // Case-insensitive uniqueness check for email
-                    final emailLower = email.toLowerCase();
-                    final query = await FirebaseFirestore.instance
-                        .collection('parents')
-                        .where('email', isEqualTo: emailLower)
-                        .get();
-                    if (query.docs.isNotEmpty) {
-                      if (!mounted) return;
-                      setState(() => errorText = 'Diese Emailadresse ist bereits vergeben.');
-                      return;
-                    }
-                    if (!mounted) return;
-                    setState(() => errorText = null);
-                    try {
-                      final result = await _firestoreService.add('parents', {
-                        'vorname': vorname,
-                        'nachname': nachname,
-                        'email': emailLower,
-                      });
-                      if (result != null) {
-                        if (!mounted) return;
-                        if(context.mounted) {Navigator.of(context).pop(true);}
-                        else {return;}
-                      } else {
-                        if (!mounted) return;
-                        setState(() => errorText = 'Fehler beim Speichern.');
-                      }
-                    } catch (e) {
-                      if (!mounted) return;
-                      setState(() => errorText = 'Fehler beim Speichern: ${e.toString()}');
-                    }
+                StatefulBuilder(
+                  builder: (context, setStateBtn) {
+                    bool isLoading = false;
+                    return ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              setStateBtn(() => isLoading = true);
+                              final vorname = vornameController.text.trim();
+                              final nachname = nachnameController.text.trim();
+                              final email = emailController.text.trim();
+                              if (vorname.isEmpty || nachname.isEmpty || email.isEmpty) {
+                                if (!mounted) return;
+                                setState(() => errorText = 'Alle Felder sind erforderlich.');
+                                setStateBtn(() => isLoading = false);
+                                return;
+                              }
+                              if (!isAlpha(vorname)) {
+                                if (!mounted) return;
+                                setState(() => errorText = 'Vorname: Nur Buchstaben und Sonderzeichen erlaubt.');
+                                setStateBtn(() => isLoading = false);
+                                return;
+                              }
+                              if (!isAlpha(nachname)) {
+                                if (!mounted) return;
+                                setState(() => errorText = 'Nachname: Nur Buchstaben und Sonderzeichen erlaubt.');
+                                setStateBtn(() => isLoading = false);
+                                return;
+                              }
+                              if (!isValidEmail(email)) {
+                                if (!mounted) return;
+                                setState(() => errorText = 'Bitte gültige Emailadresse eingeben.');
+                                setStateBtn(() => isLoading = false);
+                                return;
+                              }
+                              // Case-insensitive uniqueness check for email
+                              final emailLower = email.toLowerCase();
+                              final query = await FirebaseFirestore.instance
+                                  .collection('parents')
+                                  .where('email', isEqualTo: emailLower)
+                                  .get();
+                              if (query.docs.isNotEmpty) {
+                                if (!mounted) return;
+                                setState(() => errorText = 'Diese Emailadresse ist bereits vergeben.');
+                                setStateBtn(() => isLoading = false);
+                                return;
+                              }
+                              if (!mounted) return;
+                              setState(() => errorText = null);
+                              try {
+                                // Use callable Cloud Function to create parent (server-side creates Auth user and parents/doc)
+                                final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                                final callable = functions.httpsCallable('createParent');
+                                final callerUid = FirebaseAuth.instance.currentUser?.uid;
+                                final resp = await callable.call(<String, dynamic>{
+                                  'email': emailLower,
+                                  'vorname': vorname,
+                                  'nachname': nachname,
+                                  'createdBy': callerUid,
+                                });
+                                final data = resp.data as Map<String, dynamic>?;
+                                if (data != null && (data['success'] == true || data['uid'] != null)) {
+                                  if (!mounted) return;
+                                  Navigator.of(context).pop(true);
+                                } else {
+                                  if (!mounted) return;
+                                  setState(() => errorText = 'Fehler beim Erstellen des Elternteils.');
+                                }
+                              } on FirebaseFunctionsException catch (fe) {
+                                if (!mounted) return;
+                                // Map common server-side HttpsError codes to user messages
+                                if (fe.code == 'already-exists') {
+                                  setState(() => errorText = 'Diese Emailadresse ist bereits vergeben.');
+                                } else if (fe.code == 'permission-denied') {
+                                  setState(() => errorText = 'Sie haben keine Berechtigung, Eltern anzulegen.');
+                                } else if (fe.code == 'invalid-argument') {
+                                  setState(() => errorText = 'Ungültige Eingaben.');
+                                } else if (fe.code == 'unauthenticated') {
+                                  setState(() => errorText = 'Sie müssen angemeldet sein.');
+                                } else {
+                                  setState(() => errorText = 'Fehler beim Erstellen: ${fe.message}');
+                                }
+                              } catch (e) {
+                                if (!mounted) return;
+                                setState(() => errorText = 'Fehler beim Erstellen: ${e.toString()}');
+                              } finally {
+                                setStateBtn(() => isLoading = false);
+                              }
+                            },
+                      child: isLoading
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Text('Hinzufügen'),
+                    );
                   },
-                  child: const Text('Hinzufügen'),
                 ),
+                // Removed invalid switch/case error handling block (now handled above with if/else)
               ],
             );
           },

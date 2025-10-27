@@ -93,7 +93,7 @@ class ChildrenListSection extends StatelessWidget {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
