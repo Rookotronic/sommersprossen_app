@@ -66,9 +66,9 @@ class MyChildHistoryScreen extends StatelessWidget {
                   date = null;
                 }
               }
-              final dateText = date != null
-                  ? '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}'
-                  : 'Unbekanntes Datum';
+        final dateText = date != null
+          ? '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}'
+          : 'Unbekanntes Datum';
               final picked = item['picked'] == true;
               final need = item['need'] == true;
               Color cardColor;
