@@ -20,6 +20,8 @@ class Child {
   final List<String> parentIds;
   /// Group assignment for the child.
   final GroupName gruppe;
+  /// Number of times the child was marked as 'no need'.
+  final int nTimesNoNeed;
 
   Child({
     required this.id,
@@ -27,6 +29,7 @@ class Child {
     required this.nachname,
     List<String>? parentIds,
     required this.gruppe,
+    this.nTimesNoNeed = 0,
   }) : parentIds = parentIds ?? [];
 
   /// Creates a [Child] instance from Firestore data.
@@ -53,12 +56,20 @@ class Child {
         throw ArgumentError('Invalid parentIds field in Child Firestore data');
       }
 
+      final nTimesNoNeedRaw = data['nTimesNoNeed'];
+      int nTimesNoNeed = 0;
+      if (nTimesNoNeedRaw is int) {
+        nTimesNoNeed = nTimesNoNeedRaw;
+      } else if (nTimesNoNeedRaw is String) {
+        nTimesNoNeed = int.tryParse(nTimesNoNeedRaw) ?? 0;
+      }
       return Child(
         id: id,
         vorname: vorname,
         nachname: nachname,
         parentIds: parentIds,
         gruppe: _groupNameFromString(gruppeRaw),
+        nTimesNoNeed: nTimesNoNeed,
       );
     } catch (e) {
       // Optionally log error here
@@ -72,6 +83,7 @@ class Child {
     'nachname': nachname,
     'parentIds': parentIds,
     'gruppe': gruppe.name,
+    'nTimesNoNeed': nTimesNoNeed,
   };
 
   /// Helper to parse [GroupName] from Firestore value.
