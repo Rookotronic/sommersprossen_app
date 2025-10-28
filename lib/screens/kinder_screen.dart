@@ -149,6 +149,7 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                       'nachname': nachname,
                       'parentIds': selectedParents.isEmpty ? null : selectedParents.map((p) => p.id).toList(),
                       'gruppe': selectedGroup?.name,
+                      'nTimesNoNeed': 0,
                     });
                     if (result != null) {
                       await _reloadKinder();
