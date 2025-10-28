@@ -81,6 +81,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
           .collection('lotteries')
           .doc(widget.lotteryId)
           .update({'information': result});
+          if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Information aktualisiert.')),
       );
@@ -139,6 +140,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                           .collection('lotteries')
                           .doc(widget.lotteryId)
                           .update({'allAnswersReceived': true});
+                          if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Meldezeitraum wurde beendet.')),
                       );
@@ -187,6 +189,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                 confirmText: 'Ja, löschen',
                               );
                               if (confirmed == true) {
+                                if (!context.mounted) return;
                                 final doubleCheck = await showConfirmationDialog(
                                   context,
                                   title: 'Wirklich löschen?',
@@ -197,11 +200,13 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                 if (doubleCheck == true) {
                                   try {
                                     await FirebaseFirestore.instance.collection('lotteries').doc(widget.lotteryId).delete();
+                                    if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('Lotterie gelöscht!')),
                                     );
                                     Navigator.of(context).pop();
                                   } catch (e) {
+                                    if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(content: Text('Fehler beim Löschen: $e')),
                                     );

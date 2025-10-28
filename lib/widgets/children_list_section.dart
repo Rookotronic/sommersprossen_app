@@ -78,6 +78,7 @@ class ChildrenListSection extends StatelessWidget {
                                 .collection('lotteries')
                                 .doc(lotteryId)
                                 .update({'children': updatedChildren});
+                                if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Kind entfernt.')),
                               );

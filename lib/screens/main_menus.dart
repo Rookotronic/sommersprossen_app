@@ -109,6 +109,7 @@ class AdminMainMenuScreen extends StatelessWidget {
             confirmText: 'Öffnen',
           );
           if (confirmed == true) {
+            if (!context.mounted) return;
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const LotterietopfScreen(),

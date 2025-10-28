@@ -85,6 +85,7 @@ class ActiveLotteryTile extends StatelessWidget {
                           .collection('lotteries')
                           .doc(lotteryId)
                           .update({'allAnswersReceived': true});
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Meldezeitraum wurde beendet.')),
                       );

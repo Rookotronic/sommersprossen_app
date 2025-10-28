@@ -143,6 +143,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                                 final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
                                 final callable = functions.httpsCallable('childHasNeed');
                                 await callable({'childId': child.id});
+                                if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Bedarf gemeldet!')),
                                 );
@@ -157,6 +158,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                                 final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
                                 final callable = functions.httpsCallable('childHasNoNeed');
                                 await callable({'childId': child.id});
+                                if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Kein Bedarf gemeldet!')),
                                 );
