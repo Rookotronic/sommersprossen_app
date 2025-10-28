@@ -13,7 +13,11 @@ The app is designed for families and administrators to communicate efficiently a
 - 🖨️ Print finished lottery details as PDF (with sorting, marking, and export)
 - 🔒 Firebase authentication (parents vs. admin accounts)
 - ☁️ Firebase backend (Firestore, Cloud Functions, Messaging)
-- 📝 Well-documented codebase for maintainability
+- 📝 Well-documented, null-safe codebase for maintainability
+- 🛡️ Robust async error handling and context safety throughout the app
+- 🧑‍💻 Cloud Function-based parent creation for security and reliability
+- 📈 Child model extensibility (e.g., `nTimesNoNeed` field for new lottery logic: children who volunteer to stay home multiple times are moved to the bottom of the lottery pot)
+- 📦 Regular dependency updates for security and compatibility
 
 ## 🛠️ Tech Stack
 - **Flutter** (Dart) — cross-platform app (iOS, Android, Web for dev)
@@ -55,6 +59,12 @@ flutter run
 ## 📄 Documentation
 - All major screens, widgets, and services are documented with Dart doc comments.
 - See `/lib/screens/` and `/lib/widgets/` for examples.
+- Recent improvements include:
+	- Defensive null-safety and context checks
+	- Async error handling for Firestore and Cloud Functions
+	- Cloud Function for secure parent creation
+		- New integer field `nTimesNoNeed` in the Child model (used to move children to the bottom of the lottery pot after volunteering to stay home multiple times)
+	- Updated dependencies for latest Flutter/Dart compatibility
 
 ## 💡 Contributing
 Pull requests and feedback are welcome!
