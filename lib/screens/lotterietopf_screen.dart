@@ -165,12 +165,11 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                           try {
                             final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('createLotteryPot');
                             await callable.call();
+                            if (!context.mounted) return;
                             Navigator.of(context).pop(true);
-                          } catch (e, stack) {
+                          } catch (e) {
+                            if (!context.mounted) return;
                             Navigator.of(context).pop(false);
-                            if (!mounted) return;
-                            print('Cloud function error: $e');
-                            print('Stack trace: $stack');
                             String errorMsg;
                             if (e is FirebaseFunctionsException) {
                               errorMsg = 'Fehler beim Befüllen des Lotterietopfs:\n'
