@@ -137,6 +137,51 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                               title: child.id.isNotEmpty
                                   ? Text('${child.nachname}, ${child.vorname}', style: style)
                                   : Text('Unbekanntes Kind', style: style),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.arrow_upward, color: Colors.blue),
+                                    tooltip: 'Kind nach oben',
+                                    onPressed: () async {
+                                      try {
+                                        final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('sendKidToTop');
+                                        await callable.call({'childId': childId});
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('${child.vorname} wurde nach oben gesetzt.')),
+                                        );
+                                        await _loadPotData();
+                                      } catch (e) {
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Fehler: ${e.toString()}')),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.arrow_downward, color: Colors.blue),
+                                    tooltip: 'Kind nach unten',
+                                    onPressed: () async {
+                                      try {
+                                        final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('sendKidToBottom');
+                                        await callable.call({'childId': childId});
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('${child.vorname} wurde nach unten gesetzt.')),
+                                        );
+                                        await _loadPotData();
+                                      } catch (e) {
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Fehler: ${e.toString()}')),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         );
