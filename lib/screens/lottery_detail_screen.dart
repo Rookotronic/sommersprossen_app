@@ -180,12 +180,45 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                             color: Colors.grey.shade200,
-                            child: Row(
+                            child: Column(
                               children: [
-                                Expanded(flex: 3, child: Text('Name', style: const TextStyle(fontSize: 11))),
-                                Expanded(child: Center(child: Text('Benachrichtigt', style: const TextStyle(fontSize: 11)))),
-                                Expanded(child: Center(child: Text('Geantwortet', style: const TextStyle(fontSize: 11)))),
-                                Expanded(child: Center(child: Text('Bedarf', style: const TextStyle(fontSize: 11)))),
+                                Row(
+                                  children: [
+                                    Expanded(flex: 3, child: Text('Name', style: const TextStyle(fontSize: 11))),
+                                    Expanded(child: Center(child: Text('Benachrichtigt', style: const TextStyle(fontSize: 11)))),
+                                    Expanded(child: Center(child: Text('Geantwortet', style: const TextStyle(fontSize: 11)))),
+                                    Expanded(child: Center(child: Text('Bedarf', style: const TextStyle(fontSize: 11)))),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    const Expanded(flex: 3, child: SizedBox()),
+                                    Expanded(
+                                      child: Center(
+                                        child: Text(
+                                          '${lottery.children.where((c) => c.notified).length} / ${lottery.children.length}',
+                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Center(
+                                        child: Text(
+                                          '${lottery.children.where((c) => c.responded).length} / ${lottery.children.length}',
+                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Center(
+                                        child: Text(
+                                          '${lottery.children.where((c) => c.need).length} / ${lottery.children.length}',
+                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
@@ -217,7 +250,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                                 '${child.vorname} ${child.nachname}${showGezogen ? ' (gezogen)' : ''}',
                                                 style: const TextStyle(fontSize: 13),
                                               ),
-                                              if (!lottery.requestsSend)
+                                              if (!lottery.finished)
                                                 IconButton(
                                                   icon: const Icon(Icons.delete, size: 18, color: Colors.red),
                                                   tooltip: 'Kind entfernen',
