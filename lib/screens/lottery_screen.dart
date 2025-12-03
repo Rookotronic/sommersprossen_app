@@ -116,18 +116,63 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                     );
                   },
                 ),
-          floatingActionButton: showAddButton
-              ? FloatingActionButton(
+          floatingActionButton: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (showAddButton)
+                FloatingActionButton(
+                  heroTag: 'addLottery',
                   onPressed: () async {
-                    // Pass the single active lottery if present, else null
                     await _showNewLotteryDialog(
                       activeLottery: (activeLotteries.length == 1) ? activeLotteries.first : null,
                     );
                   },
                   tooltip: 'Neue Lotterie starten',
                   child: const Icon(Icons.add),
-                )
-              : null,
+                ),
+              const SizedBox(width: 16),
+              FloatingActionButton(
+                heroTag: 'clearLotteries',
+                backgroundColor: Colors.red,
+                onPressed: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Alle Lotterien löschen?'),
+                      content: const Text('Bist du sicher, dass du wirklich ALLE Lotterien löschen möchtest? Dies kann nicht rückgängig gemacht werden.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Abbrechen'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text('Löschen', style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed == true) {
+                    try {
+                      final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('deleteAllLotterys');
+                      final result = await callable.call();
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Alle Lotterien gelöscht (${result.data['deleted'] ?? 0})')),
+                      );
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Fehler beim Löschen: $e')),
+                      );
+                    }
+                  }
+                },
+                tooltip: 'Alle Lotterien löschen',
+                child: const Icon(Icons.clear_all),
+              ),
+            ],
+          ),
         );
       },
     );

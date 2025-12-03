@@ -1,5 +1,4 @@
 import '../widgets/reporting_period_control_section.dart';
-import '../widgets/children_list_section.dart';
 import 'package:sommersprossen_app/widgets/confirmation_dialog.dart';
 import '../widgets/print_lottery_button.dart';
 import '../widgets/lottery_info_section.dart';
