@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../models/lottery.dart';
 import '../models/child.dart';
 import '../services/child_service.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Bildschirm zur Anzeige und Verwaltung der Details einer Lotterie.
@@ -131,19 +132,25 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                   onEndPeriod: () async {
                     final confirmed = await showConfirmationDialog(
                       context,
-                      title: 'Meldezeitraum beenden?',
-                      content: 'Bist du sicher, dass du den Meldezeitraum beenden möchtest?',
-                      confirmText: 'Beenden',
+                      title: 'Lotterie jetzt ziehen?',
+                      content: 'Bist du sicher, dass du die Lotterie jetzt ziehen möchtest?',
+                      confirmText: 'Jetzt ziehen',
                     );
                     if (confirmed == true) {
-                      await FirebaseFirestore.instance
-                          .collection('lotteries')
-                          .doc(widget.lotteryId)
-                          .update({'allAnswersReceived': true});
-                          if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Meldezeitraum wurde beendet.')),
-                      );
+                      try {
+                        final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                        final handleLotteryPicking = functions.httpsCallable('handleLotteryPicking');
+                        await handleLotteryPicking({'lotteryId': widget.lotteryId});
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Lotterie wurde gezogen!')),
+                        );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Fehler beim Ziehen der Lotterie: $e')),
+                        );
+                      }
                     }
                   },
                   onNotifyParents: () async {
@@ -153,24 +160,102 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                Expanded(
-                  child: FutureBuilder<List<Child>>(
-                    future: ChildService.fetchChildrenByIds(lottery.children.map((c) => c.childId).toList()),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Fehler beim Laden der Kinder: ${snapshot.error}'));
-                      }
-                      final children = snapshot.data ?? [];
-                      return ListView(
-                        padding: EdgeInsets.zero,
+                FutureBuilder<List<Child>>(
+                  future: ChildService.fetchChildrenByIds(lottery.children.map((c) => c.childId).toList()),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Fehler beim Laden der Kinder: ${snapshot.error}'));
+                    }
+                    final children = snapshot.data ?? [];
+                    return Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ChildrenListSection(
-                            lottery: lottery,
-                            children: children,
-                            lotteryId: widget.lotteryId,
+                          // Fixed header
+                          Text('Kinder:', style: Theme.of(context).textTheme.titleLarge),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                            color: Colors.grey.shade200,
+                            child: Row(
+                              children: [
+                                Expanded(flex: 3, child: Text('Name', style: const TextStyle(fontSize: 11))),
+                                Expanded(child: Center(child: Text('Benachrichtigt', style: const TextStyle(fontSize: 11)))),
+                                Expanded(child: Center(child: Text('Geantwortet', style: const TextStyle(fontSize: 11)))),
+                                Expanded(child: Center(child: Text('Bedarf', style: const TextStyle(fontSize: 11)))),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          // Scrollable list
+                          Expanded(
+                            child: ListView(
+                              padding: EdgeInsets.zero,
+                              children: [
+                                ...lottery.children.map((lotteryChild) {
+                                  final child = children.firstWhere(
+                                    (c) => c.id == lotteryChild.childId,
+                                    orElse: () => Child(id: '', vorname: '', nachname: '', gruppe: GroupName.ratz),
+                                  );
+                                  final showGezogen = lottery.finished && lotteryChild.picked;
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                                    decoration: BoxDecoration(
+                                      color: lotteryChild.picked ? const Color.fromARGB(255, 255, 192, 192) : null,
+                                      border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                '${child.vorname} ${child.nachname}${showGezogen ? ' (gezogen)' : ''}',
+                                                style: const TextStyle(fontSize: 13),
+                                              ),
+                                              if (!lottery.requestsSend)
+                                                IconButton(
+                                                  icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                                                  tooltip: 'Kind entfernen',
+                                                  onPressed: () async {
+                                                    final confirmed = await showConfirmationDialog(
+                                                      context,
+                                                      title: 'Kind entfernen',
+                                                      content: 'Möchtest du dieses Kind wirklich aus der Lotterie entfernen?',
+                                                      confirmText: 'Entfernen',
+                                                    );
+                                                    if (confirmed == true) {
+                                                      final updatedChildren = lottery.children
+                                                        .where((c) => c.childId != lotteryChild.childId)
+                                                        .map((c) => c.toMap())
+                                                        .toList();
+                                                      await FirebaseFirestore.instance
+                                                        .collection('lotteries')
+                                                        .doc(widget.lotteryId)
+                                                        .update({'children': updatedChildren});
+                                                      if (!context.mounted) return;
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        const SnackBar(content: Text('Kind entfernt.')),
+                                                      );
+                                                    }
+                                                  },
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(child: Center(child: Icon(lotteryChild.notified ? Icons.check_circle : Icons.cancel, color: lotteryChild.notified ? Colors.green : Colors.red, size: 18))),
+                                        Expanded(child: Center(child: Icon(lotteryChild.responded ? Icons.check_circle : Icons.cancel, color: lotteryChild.responded ? Colors.green : Colors.red, size: 18))),
+                                        Expanded(child: Center(child: Icon(lotteryChild.need ? Icons.check_circle : Icons.cancel, color: lotteryChild.need ? Colors.green : Colors.red, size: 18))),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 16),
                           if (lottery.finished)
@@ -217,9 +302,9 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                             child: const Text('Löschen'),
                           ),
                         ],
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

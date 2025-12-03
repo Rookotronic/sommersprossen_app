@@ -44,7 +44,7 @@ class ReportingPeriodControl extends StatelessWidget {
                   alignment: Alignment.center,
                 ),
                 child: const Text(
-                  'Meldezeitraum beenden!',
+                  'Lotterie jetzt ziehen',
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
