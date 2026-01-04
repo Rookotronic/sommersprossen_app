@@ -34,15 +34,17 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
   List<Parent> _parentList = [];
   List<Parent> _selectedParents = [];
   bool _loadingParents = true;
+  bool _isTwo = false;
 
   @override
   /// Initialisiert die Controller und lädt die Elternliste.
   @override
   void initState() {
     super.initState();
-  _vornameController = createController(text: widget.child.vorname);
-  _nachnameController = createController(text: widget.child.nachname);
+    _vornameController = createController(text: widget.child.vorname);
+    _nachnameController = createController(text: widget.child.nachname);
     _selectedGroup = widget.child.gruppe;
+    _isTwo = widget.child.two;
     _loadParents();
   }
 
@@ -99,6 +101,9 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
       nachname: nachname,
       parentIds: _selectedParents.isEmpty ? null : _selectedParents.map((p) => p.id).toList(),
       gruppe: _selectedGroup ?? GroupName.ratz,
+      two: _isTwo,
+      nTimesNoNeed: widget.child.nTimesNoNeed,
+      siblings: widget.child.siblings,
     );
     // Update child in Firestore
     final success = await _firestoreService.set('children', updated.id.toString(), updated.toFirestore());
@@ -261,6 +266,13 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
                     GroupDropdown(
                       value: _selectedGroup,
                       onChanged: (value) => setState(() => _selectedGroup = value),
+                    ),
+                    const SizedBox(height: 12),
+                    CheckboxListTile(
+                      value: _isTwo,
+                      title: const Text('Dieses Kind zählt als zwei Kinder in der Lotterie'),
+                      onChanged: (checked) => setState(() => _isTwo = checked ?? false),
+                      controlAffinity: ListTileControlAffinity.leading,
                     ),
                     const SizedBox(height: 32),
                     Row(

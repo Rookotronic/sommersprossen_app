@@ -66,6 +66,7 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
     .toList();
     List<Parent> selectedParents = [];
     if (!mounted) return;
+    bool isTwo = false;
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -115,6 +116,12 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                   value: selectedGroup,
                   onChanged: (value) => setState(() => selectedGroup = value),
                 ),
+                CheckboxListTile(
+                  value: isTwo,
+                  title: const Text('Dieses Kind zählt als zwei Kinder in der Lotterie'),
+                  onChanged: (checked) => setState(() => isTwo = checked ?? false),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
               ],
               errorText: errorText,
               actions: [
@@ -150,6 +157,8 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                       'parentIds': selectedParents.isEmpty ? null : selectedParents.map((p) => p.id).toList(),
                       'gruppe': selectedGroup?.name,
                       'nTimesNoNeed': 0,
+                      'two': isTwo,
+                      'siblings': <String>[],
                     });
                     if (result != null) {
                       await _reloadKinder();

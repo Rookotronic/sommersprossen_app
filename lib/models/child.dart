@@ -22,6 +22,10 @@ class Child {
   final GroupName gruppe;
   /// Number of times the child was marked as 'no need'.
   final int nTimesNoNeed;
+  /// If true, this child counts as two kids in a lottery.
+  final bool two;
+  /// List of sibling child IDs. If a sibling is drawn, this child is also pulled.
+  final List<String> siblings;
 
   Child({
     required this.id,
@@ -30,7 +34,10 @@ class Child {
     List<String>? parentIds,
     required this.gruppe,
     this.nTimesNoNeed = 0,
-  }) : parentIds = parentIds ?? [];
+    this.two = false,
+    List<String>? siblings,
+  })  : parentIds = parentIds ?? [],
+        siblings = siblings ?? [];
 
   /// Creates a [Child] instance from Firestore data.
   ///
@@ -63,6 +70,22 @@ class Child {
       } else if (nTimesNoNeedRaw is String) {
         nTimesNoNeed = int.tryParse(nTimesNoNeedRaw) ?? 0;
       }
+      final twoRaw = data['two'];
+      bool two = false;
+      if (twoRaw is bool) {
+        two = twoRaw;
+      } else if (twoRaw is int) {
+        two = twoRaw != 0;
+      } else if (twoRaw is String) {
+        two = twoRaw == 'true' || twoRaw == '1';
+      }
+      final siblingsRaw = data['siblings'];
+      List<String> siblings = [];
+      if (siblingsRaw is List) {
+        siblings = siblingsRaw.map((e) => e.toString()).toList();
+      } else if (siblingsRaw is String) {
+        siblings = [siblingsRaw];
+      }
       return Child(
         id: id,
         vorname: vorname,
@@ -70,6 +93,8 @@ class Child {
         parentIds: parentIds,
         gruppe: _groupNameFromString(gruppeRaw),
         nTimesNoNeed: nTimesNoNeed,
+        two: two,
+        siblings: siblings,
       );
     } catch (e) {
       // Optionally log error here
@@ -84,6 +109,8 @@ class Child {
     'parentIds': parentIds,
     'gruppe': gruppe.name,
     'nTimesNoNeed': nTimesNoNeed,
+    'two': two,
+    'siblings': siblings,
   };
 
   /// Helper to parse [GroupName] from Firestore value.
