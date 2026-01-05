@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/lottery.dart';
@@ -34,7 +35,8 @@ class ActiveLotteryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final groupDisplay = getGroupDisplay(lottery.group);
     final showSendButton = !lottery.requestsSend && !lottery.finished && !lottery.allAnswersReceived;
-  final dateStr = custom_date_utils.DateUtils.formatWeekdayDate(lottery.date);
+    final showDrawButton = !lottery.finished && lottery.requestsSend && !lottery.allAnswersReceived;
+    final dateStr = custom_date_utils.DateUtils.formatWeekdayDate(lottery.date);
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () {
@@ -69,30 +71,44 @@ class ActiveLotteryTile extends StatelessWidget {
                     ),
                   ),
                 ),
-              const SizedBox(height: 12),
-              Center(
-                child: ReportingPeriodControl(
-                  lottery: lottery,
-                  onEndPeriod: () async {
-                    final confirmed = await showConfirmationDialog(
-                      context,
-                      title: 'Meldezeitraum beenden?',
-                      content: 'Bist du sicher, dass du den Meldezeitraum beenden möchtest?',
-                      confirmText: 'Beenden',
-                    );
-                    if (confirmed == true) {
-                      await FirebaseFirestore.instance
-                          .collection('lotteries')
-                          .doc(lotteryId)
-                          .update({'allAnswersReceived': true});
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Meldezeitraum wurde beendet.')),
-                      );
-                    }
-                  },
+              if (showDrawButton)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Center(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        final confirmed = await showConfirmationDialog(
+                          context,
+                          title: 'Lotterie jetzt ziehen?',
+                          content: 'Bist du sicher, dass du die Lotterie jetzt ziehen möchtest?',
+                          confirmText: 'Jetzt ziehen',
+                        );
+                        if (confirmed == true) {
+                          try {
+                            final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                            final handleLotteryPicking = functions.httpsCallable('handleLotteryPicking');
+                            await handleLotteryPicking({'lotteryId': lotteryId});
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Lotterie wurde gezogen!')),
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Fehler beim Ziehen der Lotterie: $e')),
+                            );
+                          }
+                        }
+                      },
+                      child: const Text('Lotterie jetzt ziehen'),
+                    ),
+                  ),
                 ),
-              ),
+              // ...existing code...
             ],
           ),
         ),

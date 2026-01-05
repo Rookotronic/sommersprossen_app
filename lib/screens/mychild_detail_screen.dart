@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import '../widgets/lottery_result_box.dart';
 import '../widgets/active_lottery_box.dart';
-import 'package:flutter/material.dart';
 import '../models/child.dart';
 import '../models/parent.dart';
 
@@ -80,11 +80,11 @@ class MeinKindDetailScreen extends StatelessWidget {
                         );
                       }
                     },
-                    child: const Text('Kinder trennen'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
                     ),
+                    child: const Text('Kinder trennen'),
                   ),
               ],
             ),
@@ -114,7 +114,67 @@ class MeinKindDetailScreen extends StatelessWidget {
                           );
                         },
                       ),
-                      // ...existing code for lottery info boxes...
+                      // Show current lottery status if available
+                      FutureBuilder<DocumentSnapshot?>(
+                        future: FirebaseFirestore.instance
+                            .collection('lotteries')
+                            .orderBy('createdAt', descending: true)
+                            .limit(1)
+                            .get()
+                            .then((snapshot) => snapshot.docs.isNotEmpty ? snapshot.docs.first as DocumentSnapshot? : null),
+                        builder: (context, lotterySnapshot) {
+                          if (lotterySnapshot.connectionState == ConnectionState.waiting) {
+                            return const SizedBox.shrink();
+                          }
+                          final doc = lotterySnapshot.data;
+                          if (doc == null) return const SizedBox.shrink();
+                          final data = doc.data() as Map<String, dynamic>?;
+                          if (data == null) return const SizedBox.shrink();
+                          final childrenList = (data['children'] as List?) ?? [];
+                          final lotteryChild = childrenList.firstWhere(
+                            (c) => c['childId'] == child.id,
+                            orElse: () => null,
+                          );
+                          if (lotteryChild == null) return const SizedBox.shrink();
+                          final finished = data['finished'] == true;
+                          final date = (data['date'] != null) ? DateTime.tryParse(data['date']) : null;
+                          final information = (data['information'] ?? '') as String;
+                          final picked = lotteryChild['picked'] == true;
+                          final responded = lotteryChild['responded'] == true;
+                          final need = lotteryChild['need'] == true;
+                          final allAnswersReceived = data['allAnswersReceived'] == true;
+                          final stateText = picked
+                              ? 'Ausgewählt'
+                              : responded
+                                  ? (need ? 'Bedarf angemeldet' : 'Kein Bedarf')
+                                  : 'Keine Antwort';
+                          final boxColor = finished
+                              ? (picked ? Colors.green : Colors.grey)
+                              : (responded ? (need ? Colors.orange : Colors.red) : Colors.blue.shade100);
+                          if (!finished) {
+                            return ActiveLotteryBox(
+                              date: date,
+                              information: information,
+                              responded: responded,
+                              need: need,
+                              allAnswersReceived: allAnswersReceived,
+                              stateText: stateText,
+                              boxColor: boxColor,
+                              onNeed: null,
+                              onNoNeed: null,
+                            );
+                          } else {
+                            return LotteryResultBox(
+                              date: date,
+                              information: information,
+                              resultText: picked
+                                  ? 'Ihr Kind wurde ausgewählt.'
+                                  : 'Ihr Kind wurde nicht ausgewählt.',
+                              boxColor: boxColor,
+                            );
+                          }
+                        },
+                      ),
                     ],
                   );
                 },
