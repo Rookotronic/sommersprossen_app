@@ -114,65 +114,102 @@ class MeinKindDetailScreen extends StatelessWidget {
                           );
                         },
                       ),
-                      // Show current lottery status if available
-                      FutureBuilder<DocumentSnapshot?>(
-                        future: FirebaseFirestore.instance
+                      // Show all relevant lotteries for this child
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
                             .collection('lotteries')
                             .orderBy('createdAt', descending: true)
-                            .limit(1)
-                            .get()
-                            .then((snapshot) => snapshot.docs.isNotEmpty ? snapshot.docs.first as DocumentSnapshot? : null),
+                            .snapshots(),
                         builder: (context, lotterySnapshot) {
                           if (lotterySnapshot.connectionState == ConnectionState.waiting) {
                             return const SizedBox.shrink();
                           }
-                          final doc = lotterySnapshot.data;
-                          if (doc == null) return const SizedBox.shrink();
-                          final data = doc.data() as Map<String, dynamic>?;
-                          if (data == null) return const SizedBox.shrink();
-                          final childrenList = (data['children'] as List?) ?? [];
-                          final lotteryChild = childrenList.firstWhere(
-                            (c) => c['childId'] == child.id,
-                            orElse: () => null,
-                          );
-                          if (lotteryChild == null) return const SizedBox.shrink();
-                          final finished = data['finished'] == true;
-                          final date = (data['date'] != null) ? DateTime.tryParse(data['date']) : null;
-                          final information = (data['information'] ?? '') as String;
-                          final picked = lotteryChild['picked'] == true;
-                          final responded = lotteryChild['responded'] == true;
-                          final need = lotteryChild['need'] == true;
-                          final allAnswersReceived = data['allAnswersReceived'] == true;
-                          final stateText = picked
-                              ? 'Ausgewählt'
-                              : responded
-                                  ? (need ? 'Bedarf angemeldet' : 'Kein Bedarf')
-                                  : 'Keine Antwort';
-                          final boxColor = finished
-                              ? (picked ? Colors.green : Colors.grey)
-                              : (responded ? (need ? Colors.orange : Colors.red) : Colors.blue.shade100);
-                          if (!finished) {
-                            return ActiveLotteryBox(
-                              date: date,
-                              information: information,
-                              responded: responded,
-                              need: need,
-                              allAnswersReceived: allAnswersReceived,
-                              stateText: stateText,
-                              boxColor: boxColor,
-                              onNeed: null,
-                              onNoNeed: null,
-                            );
-                          } else {
-                            return LotteryResultBox(
-                              date: date,
-                              information: information,
-                              resultText: picked
-                                  ? 'Ihr Kind wurde ausgewählt.'
-                                  : 'Ihr Kind wurde nicht ausgewählt.',
-                              boxColor: boxColor,
-                            );
+                          if (!lotterySnapshot.hasData || lotterySnapshot.data!.docs.isEmpty) {
+                            return const SizedBox.shrink();
                           }
+                          final now = DateTime.now();
+                          final List<Widget> lotteryBoxes = [];
+                          for (final doc in lotterySnapshot.data!.docs) {
+                            final data = doc.data() as Map<String, dynamic>?;
+                            if (data == null) continue;
+                            final childrenList = (data['children'] as List?) ?? [];
+                            final lotteryChild = childrenList.firstWhere(
+                              (c) => c['childId'] == child.id,
+                              orElse: () => null,
+                            );
+                            if (lotteryChild == null) continue;
+                            final finished = data['finished'] == true;
+                            final date = (data['date'] != null) ? DateTime.tryParse(data['date']) : null;
+                            final information = (data['information'] ?? '') as String;
+                            final picked = lotteryChild['picked'] == true;
+                            final responded = lotteryChild['responded'] == true;
+                            final need = lotteryChild['need'] == true;
+                            final allAnswersReceived = data['allAnswersReceived'] == true;
+                            final stateText = picked
+                                ? 'Ausgewählt'
+                                : responded
+                                    ? (need ? 'Bedarf angemeldet' : 'Kein Bedarf')
+                                    : 'Keine Antwort';
+                            final boxColor = finished
+                              ? (picked ? Colors.red : Colors.green)
+                              : (responded ? (need ? Colors.orange : Colors.red) : Colors.blue.shade100);
+                            // Only show finished lotteries if the date is today or in the future
+                            if (finished && date != null && date.isBefore(DateTime(now.year, now.month, now.day))) {
+                              continue;
+                            }
+                            if (!finished) {
+                              lotteryBoxes.add(ActiveLotteryBox(
+                                date: date,
+                                information: information,
+                                responded: responded,
+                                need: need,
+                                allAnswersReceived: allAnswersReceived,
+                                stateText: stateText,
+                                boxColor: boxColor,
+                                onNeed: () async {
+                                  try {
+                                    final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                                    final callable = functions.httpsCallable('childHasNeed');
+                                    await callable({'childId': child.id});
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Bedarf gemeldet!')),
+                                    );
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Fehler: $e')),
+                                    );
+                                  }
+                                },
+                                onNoNeed: () async {
+                                  try {
+                                    final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+                                    final callable = functions.httpsCallable('childHasNoNeed');
+                                    await callable({'childId': child.id});
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Kein Bedarf gemeldet!')),
+                                    );
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Fehler: $e')),
+                                    );
+                                  }
+                                },
+                              ));
+                            } else {
+                              lotteryBoxes.add(LotteryResultBox(
+                                date: date,
+                                information: information,
+                                resultText: picked
+                                    ? 'Ihr Kind muss zuhause bleiben.'
+                                    : 'Ihr Kind wird betreut.',
+                                boxColor: boxColor,
+                              ));
+                            }
+                          }
+                          if (lotteryBoxes.isEmpty) return const SizedBox.shrink();
+                          return Column(children: lotteryBoxes);
                         },
                       ),
                     ],
