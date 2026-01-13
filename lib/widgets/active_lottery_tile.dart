@@ -1,6 +1,5 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/lottery.dart';
 import '../widgets/notify_parents_button.dart';
 import '../widgets/reporting_period_control.dart';
