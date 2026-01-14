@@ -48,6 +48,25 @@ class MyChildHistoryScreen extends StatelessWidget {
               });
             }
           }
+          // Sortiere die Historie nach Datum absteigend
+          history.sort((a, b) {
+            DateTime? dateA;
+            DateTime? dateB;
+            if (a['date'] is Timestamp) {
+              dateA = (a['date'] as Timestamp).toDate();
+            } else if (a['date'] is String) {
+              dateA = DateTime.tryParse(a['date'] as String);
+            }
+            if (b['date'] is Timestamp) {
+              dateB = (b['date'] as Timestamp).toDate();
+            } else if (b['date'] is String) {
+              dateB = DateTime.tryParse(b['date'] as String);
+            }
+            if (dateA == null && dateB == null) return 0;
+            if (dateA == null) return 1;
+            if (dateB == null) return -1;
+            return dateB.compareTo(dateA);
+          });
           if (history.isEmpty) {
             return const Center(child: Text('Keine Historie gefunden.'));
           }
