@@ -14,7 +14,7 @@ class ReportingPeriodControl extends StatelessWidget {
     final totalChildren = lottery.children.length;
     final respondedChildren = lottery.children.where((c) => c.responded).length;
     final percent = totalChildren > 0 ? respondedChildren / totalChildren : 0.0;
-    final showBox = !lottery.finished && !lottery.allAnswersReceived && lottery.requestsSend;
+    final showBox = !lottery.finished && lottery.requestsSend;
     if (!showBox) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
