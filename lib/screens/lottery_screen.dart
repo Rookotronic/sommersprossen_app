@@ -7,16 +7,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:intl/intl.dart';
 import '../models/child.dart';
 
-/// Zeitoptionen für die Lotterie, einfach änderbar.
-const List<String> kTimeOptions = [
-  '11:00',
-  '12:00',
-  '13:00',
-  '14:00',
-  '15:00',
-  'Ende',
-];
-
 /// Bildschirm zur Anzeige und Verwaltung aller Lotterien.
 ///
 /// Zeigt eine Liste aller Lotterien, ermöglicht das Starten einer neuen Lotterie und die Anzeige von Details.
@@ -184,7 +174,6 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
     DateTime selectedDate = DateTime.now();
     final nrController = createController();
     final infoController = TextEditingController();
-    String endFirstPartOfDay = kTimeOptions.first;
     String selectedGroup = 'Beide';
     bool groupLocked = false;
     // If there is an active lottery and its group is not 'Beide', preselect the other group and lock selection
@@ -240,19 +229,6 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                       if (picked != null) setState(() => selectedDate = picked);
                     },
                   ),
-                  DropdownButtonFormField<String>(
-                    initialValue: endFirstPartOfDay,
-                    decoration: const InputDecoration(labelText: 'Ende des ersten Tagesabschnitts'),
-                    items: kTimeOptions
-                        .map((time) => DropdownMenuItem(
-                              value: time,
-                              child: Text(time),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) setState(() => endFirstPartOfDay = value);
-                    },
-                  ),
                   TextField(
                     controller: nrController,
                     keyboardType: TextInputType.number,
@@ -296,16 +272,11 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                       setState(() => errorText = 'Bitte ein gültiges Datum wählen (nicht in der Vergangenheit).');
                       return;
                     }
-                    // Validate endFirstPartOfDay
-                    final validEndFirstPartOfDay = (endFirstPartOfDay.isNotEmpty && kTimeOptions.contains(endFirstPartOfDay))
-                      ? endFirstPartOfDay
-                      : kTimeOptions.first;
                     try {
                       final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('addLottery');
                       final result = await callable.call({
                         'date': DateFormat('yyyy-MM-dd').format(selectedDate),
                         'nrOfChildrenToPick': nr,
-                        'endFirstPartOfDay': validEndFirstPartOfDay,
                         'group': selectedGroup,
                         'information': infoController.text.trim(),
                       });

@@ -45,8 +45,6 @@ class Lottery {
   final DateTime date;
   /// Timestamp when the lottery was created.
   final DateTime createdAt;
-  /// End of first part of day for the lottery event (e.g. '13:00', 'end').
-  final String endFirstPartOfDay;
   /// Group for the lottery event ("Beide", "ratz", "ruebe").
   final String group;
   /// Number of children to pick in the lottery.
@@ -71,7 +69,6 @@ class Lottery {
     this.allAnswersReceived = false,
     required this.nrOfChildrenToPick,
     required this.children,
-    required this.endFirstPartOfDay,
     required this.group,
     this.information = '',
   });
@@ -87,7 +84,6 @@ class Lottery {
     final allAnswersReceived = data['allAnswersReceived'] ?? false;
     final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? 0;
     final childrenRaw = data['children'];
-    final endFirstPartOfDay = data['endFirstPartOfDay'] ?? data['timeOfDay'] ?? '';
     final group = data['group'] ?? 'Beide';
     final information = (data['information'] ?? '').toString();
 
@@ -129,7 +125,6 @@ class Lottery {
         allAnswersReceived: allAnswersReceived,
         nrOfChildrenToPick: nrOfChildrenToPick,
         children: children,
-        endFirstPartOfDay: endFirstPartOfDay,
         group: group,
         information: information,
       );
@@ -149,7 +144,6 @@ class Lottery {
       'allAnswersReceived': allAnswersReceived,
       'nrOfChildrenToPick': nrOfChildrenToPick,
       'children': children.map((c) => c.toMap()).toList(),
-      'endFirstPartOfDay': endFirstPartOfDay,
       'group': group,
       'information': information,
     };
