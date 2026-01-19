@@ -35,7 +35,6 @@ class PrintLotteryButton extends StatelessWidget {
                 pw.Text('Lotterie Details', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 8),
                 pw.Text(custom_date_utils.DateUtils.formatWeekdayDate(lottery.date)),
-                pw.Text('Gruppe: ${lottery.group == 'Beide' ? 'Beide' : GroupName.values.firstWhere((g) => g.name == lottery.group).displayName}'),
                 pw.Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}'),
                 if (lottery.information.isNotEmpty) ...[
                   pw.SizedBox(height: 12),

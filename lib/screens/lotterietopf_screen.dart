@@ -129,7 +129,7 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                             final childId = lotterypot!.kids[index];
                             final child = children.firstWhere(
                               (c) => c.id == childId,
-                              orElse: () => Child(id: '', vorname: '', nachname: '', gruppe: GroupName.ratz),
+                              orElse: () => Child(id: '', vorname: '', nachname: ''),
                             );
                             final style = Theme.of(context).textTheme.bodyLarge;
                             return ListTile(

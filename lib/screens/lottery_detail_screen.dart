@@ -230,7 +230,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                 ...lottery.children.map((lotteryChild) {
                                   final child = children.firstWhere(
                                     (c) => c.id == lotteryChild.childId,
-                                    orElse: () => Child(id: '', vorname: '', nachname: '', gruppe: GroupName.ratz),
+                                    orElse: () => Child(id: '', vorname: '', nachname: ''),
                                   );
                                   final showGezogen = lottery.finished && lotteryChild.picked;
                                   return Container(

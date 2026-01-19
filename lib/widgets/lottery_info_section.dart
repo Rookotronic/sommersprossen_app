@@ -22,8 +22,6 @@ class LotteryInfoSection extends StatelessWidget {
       children: [
         Text(custom_date_utils.DateUtils.formatWeekdayDate(lottery.date), style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        Text('Gruppe: ${lottery.group == 'Beide' ? 'Beide' : GroupName.values.firstWhere((g) => g.name == lottery.group).displayName}', style: Theme.of(context).textTheme.bodyLarge),
-        const SizedBox(height: 8),
         Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
         if (lottery.information.isNotEmpty) ...[
           const SizedBox(height: 12),

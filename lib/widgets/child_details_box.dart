@@ -64,14 +64,6 @@ class ChildDetailsBox extends StatelessWidget {
                 children: [
                   Icon(Icons.groups_2, color: Colors.blue.shade400, size: 18),
                   const SizedBox(width: 6),
-                  Text('Gruppe:', style: Theme.of(context).textTheme.bodyMedium),
-                  const SizedBox(width: 6),
-                  Chip(
-                    label: Text(child.gruppe.displayName, style: const TextStyle(color: Colors.white)),
-                    backgroundColor: Colors.blue,
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                  ),
                 ],
               ),
             ],

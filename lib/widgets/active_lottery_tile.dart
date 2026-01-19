@@ -16,22 +16,8 @@ class ActiveLotteryTile extends StatelessWidget {
     required this.lotteryId,
   });
 
-  String getGroupDisplay(String groupRaw) {
-    switch (groupRaw.toLowerCase()) {
-      case 'ratz':
-        return 'Gruppe Ratz';
-      case 'ruebe':
-        return 'Gruppe Rübe';
-      case 'beide':
-        return 'Beide Gruppen';
-      default:
-        return 'Gruppe unbekannt';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final groupDisplay = getGroupDisplay(lottery.group);
     final showSendButton = !lottery.requestsSend && !lottery.finished && !lottery.allAnswersReceived;
     final dateStr = lottery.date.toString().split(' ')[0];
     return InkWell(
@@ -51,7 +37,7 @@ class ActiveLotteryTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Aktive Lotterie ($groupDisplay)', style: Theme.of(context).textTheme.titleMedium),
+              Text('Aktive Lotterie', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               Text('Datum: $dateStr'),
               if (showSendButton)

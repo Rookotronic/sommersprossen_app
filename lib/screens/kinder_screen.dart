@@ -3,7 +3,6 @@ import '../utils/controller_lifecycle_mixin.dart';
 import '../utils/validators.dart';
 import 'kinder_detail_screen.dart';
 import '../models/child.dart';
-import '../widgets/group_dropdown.dart';
 import '../models/parent.dart';
 import '../services/firestore_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -54,7 +53,6 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
   void _addKind() async {
   final vornameController = createController();
   final nachnameController = createController();
-  GroupName? selectedGroup;
   String? errorText;
   // Fetch parents from Firestore, order by last name
   final snapshot = await FirebaseFirestore.instance
@@ -112,10 +110,6 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                     }).toList(),
                   ),
                 ),
-                GroupDropdown(
-                  value: selectedGroup,
-                  onChanged: (value) => setState(() => selectedGroup = value),
-                ),
                 CheckboxListTile(
                   value: isTwo,
                   title: const Text('Dieses Kind zählt als zwei Kinder in der Lotterie'),
@@ -155,7 +149,6 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                       'vorname': vorname,
                       'nachname': nachname,
                       'parentIds': selectedParents.isEmpty ? null : selectedParents.map((p) => p.id).toList(),
-                      'gruppe': selectedGroup?.name,
                       'nTimesNoNeed': 0,
                       'two': isTwo,
                       'siblings': <String>[],

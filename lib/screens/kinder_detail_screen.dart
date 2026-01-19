@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../utils/controller_lifecycle_mixin.dart';
 import '../utils/validators.dart';
 import '../models/child.dart';
-import '../widgets/group_dropdown.dart';
 import '../models/parent.dart';
 import '../widgets/parent_list_display.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -30,7 +29,6 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
   final FirestoreService _firestoreService = FirestoreService();
   late TextEditingController _vornameController;
   late TextEditingController _nachnameController;
-  GroupName? _selectedGroup;
   List<Parent> _parentList = [];
   List<Parent> _selectedParents = [];
   bool _loadingParents = true;
@@ -43,7 +41,6 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
     super.initState();
     _vornameController = createController(text: widget.child.vorname);
     _nachnameController = createController(text: widget.child.nachname);
-    _selectedGroup = widget.child.gruppe;
     _isTwo = widget.child.two;
     _loadParents();
   }
@@ -100,7 +97,6 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
       vorname: vorname,
       nachname: nachname,
       parentIds: _selectedParents.isEmpty ? null : _selectedParents.map((p) => p.id).toList(),
-      gruppe: _selectedGroup ?? GroupName.ratz,
       two: _isTwo,
       nTimesNoNeed: widget.child.nTimesNoNeed,
       siblings: widget.child.siblings,
@@ -261,11 +257,6 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    GroupDropdown(
-                      value: _selectedGroup,
-                      onChanged: (value) => setState(() => _selectedGroup = value),
                     ),
                     const SizedBox(height: 12),
                     CheckboxListTile(

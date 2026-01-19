@@ -57,8 +57,6 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
         bool showAddButton = false;
         if (activeLotteries.isEmpty) {
           showAddButton = true;
-        } else if (activeLotteries.length == 1 && activeLotteries.first.group != 'Beide') {
-          showAddButton = true;
         }
         return Scaffold(
           appBar: AppBar(title: const Text('Losverfahren')),
@@ -70,9 +68,6 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                     final lottery = lotteries[index];
                     final docId = docs[index].id;
                     final dateStr = _formatDate(lottery.date);
-                    final groupStr = lottery.group == 'Beide'
-                        ? 'Beide'
-                        : GroupName.values.firstWhere((g) => g.name == lottery.group).displayName;
                     final textColor = lottery.finished
                         ? Colors.grey.shade600
                         : Theme.of(context).textTheme.bodyLarge?.color;
@@ -82,10 +77,6 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                           children: [
                             TextSpan(
                               text: dateStr,
-                              style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text: '  $groupStr',
                               style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -174,17 +165,6 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
     DateTime selectedDate = DateTime.now();
     final nrController = createController();
     final infoController = TextEditingController();
-    String selectedGroup = 'Beide';
-    bool groupLocked = false;
-    // If there is an active lottery and its group is not 'Beide', preselect the other group and lock selection
-    if (activeLottery != null && activeLottery.group != 'Beide') {
-      if (activeLottery.group == 'ratz') {
-        selectedGroup = 'ruebe';
-      } else if (activeLottery.group == 'ruebe') {
-        selectedGroup = 'ratz';
-      }
-      groupLocked = true;
-    }
     String? errorText;
     return showDialog<bool>(
       context: context,
@@ -196,22 +176,6 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedGroup,
-                    decoration: const InputDecoration(labelText: 'Gruppe'),
-                    items: [
-                      const DropdownMenuItem(value: 'Beide', child: Text('Beide')),
-                      ...GroupName.values.map((g) => DropdownMenuItem(
-                        value: g.name,
-                        child: Text(g.displayName),
-                      ))
-                    ],
-                    onChanged: groupLocked
-                        ? null
-                        : (value) {
-                            if (value != null) setState(() => selectedGroup = value);
-                          },
-                  ),
                   ListTile(
                     title: Text(_formatDate(selectedDate)),
                     trailing: const Icon(Icons.calendar_today),
@@ -277,7 +241,6 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                       final result = await callable.call({
                         'date': DateFormat('yyyy-MM-dd').format(selectedDate),
                         'nrOfChildrenToPick': nr,
-                        'group': selectedGroup,
                         'information': infoController.text.trim(),
                       });
                       if (result.data['success'] == true) {

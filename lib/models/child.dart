@@ -1,14 +1,9 @@
-/// Represents the kindergarten group a child belongs to.
-/// Possible values: [ratz], [ruebe].
-enum GroupName { ratz, ruebe }
-
 /// Data model for a child in the lottery system.
 ///
 /// [id]: Unique Firestore document ID.
 /// [vorname]: First name of the child.
 /// [nachname]: Last name of the child.
 /// [parentIds]: List of parent IDs (nullable).
-/// [gruppe]: Group assignment (see [GroupName]).
 class Child {
   /// Unique Firestore document ID for the child.
   final String id;
@@ -18,8 +13,6 @@ class Child {
   final String nachname;
   /// List of parent IDs associated with the child (never null, defaults to empty list).
   final List<String> parentIds;
-  /// Group assignment for the child.
-  final GroupName gruppe;
   /// Number of times the child was marked as 'no need'.
   final int nTimesNoNeed;
   /// If true, this child counts as two kids in a lottery.
@@ -32,7 +25,6 @@ class Child {
     required this.vorname,
     required this.nachname,
     List<String>? parentIds,
-    required this.gruppe,
     this.nTimesNoNeed = 0,
     this.two = false,
     List<String>? siblings,
@@ -47,7 +39,6 @@ class Child {
     try {
       final vorname = data['vorname'];
       final nachname = data['nachname'];
-      final gruppeRaw = data['gruppe'];
       final parentIdsRaw = data['parentIds'];
 
       if (vorname is! String || nachname is! String) {
@@ -91,7 +82,6 @@ class Child {
         vorname: vorname,
         nachname: nachname,
         parentIds: parentIds,
-        gruppe: _groupNameFromString(gruppeRaw),
         nTimesNoNeed: nTimesNoNeed,
         two: two,
         siblings: siblings,
@@ -107,35 +97,8 @@ class Child {
     'vorname': vorname,
     'nachname': nachname,
     'parentIds': parentIds,
-    'gruppe': gruppe.name,
     'nTimesNoNeed': nTimesNoNeed,
     'two': two,
     'siblings': siblings,
   };
-
-  /// Helper to parse [GroupName] from Firestore value.
-  static GroupName _groupNameFromString(dynamic value) {
-    if (value is GroupName) return value;
-    if (value is String) {
-      final lowerValue = value.toLowerCase();
-      return GroupName.values.firstWhere(
-        (g) => g.name.toLowerCase() == lowerValue,
-        orElse: () => GroupName.ratz,
-      );
-    }
-    return GroupName.ratz;
-  }
-}
-
-/// Extension to provide display names for [GroupName] enum values.
-extension GroupNameDisplay on GroupName {
-  /// Returns a user-friendly display name for the group.
-  String get displayName {
-    switch (this) {
-      case GroupName.ratz:
-        return 'Ratz';
-      case GroupName.ruebe:
-        return 'Rübe';
-    }
-  }
 }
