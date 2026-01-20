@@ -24,14 +24,23 @@ class DefaultFirebaseOptions {
   ///
   /// Wird von `Firebase.initializeApp` verwendet.
   static FirebaseOptions get currentPlatform {
+    const flavor = String.fromEnvironment('FLAVOR');
     if (kIsWeb) {
       return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return android;
+        if (flavor == 'prod') {
+          return androidProd;
+        } else {
+          return androidDev;
+        }
       case TargetPlatform.iOS:
-        return ios;
+        if (flavor == 'prod') {
+          return iosProd;
+        } else {
+          return iosDev;
+        }
       case TargetPlatform.macOS:
         return macos;
       case TargetPlatform.windows:
@@ -78,8 +87,8 @@ class DefaultFirebaseOptions {
     }
   }
 
-  /// Firebase-Konfiguration für Android.
-  static const FirebaseOptions android = FirebaseOptions(
+  /// Firebase-Konfiguration für Android (Dev).
+  static const FirebaseOptions androidDev = FirebaseOptions(
     apiKey: 'AIzaSyCqjfAOsqknsytG797iR7DzFW0nSnkpgHc',
     appId: '1:767015238873:android:2129128619159e886dd2c8',
     messagingSenderId: '767015238873',
@@ -87,13 +96,32 @@ class DefaultFirebaseOptions {
     storageBucket: 'sommersprossenapp.firebasestorage.app',
   );
 
-  /// Firebase-Konfiguration für iOS.
-  static const FirebaseOptions ios = FirebaseOptions(
+  /// Firebase-Konfiguration für Android (Prod).
+  static const FirebaseOptions androidProd = FirebaseOptions(
+    apiKey: 'AIzaSyDDeizEdr9tbbBsWTZHeimSPJwQlOFl6kE',
+    appId: '1:771074457475:android:bcbf7a6c480bf4f61d40b6',
+    messagingSenderId: '771074457475',
+    projectId: 'sommersprossen-app-prod',
+    storageBucket: 'sommersprossen-app-prod.firebasestorage.app',
+  );
+
+  /// Firebase-Konfiguration für iOS (Dev).
+  static const FirebaseOptions iosDev = FirebaseOptions(
     apiKey: 'AIzaSyAACbqmzruEOzcGJeKqDRYro6ZzmMBXk8M',
     appId: '1:767015238873:ios:9275b33ef5c6ef936dd2c8',
     messagingSenderId: '767015238873',
     projectId: 'sommersprossenapp',
     storageBucket: 'sommersprossenapp.firebasestorage.app',
+    iosBundleId: 'com.example.sommersprossenApp',
+  );
+
+  /// Firebase-Konfiguration für iOS (Prod).
+  static const FirebaseOptions iosProd = FirebaseOptions(
+    apiKey: 'AIzaSyDy8XH2OgVcDDA9qWwZrwNc0eYEHUrQSJ4',
+    appId: '1:771074457475:ios:e8f35e44404476dd1d40b6',
+    messagingSenderId: '771074457475',
+    projectId: 'sommersprossen-app-prod',
+    storageBucket: 'sommersprossen-app-prod.firebasestorage.app',
     iosBundleId: 'com.example.sommersprossenApp',
   );
 
