@@ -5,7 +5,6 @@ import 'lottery_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:intl/intl.dart';
-import '../models/child.dart';
 
 /// Bildschirm zur Anzeige und Verwaltung aller Lotterien.
 ///

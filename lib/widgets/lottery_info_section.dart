@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/lottery.dart';
-import '../models/child.dart';
 import '../utils/date_utils.dart' as custom_date_utils;
 
 class LotteryInfoSection extends StatelessWidget {
