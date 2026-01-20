@@ -6,7 +6,7 @@ import '../widgets/reporting_period_control.dart';
 import '../widgets/confirmation_dialog.dart';
 import '../screens/lottery_detail_screen.dart';
 
-class ActiveLotteryTile extends StatelessWidget {
+class ActiveLotteryTile extends StatefulWidget {
   final Lottery lottery;
   final String lotteryId;
 
@@ -17,15 +17,20 @@ class ActiveLotteryTile extends StatelessWidget {
   });
 
   @override
+  State<ActiveLotteryTile> createState() => _ActiveLotteryTileState();
+}
+
+class _ActiveLotteryTileState extends State<ActiveLotteryTile> {
+  @override
   Widget build(BuildContext context) {
-    final showSendButton = !lottery.requestsSend && !lottery.finished && !lottery.allAnswersReceived;
-    final dateStr = lottery.date.toString().split(' ')[0];
+    final showSendButton = !widget.lottery.requestsSend && !widget.lottery.finished && !widget.lottery.allAnswersReceived;
+    final dateStr = widget.lottery.date.toString().split(' ')[0];
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => LotteryDetailScreen(lotteryId: lotteryId, lottery: lottery),
+            builder: (_) => LotteryDetailScreen(lotteryId: widget.lotteryId, lottery: widget.lottery),
           ),
         );
       },
@@ -44,7 +49,7 @@ class ActiveLotteryTile extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 12.0),
                   child: notifyparentsbutton(
-                    lotteryId: lotteryId,
+                    lotteryId: widget.lotteryId,
                     onSuccess: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Benachrichtigungen gesendet!')),
@@ -54,7 +59,7 @@ class ActiveLotteryTile extends StatelessWidget {
                 ),
               const SizedBox(height: 12),
               ReportingPeriodControl(
-                lottery: lottery,
+                lottery: widget.lottery,
                 onEndPeriod: () async {
                   final confirmed = await showConfirmationDialog(
                     context,
@@ -66,11 +71,13 @@ class ActiveLotteryTile extends StatelessWidget {
                     try {
                       final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
                       final handleLotteryPicking = functions.httpsCallable('handleLotteryPicking');
-                      await handleLotteryPicking({'lotteryId': lotteryId});
+                      await handleLotteryPicking({'lotteryId': widget.lotteryId});
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Lotterie wurde gezogen!')),
                       );
                     } catch (e) {
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Fehler beim Ziehen der Lotterie: $e')),
                       );
