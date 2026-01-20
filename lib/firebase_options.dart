@@ -48,8 +48,8 @@ class DefaultFirebaseOptions {
     }
   }
 
-  /// Firebase-Konfiguration für Web.
-  static const FirebaseOptions web = FirebaseOptions(
+  /// Firebase-Konfiguration für Web (Dev).
+  static const FirebaseOptions webDev = FirebaseOptions(
     apiKey: 'AIzaSyCOkeYmHmO-SDTAJ7nvbRdDvqoLcd229o0',
     appId: '1:767015238873:web:a8aecf547a9e30b86dd2c8',
     messagingSenderId: '767015238873',
@@ -57,6 +57,26 @@ class DefaultFirebaseOptions {
     authDomain: 'sommersprossenapp.firebaseapp.com',
     storageBucket: 'sommersprossenapp.firebasestorage.app',
   );
+
+  /// Firebase-Konfiguration für Web (Prod).
+  static const FirebaseOptions webProd = FirebaseOptions(
+    apiKey: 'AIzaSyD3PgFhqxQ2s_NnzHo6wZWbZHyPbJXBHXI',
+    appId: '1:771074457475:web:4ec7266b7e2e924c1d40b6',
+    messagingSenderId: '771074457475',
+    projectId: 'sommersprossen-app-prod',
+    authDomain: 'sommersprossen-app-prod.firebaseapp.com',
+    storageBucket: 'sommersprossen-app-prod.firebasestorage.app',
+  );
+
+  /// Returns the correct web config based on FLAVOR dart-define.
+  static FirebaseOptions get web {
+    const flavor = String.fromEnvironment('FLAVOR');
+    if (flavor == 'prod') {
+      return webProd;
+    } else {
+      return webDev;
+    }
+  }
 
   /// Firebase-Konfiguration für Android.
   static const FirebaseOptions android = FirebaseOptions(
