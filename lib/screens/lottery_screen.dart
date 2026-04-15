@@ -20,14 +20,14 @@ class LotteryScreen extends StatefulWidget {
 /// State-Klasse für LotteryScreen.
 ///
 /// Beinhaltet die Logik zum Laden, Anzeigen und Erstellen von Lotterien.
-class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleMixin {
-  
+class _LotteryScreenState extends State<LotteryScreen>
+    with ControllerLifecycleMixin {
   @override
   /// Wird bei Abhängigkeitsänderungen aufgerufen und triggert einen Rebuild.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-  setState(() {});
+    setState(() {});
   }
 
   @override
@@ -35,22 +35,29 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('lotteries').orderBy('date', descending: true).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('lotteries')
+          .orderBy('date', descending: true)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Losverfahren')),
+            appBar: AppBar(title: const Text('Lotterie')),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
         if (snapshot.hasError) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Losverfahren')),
-            body: Center(child: Text('Fehler beim Laden der Lotterien: ${snapshot.error}')),
+            appBar: AppBar(title: const Text('Lotterie')),
+            body: Center(
+              child: Text('Fehler beim Laden der Lotterien: ${snapshot.error}'),
+            ),
           );
         }
         final docs = snapshot.data?.docs ?? [];
-        final lotteries = docs.map((doc) => Lottery.fromFirestore(doc)).toList();
+        final lotteries = docs
+            .map((doc) => Lottery.fromFirestore(doc))
+            .toList();
         // Find all active unfinished lotteries
         final activeLotteries = lotteries.where((l) => !l.finished).toList();
         bool showAddButton = false;
@@ -58,7 +65,7 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
           showAddButton = true;
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Losverfahren')),
+          appBar: AppBar(title: const Text('Lotterie')),
           body: docs.isEmpty
               ? const Center(child: Text('Keine Lotterien vorhanden.'))
               : ListView.builder(
@@ -76,7 +83,10 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                           children: [
                             TextSpan(
                               text: dateStr,
-                              style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: textColor,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                           style: DefaultTextStyle.of(context).style,
@@ -89,7 +99,10 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => LotteryDetailScreen(lottery: lottery, lotteryId: docId),
+                            builder: (context) => LotteryDetailScreen(
+                              lottery: lottery,
+                              lotteryId: docId,
+                            ),
                           ),
                         );
                       },
@@ -104,7 +117,9 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                   heroTag: 'addLottery',
                   onPressed: () async {
                     await _showNewLotteryDialog(
-                      activeLottery: (activeLotteries.length == 1) ? activeLotteries.first : null,
+                      activeLottery: (activeLotteries.length == 1)
+                          ? activeLotteries.first
+                          : null,
                     );
                   },
                   tooltip: 'Neue Lotterie starten',
@@ -119,7 +134,9 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                     context: context,
                     builder: (context) => AlertDialog(
                       title: const Text('Alle Lotterien löschen?'),
-                      content: const Text('Bist du sicher, dass du wirklich ALLE Lotterien löschen möchtest? Dies kann nicht rückgängig gemacht werden.'),
+                      content: const Text(
+                        'Bist du sicher, dass du wirklich ALLE Lotterien löschen möchtest? Dies kann nicht rückgängig gemacht werden.',
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(false),
@@ -127,18 +144,27 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                         ),
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text('Löschen', style: TextStyle(color: Colors.red)),
+                          child: const Text(
+                            'Löschen',
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
                       ],
                     ),
                   );
                   if (confirmed == true) {
                     try {
-                      final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('deleteAllLotterys');
+                      final callable = FirebaseFunctions.instanceFor(
+                        region: 'europe-west1',
+                      ).httpsCallable('deleteAllLotterys');
                       final result = await callable.call();
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Alle Lotterien gelöscht (${result.data['deleted'] ?? 0})')),
+                        SnackBar(
+                          content: Text(
+                            'Alle Lotterien gelöscht (${result.data['deleted'] ?? 0})',
+                          ),
+                        ),
                       );
                     } catch (e) {
                       if (!context.mounted) return;
@@ -157,7 +183,6 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
       },
     );
   }
-
 
   /// Öffnet einen Dialog zum Erstellen einer neuen Lotterie.
   Future<bool?> _showNewLotteryDialog({Lottery? activeLottery}) async {
@@ -185,7 +210,8 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                         firstDate: DateTime(2020),
                         lastDate: DateTime(2100),
                         selectableDayPredicate: (date) {
-                          return date.weekday != DateTime.saturday && date.weekday != DateTime.sunday;
+                          return date.weekday != DateTime.saturday &&
+                              date.weekday != DateTime.sunday;
                         },
                       );
                       if (!mounted) return;
@@ -195,7 +221,9 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                   TextField(
                     controller: nrController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Anzahl Kinder zu ziehen'),
+                    decoration: const InputDecoration(
+                      labelText: 'Anzahl Kinder zu ziehen',
+                    ),
                   ),
                   // Information field (always last)
                   Flexible(
@@ -205,14 +233,17 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                       maxLines: 3,
                       decoration: const InputDecoration(
                         labelText: 'Information',
-                        hintText: 'Weitere Details zum Losverfahren',
+                        hintText: 'Weitere Details zur Lotterie',
                       ),
                     ),
                   ),
                   if (errorText != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(errorText ?? '', style: const TextStyle(color: Colors.red)),
+                      child: Text(
+                        errorText ?? '',
+                        style: const TextStyle(color: Colors.red),
+                      ),
                     ),
                 ],
               ),
@@ -225,18 +256,48 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                   onPressed: () async {
                     final nr = int.tryParse(nrController.text.trim());
                     final now = DateTime.now();
-                    final selectedDay = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+                    final selectedDay = DateTime(
+                      selectedDate.year,
+                      selectedDate.month,
+                      selectedDate.day,
+                    );
                     final today = DateTime(now.year, now.month, now.day);
                     if (nr == null || nr < 1) {
-                      setState(() => errorText = 'Bitte eine gültige Anzahl Kinder eingeben.');
+                      setState(
+                        () => errorText =
+                            'Bitte eine gültige Anzahl Kinder eingeben.',
+                      );
+                      return;
+                    }
+                    final childrenAggregate = await FirebaseFirestore.instance
+                        .collection('children')
+                        .count()
+                        .get();
+                    final totalChildrenEntries = childrenAggregate.count ?? 0;
+                    if (totalChildrenEntries < 1) {
+                      setState(
+                        () => errorText = 'Keine Kinder-Einträge vorhanden.',
+                      );
+                      return;
+                    }
+                    if (nr > totalChildrenEntries) {
+                      setState(
+                        () => errorText =
+                            'Darf nicht größer als $totalChildrenEntries sein.',
+                      );
                       return;
                     }
                     if (selectedDay.isBefore(today)) {
-                      setState(() => errorText = 'Bitte ein gültiges Datum wählen (nicht in der Vergangenheit).');
+                      setState(
+                        () => errorText =
+                            'Bitte ein gültiges Datum wählen (nicht in der Vergangenheit).',
+                      );
                       return;
                     }
                     try {
-                      final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('addLottery');
+                      final callable = FirebaseFunctions.instanceFor(
+                        region: 'europe-west1',
+                      ).httpsCallable('addLottery');
                       final result = await callable.call({
                         'date': DateFormat('yyyy-MM-dd').format(selectedDate),
                         'nrOfChildrenToPick': nr,
@@ -249,11 +310,18 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
                           return;
                         }
                       } else {
-                        setState(() => errorText = result.data['message'] ?? 'Fehler beim Speichern.');
+                        setState(
+                          () => errorText =
+                              result.data['message'] ??
+                              'Fehler beim Speichern.',
+                        );
                       }
                     } catch (e) {
                       if (!mounted) return;
-                      setState(() => errorText = 'Fehler beim Speichern: ${e.toString()}');
+                      setState(
+                        () => errorText =
+                            'Fehler beim Speichern: ${e.toString()}',
+                      );
                     }
                   },
                   child: const Text('Erstellen'),
@@ -275,4 +343,3 @@ class _LotteryScreenState extends State<LotteryScreen> with ControllerLifecycleM
     }
   }
 }
-

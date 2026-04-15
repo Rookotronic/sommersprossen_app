@@ -16,11 +16,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class LotteryDetailScreen extends StatefulWidget {
   /// Die ID der Lotterie in Firestore.
   final String lotteryId;
+
   /// Das Lotterie-Objekt mit allen relevanten Daten.
   final Lottery lottery;
 
   /// Erstellt eine Instanz des Lotterie-Detailbildschirms.
-  const LotteryDetailScreen({super.key, required this.lottery, required this.lotteryId});
+  const LotteryDetailScreen({
+    super.key,
+    required this.lottery,
+    required this.lotteryId,
+  });
 
   @override
   State<LotteryDetailScreen> createState() => _LotteryDetailScreenState();
@@ -30,7 +35,84 @@ class LotteryDetailScreen extends StatefulWidget {
 ///
 /// Beinhaltet die Logik zur Anzeige, Bearbeitung und Löschung einer Lotterie.
 class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
-  Future<void> _editInformation(BuildContext context, String currentInfo) async {
+  Future<void> _editNumberToPick(
+    BuildContext context,
+    int currentNumber,
+    int maxChildren,
+  ) async {
+    final controller = TextEditingController(text: currentNumber.toString());
+    String? errorText;
+    final result = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: const Text('Anzahl Kinder bearbeiten'),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Zu ziehende Kinder',
+                errorText: errorText,
+              ),
+              onChanged: (value) {
+                final parsed = int.tryParse(value.trim());
+                if (parsed == null || parsed < 1) {
+                  setState(() => errorText = 'Bitte eine Zahl ab 1 eingeben');
+                } else if (parsed > maxChildren) {
+                  setState(
+                    () =>
+                        errorText = 'Darf nicht groesser als $maxChildren sein',
+                  );
+                } else {
+                  setState(() => errorText = null);
+                }
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Abbrechen'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final parsed = int.tryParse(controller.text.trim());
+                  if (parsed == null || parsed < 1) {
+                    setState(() => errorText = 'Bitte eine Zahl ab 1 eingeben');
+                    return;
+                  }
+                  if (parsed > maxChildren) {
+                    setState(
+                      () => errorText =
+                          'Darf nicht groesser als $maxChildren sein',
+                    );
+                    return;
+                  }
+                  Navigator.of(context).pop(parsed);
+                },
+                child: const Text('Speichern'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (result != null && result != currentNumber) {
+      await FirebaseFirestore.instance
+          .collection('lotteries')
+          .doc(widget.lotteryId)
+          .update({'nrOfChildrenToPick': result});
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Anzahl aktualisiert.')));
+    }
+  }
+
+  Future<void> _editInformation(
+    BuildContext context,
+    String currentInfo,
+  ) async {
     final controller = TextEditingController(text: currentInfo);
     String? errorText;
     final result = await showDialog<String>(
@@ -81,7 +163,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
           .collection('lotteries')
           .doc(widget.lotteryId)
           .update({'information': result});
-          if (!context.mounted) return;
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Information aktualisiert.')),
       );
@@ -95,7 +177,10 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Lotterie Details')),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('lotteries').doc(widget.lotteryId).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('lotteries')
+            .doc(widget.lotteryId)
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -113,7 +198,10 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
           }
           final doc = snapshot.data!;
           final lottery = Lottery.fromFirestore(doc);
-          final showSendButton = !lottery.finished && !lottery.requestsSend && !lottery.allAnswersReceived;
+          final showSendButton =
+              !lottery.finished &&
+              !lottery.requestsSend &&
+              !lottery.allAnswersReceived;
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -123,6 +211,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                   lottery: lottery,
                   lotteryId: widget.lotteryId,
                   onEditInformation: _editInformation,
+                  onEditNumberToPick: _editNumberToPick,
                 ),
                 ReportingPeriodControlSection(
                   lottery: lottery,
@@ -132,41 +221,62 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                     final confirmed = await showConfirmationDialog(
                       context,
                       title: 'Lotterie jetzt ziehen?',
-                      content: 'Bist du sicher, dass du die Lotterie jetzt ziehen möchtest?',
+                      content:
+                          'Bist du sicher, dass du die Lotterie jetzt ziehen möchtest?',
                       confirmText: 'Jetzt ziehen',
                     );
                     if (confirmed == true) {
                       try {
-                        final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
-                        final handleLotteryPicking = functions.httpsCallable('handleLotteryPicking');
-                        await handleLotteryPicking({'lotteryId': widget.lotteryId});
+                        final functions = FirebaseFunctions.instanceFor(
+                          region: 'europe-west1',
+                        );
+                        final handleLotteryPicking = functions.httpsCallable(
+                          'handleLotteryPicking',
+                        );
+                        await handleLotteryPicking({
+                          'lotteryId': widget.lotteryId,
+                        });
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Lotterie wurde gezogen!')),
+                          const SnackBar(
+                            content: Text('Lotterie wurde gezogen!'),
+                          ),
                         );
                       } catch (e) {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Fehler beim Ziehen der Lotterie: $e')),
+                          SnackBar(
+                            content: Text(
+                              'Fehler beim Ziehen der Lotterie: $e',
+                            ),
+                          ),
                         );
                       }
                     }
                   },
                   onNotifyParents: () async {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Benachrichtigungen gesendet!')),
+                      const SnackBar(
+                        content: Text('Benachrichtigungen gesendet!'),
+                      ),
                     );
                   },
                 ),
                 const SizedBox(height: 16),
                 FutureBuilder<List<Child>>(
-                  future: ChildService.fetchChildrenByIds(lottery.children.map((c) => c.childId).toList()),
+                  future: ChildService.fetchChildrenByIds(
+                    lottery.children.map((c) => c.childId).toList(),
+                  ),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
                     if (snapshot.hasError) {
-                      return Center(child: Text('Fehler beim Laden der Kinder: ${snapshot.error}'));
+                      return Center(
+                        child: Text(
+                          'Fehler beim Laden der Kinder: ${snapshot.error}',
+                        ),
+                      );
                     }
                     final children = snapshot.data ?? [];
                     return Expanded(
@@ -174,19 +284,52 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Fixed header
-                          Text('Kinder:', style: Theme.of(context).textTheme.titleLarge),
+                          Text(
+                            'Kinder:',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 4,
+                            ),
                             color: Colors.grey.shade200,
                             child: Column(
                               children: [
                                 Row(
                                   children: [
-                                    Expanded(flex: 3, child: Text('Name', style: const TextStyle(fontSize: 11))),
-                                    Expanded(child: Center(child: Text('Benachrichtigt', style: const TextStyle(fontSize: 11)))),
-                                    Expanded(child: Center(child: Text('Geantwortet', style: const TextStyle(fontSize: 11)))),
-                                    Expanded(child: Center(child: Text('Bedarf', style: const TextStyle(fontSize: 11)))),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        'Name',
+                                        style: const TextStyle(fontSize: 11),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Center(
+                                        child: Text(
+                                          'Benachrichtigt',
+                                          style: const TextStyle(fontSize: 11),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Center(
+                                        child: Text(
+                                          'Geantwortet',
+                                          style: const TextStyle(fontSize: 11),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Center(
+                                        child: Text(
+                                          'Bedarf',
+                                          style: const TextStyle(fontSize: 11),
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 Row(
@@ -196,7 +339,10 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                       child: Center(
                                         child: Text(
                                           '${lottery.children.where((c) => c.notified).length} / ${lottery.children.length}',
-                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -204,7 +350,10 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                       child: Center(
                                         child: Text(
                                           '${lottery.children.where((c) => c.responded).length} / ${lottery.children.length}',
-                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -212,7 +361,10 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                       child: Center(
                                         child: Text(
                                           '${lottery.children.where((c) => c.need).length} / ${lottery.children.length}',
-                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -230,14 +382,33 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                 ...lottery.children.map((lotteryChild) {
                                   final child = children.firstWhere(
                                     (c) => c.id == lotteryChild.childId,
-                                    orElse: () => Child(id: '', vorname: '', nachname: ''),
+                                    orElse: () => Child(
+                                      id: '',
+                                      vorname: '',
+                                      nachname: '',
+                                    ),
                                   );
-                                  final showGezogen = lottery.finished && lotteryChild.picked;
+                                  final showGezogen =
+                                      lottery.finished && lotteryChild.picked;
                                   return Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                      horizontal: 4,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: lotteryChild.picked ? const Color.fromARGB(255, 255, 192, 192) : null,
-                                      border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+                                      color: lotteryChild.picked
+                                          ? const Color.fromARGB(
+                                              255,
+                                              255,
+                                              192,
+                                              192,
+                                            )
+                                          : null,
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
                                     ),
                                     child: Row(
                                       children: [
@@ -247,31 +418,63 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                             children: [
                                               Text(
                                                 '${child.vorname} ${child.nachname}${showGezogen ? ' (gezogen)' : ''}',
-                                                style: const TextStyle(fontSize: 13),
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                ),
                                               ),
                                               if (!lottery.finished)
                                                 IconButton(
-                                                  icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                                                  icon: const Icon(
+                                                    Icons.delete,
+                                                    size: 18,
+                                                    color: Colors.red,
+                                                  ),
                                                   tooltip: 'Kind entfernen',
                                                   onPressed: () async {
-                                                    final confirmed = await showConfirmationDialog(
-                                                      context,
-                                                      title: 'Kind entfernen',
-                                                      content: 'Möchtest du dieses Kind wirklich aus der Lotterie entfernen?',
-                                                      confirmText: 'Entfernen',
-                                                    );
+                                                    final confirmed =
+                                                        await showConfirmationDialog(
+                                                          context,
+                                                          title:
+                                                              'Kind entfernen',
+                                                          content:
+                                                              'Möchtest du dieses Kind wirklich aus der Lotterie entfernen?',
+                                                          confirmText:
+                                                              'Entfernen',
+                                                        );
                                                     if (confirmed == true) {
-                                                      final updatedChildren = lottery.children
-                                                        .where((c) => c.childId != lotteryChild.childId)
-                                                        .map((c) => c.toMap())
-                                                        .toList();
-                                                      await FirebaseFirestore.instance
-                                                        .collection('lotteries')
-                                                        .doc(widget.lotteryId)
-                                                        .update({'children': updatedChildren});
-                                                      if (!context.mounted) return;
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        const SnackBar(content: Text('Kind entfernt.')),
+                                                      final updatedChildren =
+                                                          lottery.children
+                                                              .where(
+                                                                (c) =>
+                                                                    c.childId !=
+                                                                    lotteryChild
+                                                                        .childId,
+                                                              )
+                                                              .map(
+                                                                (c) =>
+                                                                    c.toMap(),
+                                                              )
+                                                              .toList();
+                                                      await FirebaseFirestore
+                                                          .instance
+                                                          .collection(
+                                                            'lotteries',
+                                                          )
+                                                          .doc(widget.lotteryId)
+                                                          .update({
+                                                            'children':
+                                                                updatedChildren,
+                                                          });
+                                                      if (!context.mounted)
+                                                        return;
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        const SnackBar(
+                                                          content: Text(
+                                                            'Kind entfernt.',
+                                                          ),
+                                                        ),
                                                       );
                                                     }
                                                   },
@@ -279,9 +482,45 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                             ],
                                           ),
                                         ),
-                                        Expanded(child: Center(child: Icon(lotteryChild.notified ? Icons.check_circle : Icons.cancel, color: lotteryChild.notified ? Colors.green : Colors.red, size: 18))),
-                                        Expanded(child: Center(child: Icon(lotteryChild.responded ? Icons.check_circle : Icons.cancel, color: lotteryChild.responded ? Colors.green : Colors.red, size: 18))),
-                                        Expanded(child: Center(child: Icon(lotteryChild.need ? Icons.check_circle : Icons.cancel, color: lotteryChild.need ? Colors.green : Colors.red, size: 18))),
+                                        Expanded(
+                                          child: Center(
+                                            child: Icon(
+                                              lotteryChild.notified
+                                                  ? Icons.check_circle
+                                                  : Icons.cancel,
+                                              color: lotteryChild.notified
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                              size: 18,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Center(
+                                            child: Icon(
+                                              lotteryChild.responded
+                                                  ? Icons.check_circle
+                                                  : Icons.cancel,
+                                              color: lotteryChild.responded
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                              size: 18,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Center(
+                                            child: Icon(
+                                              lotteryChild.need
+                                                  ? Icons.check_circle
+                                                  : Icons.cancel,
+                                              color: lotteryChild.need
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                              size: 18,
+                                            ),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   );
@@ -291,7 +530,10 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                           ),
                           const SizedBox(height: 16),
                           if (lottery.finished)
-                            PrintLotteryButton(lottery: lottery, children: children),
+                            PrintLotteryButton(
+                              lottery: lottery,
+                              children: children,
+                            ),
                           const SizedBox(height: 8),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
@@ -302,7 +544,8 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                               final confirmed = await showConfirmationDialog(
                                 context,
                                 title: 'Lotterie löschen',
-                                content: 'Bist du sicher, dass du diese Lotterie löschen möchtest? Dies kann nicht rückgängig gemacht werden.',
+                                content:
+                                    'Bist du sicher, dass du diese Lotterie löschen möchtest? Dies kann nicht rückgängig gemacht werden.',
                                 confirmText: 'Ja, löschen',
                               );
                               if (confirmed == true) {
@@ -310,22 +553,32 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                 final doubleCheck = await showConfirmationDialog(
                                   context,
                                   title: 'Wirklich löschen?',
-                                  content: 'Bitte bestätige erneut, dass du die Lotterie wirklich löschen willst.',
+                                  content:
+                                      'Bitte bestätige erneut, dass du die Lotterie wirklich löschen willst.',
                                   confirmText: 'Endgültig löschen',
                                   cancelText: 'Nein',
                                 );
                                 if (doubleCheck == true) {
                                   try {
-                                    await FirebaseFirestore.instance.collection('lotteries').doc(widget.lotteryId).delete();
+                                    await FirebaseFirestore.instance
+                                        .collection('lotteries')
+                                        .doc(widget.lotteryId)
+                                        .delete();
                                     if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Lotterie gelöscht!')),
+                                      const SnackBar(
+                                        content: Text('Lotterie gelöscht!'),
+                                      ),
                                     );
                                     Navigator.of(context).pop();
                                   } catch (e) {
                                     if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Fehler beim Löschen: $e')),
+                                      SnackBar(
+                                        content: Text(
+                                          'Fehler beim Löschen: $e',
+                                        ),
+                                      ),
                                     );
                                   }
                                 }

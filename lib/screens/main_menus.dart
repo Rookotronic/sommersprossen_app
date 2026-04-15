@@ -89,7 +89,7 @@ class AdminMainMenuScreen extends StatelessWidget {
     return [
       MenuEntryTile(
         icon: Icons.shuffle,
-        title: 'Losverfahren',
+        title: 'Lotterie',
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(

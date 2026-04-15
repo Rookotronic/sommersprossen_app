@@ -6,12 +6,14 @@ class LotteryInfoSection extends StatelessWidget {
   final Lottery lottery;
   final String lotteryId;
   final void Function(BuildContext, String) onEditInformation;
+  final void Function(BuildContext, int, int) onEditNumberToPick;
 
   const LotteryInfoSection({
     super.key,
     required this.lottery,
     required this.lotteryId,
     required this.onEditInformation,
+    required this.onEditNumberToPick,
   });
 
   @override
@@ -19,9 +21,30 @@ class LotteryInfoSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(custom_date_utils.DateUtils.formatWeekdayDate(lottery.date), style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          custom_date_utils.DateUtils.formatWeekdayDate(lottery.date),
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 8),
-        Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}', style: Theme.of(context).textTheme.bodyLarge),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit, size: 20),
+              tooltip: 'Anzahl bearbeiten',
+              onPressed: () => onEditNumberToPick(
+                context,
+                lottery.nrOfChildrenToPick,
+                lottery.children.length,
+              ),
+            ),
+          ],
+        ),
         if (lottery.information.isNotEmpty) ...[
           const SizedBox(height: 12),
           Row(
@@ -30,19 +53,21 @@ class LotteryInfoSection extends StatelessWidget {
               Expanded(
                 child: Text(
                   lottery.information,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade900),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade900),
                 ),
               ),
               IconButton(
                 icon: const Icon(Icons.edit, size: 20),
                 tooltip: 'Bearbeiten',
-                onPressed: () => onEditInformation(context, lottery.information),
+                onPressed: () =>
+                    onEditInformation(context, lottery.information),
               ),
             ],
           ),
           const SizedBox(height: 16),
-        ]
-        else ...[
+        ] else ...[
           Row(
             children: [
               Expanded(child: const SizedBox()),
