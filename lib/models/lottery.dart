@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// Represents a child's participation and status in a lottery.
 class LotteryChild {
   /// Firestore document ID of the child.
@@ -72,61 +74,65 @@ class Lottery {
 
   /// Creates a [Lottery] from Firestore document data.
   factory Lottery.fromFirestore(dynamic doc) {
-    try {
-      final data = doc.data() as Map<String, dynamic>;
-      final dateRaw = data['date'];
-      final createdAtRaw = data['createdAt'];
-    final finished = data['finished'] ?? false;
-    final requestsSend = data['requestsSend'] ?? false;
-    final allAnswersReceived = data['allAnswersReceived'] ?? false;
-    final nrOfChildrenToPick = data['nrOfChildrenToPick'] ?? 0;
+    final rawData = doc.data();
+    final data = rawData is Map ? Map<String, dynamic>.from(rawData) : <String, dynamic>{};
+
+    DateTime parseDate(dynamic raw, DateTime fallback) {
+      if (raw is Timestamp) return raw.toDate();
+      if (raw is int) return DateTime.fromMillisecondsSinceEpoch(raw);
+      if (raw is String && raw.isNotEmpty) {
+        return DateTime.tryParse(raw) ?? fallback;
+      }
+      return fallback;
+    }
+
+    bool parseBool(dynamic raw) {
+      if (raw is bool) return raw;
+      if (raw is num) return raw != 0;
+      if (raw is String) {
+        final normalized = raw.trim().toLowerCase();
+        return normalized == 'true' || normalized == '1';
+      }
+      return false;
+    }
+
+    int parseInt(dynamic raw, int fallback) {
+      if (raw is int) return raw;
+      if (raw is num) return raw.toInt();
+      if (raw is String) return int.tryParse(raw) ?? fallback;
+      return fallback;
+    }
+
+    final now = DateTime.now();
+    final date = parseDate(data['date'], now);
+    final createdAt = parseDate(data['createdAt'], date);
+    final finished = parseBool(data['finished']);
+    final requestsSend = parseBool(data['requestsSend']);
+    final allAnswersReceived = parseBool(data['allAnswersReceived']);
+    final nrOfChildrenToPick = parseInt(data['nrOfChildrenToPick'], 0);
     final childrenRaw = data['children'];
     final information = (data['information'] ?? '').toString();
 
-      DateTime date;
-      if (dateRaw is String && dateRaw.isNotEmpty) {
-        date = DateTime.parse(dateRaw);
-      } else if (dateRaw is int) {
-        date = DateTime.fromMillisecondsSinceEpoch(dateRaw);
-      } else {
-        throw ArgumentError('Invalid or missing date field in Lottery Firestore data');
-      }
-
-      DateTime createdAt;
-      if (createdAtRaw is String && createdAtRaw.isNotEmpty) {
-        createdAt = DateTime.parse(createdAtRaw);
-      } else if (createdAtRaw is int) {
-        createdAt = DateTime.fromMillisecondsSinceEpoch(createdAtRaw);
-      } else {
-        // If missing, fallback to date
-        createdAt = date;
-      }
-
-      List<LotteryChild> children;
-      if (childrenRaw is List) {
-        children = childrenRaw
+    final List<LotteryChild> children;
+    if (childrenRaw is List) {
+      children = childrenRaw
+          .whereType<Map>()
           .map((c) => LotteryChild.fromMap(Map<String, dynamic>.from(c)))
           .toList();
-      } else if (childrenRaw == null) {
-        children = [];
-      } else {
-        throw ArgumentError('Invalid children field in Lottery Firestore data');
-      }
-
-      return Lottery(
-        date: date,
-        createdAt: createdAt,
-        finished: finished,
-        requestsSend: requestsSend,
-        allAnswersReceived: allAnswersReceived,
-        nrOfChildrenToPick: nrOfChildrenToPick,
-        children: children,
-        information: information,
-      );
-    } catch (e) {
-      // Optionally log error here
-      throw ArgumentError('Failed to parse Lottery from Firestore: $e');
+    } else {
+      children = [];
     }
+
+    return Lottery(
+      date: date,
+      createdAt: createdAt,
+      finished: finished,
+      requestsSend: requestsSend,
+      allAnswersReceived: allAnswersReceived,
+      nrOfChildrenToPick: nrOfChildrenToPick,
+      children: children,
+      information: information,
+    );
   }
 
   /// Converts this [Lottery] instance to a Firestore-compatible map.

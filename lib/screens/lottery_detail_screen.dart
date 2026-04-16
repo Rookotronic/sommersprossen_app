@@ -255,6 +255,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                     }
                   },
                   onNotifyParents: () async {
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Benachrichtigungen gesendet!'),

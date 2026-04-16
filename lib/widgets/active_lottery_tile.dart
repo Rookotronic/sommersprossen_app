@@ -50,7 +50,8 @@ class _ActiveLotteryTileState extends State<ActiveLotteryTile> {
                   padding: const EdgeInsets.only(top: 12.0),
                   child: notifyparentsbutton(
                     lotteryId: widget.lotteryId,
-                    onSuccess: () {
+                    onSuccess: () async {
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Benachrichtigungen gesendet!')),
                       );
