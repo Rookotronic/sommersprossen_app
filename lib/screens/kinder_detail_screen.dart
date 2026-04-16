@@ -7,7 +7,6 @@ import '../widgets/parent_list_display.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
 
-
 /// Detailbildschirm zur Anzeige und Bearbeitung eines Kindes.
 ///
 /// Zeigt die Details eines Kindes, ermöglicht das Bearbeiten von Namen, Eltern und Gruppe,
@@ -25,7 +24,8 @@ class KinderDetailScreen extends StatefulWidget {
 /// State-Klasse für KinderDetailScreen.
 ///
 /// Beinhaltet die Logik zum Bearbeiten und Löschen eines Kindes sowie das Auswählen der Eltern.
-class _KinderDetailScreenState extends State<KinderDetailScreen> with ControllerLifecycleMixin {
+class _KinderDetailScreenState extends State<KinderDetailScreen>
+    with ControllerLifecycleMixin {
   final FirestoreService _firestoreService = FirestoreService();
   late TextEditingController _vornameController;
   late TextEditingController _nachnameController;
@@ -47,27 +47,29 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
 
   /// Lädt die Eltern aus Firestore und setzt die Auswahl entsprechend dem Kind.
   Future<void> _loadParents() async {
-  // Fetch parents from Firestore, order by last name
-  final snapshot = await FirebaseFirestore.instance
-    .collection('parents')
-    .orderBy('nachname')
-    .get();
-  final parentList = snapshot.docs
-    .map((doc) => Parent.fromFirestore(doc.id, doc.data()))
-    .toList();
+    // Eltern aus Firestore laden und nach Nachname sortieren.
+    final snapshot = await FirebaseFirestore.instance
+        .collection('parents')
+        .orderBy('nachname')
+        .get();
+    final parentList = snapshot.docs
+        .map((doc) => Parent.fromFirestore(doc.id, doc.data()))
+        .toList();
     setState(() {
       _parentList = parentList;
-      // Always match selected parents to the child's parentIds (handle null)
-  final childParentIds = widget.child.parentIds;
-  _selectedParents = parentList.where((p) => childParentIds.contains(p.id)).toList();
+      // Ausgewählte Eltern immer anhand der parentIds des Kindes bestimmen.
+      final childParentIds = widget.child.parentIds;
+      _selectedParents = parentList
+          .where((p) => childParentIds.contains(p.id))
+          .toList();
       _loadingParents = false;
     });
   }
 
   @override
   void dispose() {
-  // Lifecycle handled by ControllerLifecycleMixin
-  super.dispose();
+    // Lifecycle wird vom ControllerLifecycleMixin verwaltet.
+    super.dispose();
   }
 
   /// Speichert die Änderungen am Kind in Firestore.
@@ -77,37 +79,57 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
     final vorname = _vornameController.text.trim();
     final nachname = _nachnameController.text.trim();
     if (vorname.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vorname ist erforderlich.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vorname ist erforderlich.')),
+      );
       return;
     }
     if (!isAlpha(vorname)) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vorname: Nur Buchstaben und Sonderzeichen erlaubt.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vorname: Nur Buchstaben und Sonderzeichen erlaubt.'),
+        ),
+      );
       return;
     }
     if (nachname.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nachname ist erforderlich.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nachname ist erforderlich.')),
+      );
       return;
     }
     if (!isAlpha(nachname)) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nachname: Nur Buchstaben und Sonderzeichen erlaubt.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nachname: Nur Buchstaben und Sonderzeichen erlaubt.'),
+        ),
+      );
       return;
     }
     final updated = Child(
       id: widget.child.id,
       vorname: vorname,
       nachname: nachname,
-      parentIds: _selectedParents.isEmpty ? null : _selectedParents.map((p) => p.id).toList(),
+      parentIds: _selectedParents.isEmpty
+          ? null
+          : _selectedParents.map((p) => p.id).toList(),
       two: _isTwo,
       nTimesNoNeed: widget.child.nTimesNoNeed,
       siblings: widget.child.siblings,
     );
     // Update child in Firestore
-    final success = await _firestoreService.set('children', updated.id.toString(), updated.toFirestore());
+    final success = await _firestoreService.set(
+      'children',
+      updated.id.toString(),
+      updated.toFirestore(),
+    );
     if (!mounted) return;
     if (success) {
       Navigator.of(context).pop(updated);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fehler beim Speichern.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Fehler beim Speichern.')));
     }
   }
 
@@ -117,7 +139,9 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Kind löschen'),
-        content: const Text('Sind Sie sicher, dass Sie dieses Kind löschen möchten?'),
+        content: const Text(
+          'Sind Sie sicher, dass Sie dieses Kind löschen möchten?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -135,20 +159,25 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
       ),
     );
     if (confirmed == true) {
-      // Delete child from Firestore
-      final success = await _firestoreService.delete('children', widget.child.id.toString());
+      // Kind in Firestore löschen.
+      final success = await _firestoreService.delete(
+        'children',
+        widget.child.id.toString(),
+      );
       if (!mounted) return;
       if (success) {
         Navigator.of(context).pop({'delete': true, 'id': widget.child.id});
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fehler beim Löschen.')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Fehler beim Löschen.')));
       }
     }
   }
 
   /// Öffnet einen Dialog zur Auswahl der Eltern für das Kind.
   void _showParentPicker() async {
-    // Fetch parents from Firestore, order by last name
+    // Eltern aus Firestore laden und nach Nachname sortieren.
     final snapshot = await FirebaseFirestore.instance
         .collection('parents')
         .orderBy('nachname')
@@ -158,8 +187,10 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
         .toList();
     final childParentIds = _selectedParents.isNotEmpty
         ? _selectedParents.map((p) => p.id).toList()
-  : widget.child.parentIds;
-    final List<Parent> tempSelected = all.where((p) => childParentIds.contains(p.id)).toList();
+        : widget.child.parentIds;
+    final List<Parent> tempSelected = all
+        .where((p) => childParentIds.contains(p.id))
+        .toList();
     setState(() {
       _parentList = all;
     });
@@ -183,7 +214,8 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
                       onChanged: (checked) {
                         setStateDialog(() {
                           if (checked == true) {
-                            if (!tempSelected.contains(parent)) tempSelected.add(parent);
+                            if (!tempSelected.contains(parent))
+                              tempSelected.add(parent);
                           } else {
                             tempSelected.remove(parent);
                           }
@@ -221,9 +253,7 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kind-Details'),
-      ),
+      appBar: AppBar(title: const Text('Kind-Details')),
       body: _loadingParents
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -248,7 +278,10 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Expanded(
-                            child: ParentListDisplay(parents: _selectedParents, emptyText: 'Keine'),
+                            child: ParentListDisplay(
+                              parents: _selectedParents,
+                              emptyText: 'Keine',
+                            ),
                           ),
                           const SizedBox(width: 8),
                           ElevatedButton(
@@ -261,8 +294,11 @@ class _KinderDetailScreenState extends State<KinderDetailScreen> with Controller
                     const SizedBox(height: 12),
                     CheckboxListTile(
                       value: _isTwo,
-                      title: const Text('Dieses Kind zählt als zwei Kinder in der Lotterie'),
-                      onChanged: (checked) => setState(() => _isTwo = checked ?? false),
+                      title: const Text(
+                        'Dieses Kind zählt als zwei Kinder in der Lotterie',
+                      ),
+                      onChanged: (checked) =>
+                          setState(() => _isTwo = checked ?? false),
                       controlAffinity: ListTileControlAffinity.leading,
                     ),
                     const SizedBox(height: 32),

@@ -270,24 +270,6 @@ class _LotteryScreenState extends State<LotteryScreen>
                       );
                       return;
                     }
-                    final childrenAggregate = await FirebaseFirestore.instance
-                        .collection('children')
-                        .count()
-                        .get();
-                    final totalChildrenEntries = childrenAggregate.count ?? 0;
-                    if (totalChildrenEntries < 1) {
-                      setState(
-                        () => errorText = 'Keine Kinder-Einträge vorhanden.',
-                      );
-                      return;
-                    }
-                    if (nr > totalChildrenEntries) {
-                      setState(
-                        () => errorText =
-                            'Darf nicht größer als $totalChildrenEntries sein.',
-                      );
-                      return;
-                    }
                     if (selectedDay.isBefore(today)) {
                       setState(
                         () => errorText =
@@ -319,10 +301,16 @@ class _LotteryScreenState extends State<LotteryScreen>
                       }
                     } catch (e) {
                       if (!mounted) return;
-                      setState(
-                        () => errorText =
-                            'Fehler beim Speichern: ${e.toString()}',
-                      );
+                      if (e is FirebaseFunctionsException) {
+                        setState(
+                          () => errorText = e.message ?? 'Fehler beim Speichern.',
+                        );
+                      } else {
+                        setState(
+                          () => errorText =
+                              'Fehler beim Speichern: ${e.toString()}',
+                        );
+                      }
                     }
                   },
                   child: const Text('Erstellen'),

@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   void dispose() {
-    // Lifecycle handled by ControllerLifecycleMixin
+    // Lifecycle wird vom ControllerLifecycleMixin verwaltet.
     super.dispose();
   }
 
@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen>
     final email = _userController.text.trim();
     if (!isValidEmail(email)) {
       setState(() {
-        _errorMessage = 'Bitte gueltige Email-Adresse eingeben.';
+        _errorMessage = 'Bitte gültige E-Mail-Adresse eingeben.';
       });
       return;
     }
@@ -110,7 +110,9 @@ class _LoginScreenState extends State<LoginScreen>
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passwort-Reset Email wurde gesendet!')),
+          const SnackBar(
+            content: Text('Passwort-Reset-E-Mail wurde gesendet!'),
+          ),
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -134,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen>
     final password = _passwordController.text.trim();
     if (!isValidEmail(email)) {
       setState(() {
-        _errorMessage = 'Only letters and numbers allowed.';
+        _errorMessage = 'Bitte gültige E-Mail-Adresse eingeben.';
       });
       return;
     }
@@ -146,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen>
       );
       final user = credential.user;
       if (user != null) {
-        // Trigger Password Manager/Keychain save prompt on successful login.
+        // Bei erfolgreichem Login die Passwortspeicherung (Keychain) anstoßen.
         TextInput.finishAutofillContext(shouldSave: true);
 
         try {
@@ -167,8 +169,8 @@ class _LoginScreenState extends State<LoginScreen>
             });
           }
         } catch (e) {
-          // Log error, do not block login.
-          _logger.e('FCM token error: $e');
+          // Fehler nur protokollieren, Anmeldung nicht blockieren.
+          _logger.e('Fehler beim FCM-Token: $e');
         }
 
         final doc = await FirebaseFirestore.instance
@@ -187,17 +189,18 @@ class _LoginScreenState extends State<LoginScreen>
         }
       } else {
         setState(() {
-          _errorMessage = 'Login failed: No user found.';
+          _errorMessage = 'Anmeldung fehlgeschlagen: Kein Benutzer gefunden.';
         });
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
-        _errorMessage = 'Login failed: [${e.code}] ${e.message ?? ''}';
+        _errorMessage =
+            'Anmeldung fehlgeschlagen: [${e.code}] ${e.message ?? ''}';
       });
     } catch (e) {
       setState(() {
         _errorMessage =
-            'Login failed: ${e is Exception ? e.toString() : 'Unknown error'}';
+            'Anmeldung fehlgeschlagen: ${e is Exception ? e.toString() : 'Unbekannter Fehler'}';
       });
     }
   }
@@ -205,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: const Text('Anmeldung')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -218,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen>
                   TextFormField(
                     controller: _userController,
                     decoration: const InputDecoration(
-                      labelText: 'Email',
+                      labelText: 'E-Mail-Adresse',
                       border: OutlineInputBorder(),
                     ),
                     textInputAction: TextInputAction.next,
@@ -229,10 +232,10 @@ class _LoginScreenState extends State<LoginScreen>
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
+                        return 'Bitte E-Mail-Adresse eingeben';
                       }
                       if (!isValidEmail(value)) {
-                        return 'Please enter a valid email address';
+                        return 'Bitte gültige E-Mail-Adresse eingeben';
                       }
                       return null;
                     },
@@ -241,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen>
                   TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: 'Passwort',
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -261,10 +264,10 @@ class _LoginScreenState extends State<LoginScreen>
                     textInputAction: TextInputAction.done,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
+                        return 'Bitte Passwort eingeben';
                       }
                       if (!_isAlphanumeric(value)) {
-                        return 'Only letters and numbers allowed';
+                        return 'Nur Buchstaben und Zahlen erlaubt';
                       }
                       return null;
                     },
@@ -286,7 +289,7 @@ class _LoginScreenState extends State<LoginScreen>
                           _login(context);
                         }
                       },
-                      child: const Text('Login'),
+                      child: const Text('Anmelden'),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -312,8 +315,8 @@ class MainMenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Main Menu')),
-      body: const Center(child: Text('Welcome to the Main Menu!')),
+      appBar: AppBar(title: const Text('Hauptmenü')),
+      body: const Center(child: Text('Willkommen im Hauptmenü!')),
     );
   }
 }

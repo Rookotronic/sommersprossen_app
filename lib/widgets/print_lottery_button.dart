@@ -6,13 +6,17 @@ import '../models/lottery.dart';
 import '../models/child.dart';
 import '../utils/date_utils.dart' as custom_date_utils;
 
-/// Button to print the details of a finished lottery as a PDF.
-/// The PDF layout closely matches the detail screen.
+/// Button zum Drucken der Details einer abgeschlossenen Lotterie als PDF.
+/// Das PDF-Layout orientiert sich eng an der Detailansicht.
 class PrintLotteryButton extends StatelessWidget {
   final Lottery lottery;
   final List<Child> children;
 
-  const PrintLotteryButton({super.key, required this.lottery, required this.children});
+  const PrintLotteryButton({
+    super.key,
+    required this.lottery,
+    required this.children,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,38 +29,94 @@ class PrintLotteryButton extends StatelessWidget {
       ),
       onPressed: () async {
         final pdf = pw.Document();
-        final sortedChildren = [...children]..sort((a, b) => a.nachname.compareTo(b.nachname));
-        // Info section
+        final sortedChildren = [...children]
+          ..sort((a, b) => a.nachname.compareTo(b.nachname));
+        // Informationsbereich
         pdf.addPage(
           pw.Page(
             build: (context) => pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('Lotterie Details', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                pw.Text(
+                  'Lotterie-Details',
+                  style: pw.TextStyle(
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
                 pw.SizedBox(height: 8),
-                pw.Text(custom_date_utils.DateUtils.formatWeekdayDate(lottery.date)),
+                pw.Text(
+                  custom_date_utils.DateUtils.formatWeekdayDate(lottery.date),
+                ),
                 pw.Text('Zu ziehende Kinder: ${lottery.nrOfChildrenToPick}'),
                 if (lottery.information.isNotEmpty) ...[
                   pw.SizedBox(height: 12),
-                  pw.Text(lottery.information, style: pw.TextStyle(fontSize: 12, color: PdfColors.grey800)),
+                  pw.Text(
+                    lottery.information,
+                    style: pw.TextStyle(fontSize: 12, color: PdfColors.grey800),
+                  ),
                   pw.SizedBox(height: 8),
                 ],
                 pw.SizedBox(height: 16),
-                pw.Text('Kinder:', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+                pw.Text(
+                  'Kinder:',
+                  style: pw.TextStyle(
+                    fontSize: 16,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
                 pw.SizedBox(height: 8),
                 pw.Table(
                   border: pw.TableBorder.all(color: PdfColors.grey),
                   children: [
                     pw.TableRow(
                       children: [
-                        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Name', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold))),
-                        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Benachrichtigt', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold))),
-                        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Geantwortet', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold))),
-                        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Bedarf', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold))),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(4),
+                          child: pw.Text(
+                            'Name',
+                            style: pw.TextStyle(
+                              fontSize: 11,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(4),
+                          child: pw.Text(
+                            'Benachrichtigt',
+                            style: pw.TextStyle(
+                              fontSize: 11,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(4),
+                          child: pw.Text(
+                            'Geantwortet',
+                            style: pw.TextStyle(
+                              fontSize: 11,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(4),
+                          child: pw.Text(
+                            'Bedarf',
+                            style: pw.TextStyle(
+                              fontSize: 11,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     ...sortedChildren.map((child) {
-                      final entry = lottery.children.firstWhere((e) => e.childId == child.id);
+                      final entry = lottery.children.firstWhere(
+                        (e) => e.childId == child.id,
+                      );
                       final showGezogen = lottery.finished && entry.picked;
                       return pw.TableRow(
                         decoration: showGezogen
@@ -72,16 +132,26 @@ class PrintLotteryButton extends StatelessWidget {
                           ),
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(4),
-                            child: pw.Text(entry.notified ? 'Ja' : 'Nein', style: pw.TextStyle(fontSize: 11)),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(4),
-                            child: pw.Text(entry.responded ? 'Ja' : 'Nein', style: pw.TextStyle(fontSize: 11)),
+                            child: pw.Text(
+                              entry.notified ? 'Ja' : 'Nein',
+                              style: pw.TextStyle(fontSize: 11),
+                            ),
                           ),
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(4),
                             child: pw.Text(
-                              (entry.need == true) ? 'Ja' : (entry.need == false) ? 'Nein' : '-',
+                              entry.responded ? 'Ja' : 'Nein',
+                              style: pw.TextStyle(fontSize: 11),
+                            ),
+                          ),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(4),
+                            child: pw.Text(
+                              (entry.need == true)
+                                  ? 'Ja'
+                                  : (entry.need == false)
+                                  ? 'Nein'
+                                  : '-',
                               style: pw.TextStyle(fontSize: 11),
                             ),
                           ),

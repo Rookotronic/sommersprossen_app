@@ -12,7 +12,7 @@ class LogoutButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.logout),
-      tooltip: 'Logout',
+      tooltip: 'Abmelden',
       onPressed: () async {
         await FirebaseAuth.instance.signOut();
         if (context.mounted) {

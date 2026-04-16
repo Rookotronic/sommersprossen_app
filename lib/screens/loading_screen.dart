@@ -24,7 +24,7 @@ class LoadingScreen extends StatelessWidget {
             const SizedBox(height: 30),
             const CircularProgressIndicator(),
             const SizedBox(height: 20),
-            const Text('Loading...'),
+            const Text('Lädt...'),
           ],
         ),
       ),

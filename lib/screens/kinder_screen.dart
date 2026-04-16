@@ -23,12 +23,12 @@ class KinderScreen extends StatefulWidget {
 /// State-Klasse für KinderScreen.
 ///
 /// Beinhaltet die Logik zum Laden, Hinzufügen, Bearbeiten und Löschen von Kindern.
-class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMixin {
+class _KinderScreenState extends State<KinderScreen>
+    with ControllerLifecycleMixin {
   final FirestoreService _firestoreService = FirestoreService();
   List<Child> _kinder = [];
 
-  // Simulate backend fetch
-  // ...existing code...
+  // Daten werden über den Firestore-Service geladen.
 
   @override
   /// Initialisiert den Screen und lädt die Kinderliste.
@@ -51,17 +51,17 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
   ///
   /// Validiert die Eingaben und legt das Kind in Firestore an.
   void _addKind() async {
-  final vornameController = createController();
-  final nachnameController = createController();
-  String? errorText;
-  // Fetch parents from Firestore, order by last name
-  final snapshot = await FirebaseFirestore.instance
-    .collection('parents')
-    .orderBy('nachname')
-    .get();
-  List<Parent> parentList = snapshot.docs
-    .map((doc) => Parent.fromFirestore(doc.id, doc.data()))
-    .toList();
+    final vornameController = createController();
+    final nachnameController = createController();
+    String? errorText;
+    // Eltern aus Firestore laden und nach Nachname sortieren.
+    final snapshot = await FirebaseFirestore.instance
+        .collection('parents')
+        .orderBy('nachname')
+        .get();
+    List<Parent> parentList = snapshot.docs
+        .map((doc) => Parent.fromFirestore(doc.id, doc.data()))
+        .toList();
     List<Parent> selectedParents = [];
     if (!mounted) return;
     bool isTwo = false;
@@ -85,7 +85,10 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                 ),
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Eltern', style: Theme.of(context).textTheme.bodySmall),
+                  child: Text(
+                    'Eltern',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
                 SizedBox(
                   width: 300,
@@ -100,7 +103,8 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                         onChanged: (checked) {
                           setState(() {
                             if (checked == true) {
-                              if (!selectedParents.contains(parent)) selectedParents.add(parent);
+                              if (!selectedParents.contains(parent))
+                                selectedParents.add(parent);
                             } else {
                               selectedParents.remove(parent);
                             }
@@ -112,8 +116,11 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                 ),
                 CheckboxListTile(
                   value: isTwo,
-                  title: const Text('Dieses Kind zählt als zwei Kinder in der Lotterie'),
-                  onChanged: (checked) => setState(() => isTwo = checked ?? false),
+                  title: const Text(
+                    'Dieses Kind zählt als zwei Kinder in der Lotterie',
+                  ),
+                  onChanged: (checked) =>
+                      setState(() => isTwo = checked ?? false),
                   controlAffinity: ListTileControlAffinity.leading,
                 ),
               ],
@@ -132,7 +139,10 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                       return;
                     }
                     if (!isAlpha(vorname)) {
-                      setState(() => errorText = 'Vorname: Nur Buchstaben und Sonderzeichen erlaubt.');
+                      setState(
+                        () => errorText =
+                            'Vorname: Nur Buchstaben und Sonderzeichen erlaubt.',
+                      );
                       return;
                     }
                     if (nachname.isEmpty) {
@@ -140,23 +150,31 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
                       return;
                     }
                     if (!isAlpha(nachname)) {
-                      setState(() => errorText = 'Nachname: Nur Buchstaben und Sonderzeichen erlaubt.');
+                      setState(
+                        () => errorText =
+                            'Nachname: Nur Buchstaben und Sonderzeichen erlaubt.',
+                      );
                       return;
                     }
                     setState(() => errorText = null);
-                    // Add child to Firestore
+                    // Kind in Firestore speichern.
                     final result = await _firestoreService.add('children', {
                       'vorname': vorname,
                       'nachname': nachname,
-                      'parentIds': selectedParents.isEmpty ? null : selectedParents.map((p) => p.id).toList(),
+                      'parentIds': selectedParents.isEmpty
+                          ? null
+                          : selectedParents.map((p) => p.id).toList(),
                       'nTimesNoNeed': 0,
                       'two': isTwo,
                       'siblings': <String>[],
                     });
                     if (result != null) {
                       await _reloadKinder();
-                      if(context.mounted){
-                      Navigator.of(context).pop();} else {return;}
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      } else {
+                        return;
+                      }
                     } else {
                       setState(() => errorText = 'Fehler beim Speichern.');
                     }
@@ -201,19 +219,24 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
   /// Öffnet den Detailbildschirm für ein Kind und verarbeitet Änderungen oder Löschungen.
   void _showKinderDetails(Child child) async {
     final result = await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => KinderDetailScreen(child: child),
-      ),
+      MaterialPageRoute(builder: (context) => KinderDetailScreen(child: child)),
     );
     if (!mounted) return;
     if (result is Map && result['delete'] == true && result['id'] != null) {
-      // Only delete if user requested deletion
-      final success = await _firestoreService.delete('children', result['id'].toString());
+      // Nur löschen, wenn der Nutzer das explizit angefordert hat.
+      final success = await _firestoreService.delete(
+        'children',
+        result['id'].toString(),
+      );
       if (!mounted) return;
       if (success) await _reloadKinder();
     } else if (result is Child) {
-      // Update child (even if parentIds is null/empty)
-      final success = await _firestoreService.set('children', result.id.toString(), result.toFirestore());
+      // Kind aktualisieren (auch wenn parentIds null/leer ist).
+      final success = await _firestoreService.set(
+        'children',
+        result.id.toString(),
+        result.toFirestore(),
+      );
       if (!mounted) return;
       if (success) await _reloadKinder();
     } else {
@@ -221,5 +244,5 @@ class _KinderScreenState extends State<KinderScreen> with ControllerLifecycleMix
     }
   }
 
-// --- KinderDetailScreen moved to end of file ---
+  // --- KinderDetailScreen wurde ans Dateiende verschoben ---
 }

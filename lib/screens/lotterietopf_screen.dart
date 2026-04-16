@@ -7,7 +7,6 @@ import '../services/child_service.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:sommersprossen_app/widgets/confirmation_dialog.dart';
 
-
 /// Bildschirm zur Anzeige und Verwaltung des Lotterietopfs.
 ///
 /// Zeigt die aktuellen Einträge im Lotterietopf und ermöglicht das Befüllen über eine Cloud Function.
@@ -41,7 +40,10 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
   Future<void> _loadPotData() async {
     setState(() => _loading = true);
     try {
-      final potDoc = await _firestoreService.db.collection('lotterypot').doc('current').get();
+      final potDoc = await _firestoreService.db
+          .collection('lotterypot')
+          .doc('current')
+          .get();
       if (potDoc.exists) {
         final data = potDoc.data() as Map<String, dynamic>;
         lotterypot = LotteryPot.fromFirestore(potDoc.id, data);
@@ -53,11 +55,11 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-            await showErrorDialog(
-              context,
-              title: 'Fehler beim Laden des Lotterietopfs',
-              content: e.toString(),
-            );
+      await showErrorDialog(
+        context,
+        title: 'Fehler beim Laden des Lotterietopfs',
+        content: e.toString(),
+      );
     }
   }
 
@@ -81,7 +83,9 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
         _loading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Laden der Lotterien: ${e.toString()}')),
+        SnackBar(
+          content: Text('Fehler beim Laden der Lotterien: ${e.toString()}'),
+        ),
       );
     }
   }
@@ -110,17 +114,27 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                       ),
                     ),
                   ),
-                  Text('Einträge:', style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    'Einträge:',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 12),
                   Expanded(
                     child: FutureBuilder<List<Child>>(
                       future: ChildService.fetchChildrenByIds(lotterypot!.kids),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         }
                         if (snapshot.hasError) {
-                          return Center(child: Text('Fehler beim Laden der Kinder: ${snapshot.error}'));
+                          return Center(
+                            child: Text(
+                              'Fehler beim Laden der Kinder: ${snapshot.error}',
+                            ),
+                          );
                         }
                         final children = snapshot.data ?? [];
                         return ListView.builder(
@@ -129,53 +143,97 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                             final childId = lotterypot!.kids[index];
                             final child = children.firstWhere(
                               (c) => c.id == childId,
-                              orElse: () => Child(id: '', vorname: '', nachname: ''),
+                              orElse: () =>
+                                  Child(id: '', vorname: '', nachname: ''),
                             );
                             final style = Theme.of(context).textTheme.bodyLarge;
                             return ListTile(
                               leading: Text('#${index + 1}'),
                               title: child.id.isNotEmpty
-                                  ? Text('${child.nachname}, ${child.vorname}', style: style)
+                                  ? Text(
+                                      '${child.nachname}, ${child.vorname}',
+                                      style: style,
+                                    )
                                   : Text('Unbekanntes Kind', style: style),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.arrow_upward, color: Colors.blue),
+                                    icon: const Icon(
+                                      Icons.arrow_upward,
+                                      color: Colors.blue,
+                                    ),
                                     tooltip: 'Kind nach oben',
                                     onPressed: () async {
                                       try {
-                                        final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('sendKidToTop');
-                                        await callable.call({'childId': childId});
+                                        final callable =
+                                            FirebaseFunctions.instanceFor(
+                                              region: 'europe-west1',
+                                            ).httpsCallable('sendKidToTop');
+                                        await callable.call({
+                                          'childId': childId,
+                                        });
                                         if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('${child.vorname} wurde nach oben gesetzt.')),
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              '${child.vorname} wurde nach oben gesetzt.',
+                                            ),
+                                          ),
                                         );
                                         await _loadPotData();
                                       } catch (e) {
                                         if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Fehler: ${e.toString()}')),
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Fehler: ${e.toString()}',
+                                            ),
+                                          ),
                                         );
                                       }
                                     },
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.arrow_downward, color: Colors.blue),
+                                    icon: const Icon(
+                                      Icons.arrow_downward,
+                                      color: Colors.blue,
+                                    ),
                                     tooltip: 'Kind nach unten',
                                     onPressed: () async {
                                       try {
-                                        final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('sendKidToBottom');
-                                        await callable.call({'childId': childId});
+                                        final callable =
+                                            FirebaseFunctions.instanceFor(
+                                              region: 'europe-west1',
+                                            ).httpsCallable('sendKidToBottom');
+                                        await callable.call({
+                                          'childId': childId,
+                                        });
                                         if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('${child.vorname} wurde nach unten gesetzt.')),
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              '${child.vorname} wurde nach unten gesetzt.',
+                                            ),
+                                          ),
                                         );
                                         await _loadPotData();
                                       } catch (e) {
                                         if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Fehler: ${e.toString()}')),
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Fehler: ${e.toString()}',
+                                            ),
+                                          ),
                                         );
                                       }
                                     },
@@ -199,7 +257,9 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                   context: context,
                   builder: (context) => AlertDialog(
                     title: const Text('Topf neu befüllen?'),
-                    content: const Text('Möchtest du den Lotterietopf neu befüllen?'),
+                    content: const Text(
+                      'Möchtest du den Lotterietopf neu befüllen?',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
@@ -208,7 +268,9 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                       TextButton(
                         onPressed: () async {
                           try {
-                            final callable = FirebaseFunctions.instanceFor(region: 'europe-west1').httpsCallable('createLotteryPot');
+                            final callable = FirebaseFunctions.instanceFor(
+                              region: 'europe-west1',
+                            ).httpsCallable('createLotteryPot');
                             await callable.call();
                             if (!context.mounted) return;
                             Navigator.of(context).pop(true);
@@ -217,23 +279,31 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                             Navigator.of(context).pop(false);
                             String errorMsg;
                             if (e is FirebaseFunctionsException) {
-                              errorMsg = 'Fehler beim Befüllen des Lotterietopfs:\n'
-                                'Code: 	${e.code}\n'
-                                'Message: ${e.message}\n'
-                                'Details: ${e.details ?? ''}';
+                              errorMsg =
+                                  'Fehler beim Befüllen des Lotterietopfs:\n'
+                                  'Code: 	${e.code}\n'
+                                  'Meldung: ${e.message}\n'
+                                  'Details: ${e.details ?? ''}';
                             } else {
-                              errorMsg = 'Fehler beim Befüllen des Lotterietopfs: ${e.toString()}';
+                              errorMsg =
+                                  'Fehler beim Befüllen des Lotterietopfs: ${e.toString()}';
                             }
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(errorMsg, maxLines: 30, overflow: TextOverflow.visible),
+                                content: Text(
+                                  errorMsg,
+                                  maxLines: 30,
+                                  overflow: TextOverflow.visible,
+                                ),
                                 duration: const Duration(seconds: 15),
                               ),
                             );
                             await showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
-                                title: const Text('Fehler beim Cloud Function Call'),
+                                title: const Text(
+                                  'Fehler beim Cloud-Function-Aufruf',
+                                ),
                                 content: SizedBox(
                                   width: double.maxFinite,
                                   child: SingleChildScrollView(
@@ -242,7 +312,8 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                                 ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.of(context).pop(),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
                                     child: const Text('OK'),
                                   ),
                                 ],
@@ -262,5 +333,4 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
             ),
     );
   }
-
 }

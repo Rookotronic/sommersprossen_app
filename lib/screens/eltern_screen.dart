@@ -94,7 +94,7 @@ class ElternScreenState extends State<ElternScreen>
   /// Öffnet einen Dialog zum Hinzufügen eines neuen Elternteils.
   ///
   /// Validiert die Eingaben, prüft auf E-Mail-Einzigartigkeit und legt den Elternteil in Firestore an.
-  /// Anschließend wird ggf. eine Passwort-Wiederherstellungs-Email angeboten.
+  /// Anschließend wird ggf. eine Passwort-Wiederherstellungs-E-Mail angeboten.
   void _addEltern() async {
     final vornameController = createController();
     final nachnameController = createController();
@@ -124,7 +124,7 @@ class ElternScreenState extends State<ElternScreen>
                   TextField(
                     controller: emailController,
                     decoration: const InputDecoration(
-                      labelText: 'Emailadresse',
+                      labelText: 'E-Mail-Adresse',
                     ),
                     keyboardType: TextInputType.emailAddress,
                   ),
@@ -190,12 +190,12 @@ class ElternScreenState extends State<ElternScreen>
                                     if (!mounted) return;
                                     setState(
                                       () => errorText =
-                                          'Bitte gültige Emailadresse eingeben.',
+                                          'Bitte gültige E-Mail-Adresse eingeben.',
                                     );
                                     setStateBtn(() => isLoading = false);
                                     return;
                                   }
-                                  // Case-insensitive uniqueness check for email
+                                  // Groß-/Kleinschreibung bei E-Mail ignorieren
                                   final emailLower = email.toLowerCase();
                                   final query = await FirebaseFirestore.instance
                                       .collection('parents')
@@ -205,7 +205,7 @@ class ElternScreenState extends State<ElternScreen>
                                     if (!mounted) return;
                                     setState(
                                       () => errorText =
-                                          'Diese Emailadresse ist bereits vergeben.',
+                                          'Diese E-Mail-Adresse ist bereits vergeben.',
                                     );
                                     setStateBtn(() => isLoading = false);
                                     return;
@@ -213,7 +213,7 @@ class ElternScreenState extends State<ElternScreen>
                                   if (!mounted) return;
                                   setState(() => errorText = null);
                                   try {
-                                    // Use callable Cloud Function to create parent (server-side creates Auth user and parents/doc)
+                                    // Callable Cloud Function erstellt serverseitig Auth-Nutzer und Parent-Dokument.
                                     final functions =
                                         FirebaseFunctions.instanceFor(
                                           region: 'europe-west1',
@@ -246,11 +246,11 @@ class ElternScreenState extends State<ElternScreen>
                                     }
                                   } on FirebaseFunctionsException catch (fe) {
                                     if (!mounted) return;
-                                    // Map common server-side HttpsError codes to user messages
+                                    // Gängige serverseitige HttpsError-Codes auf Nutzertexte abbilden.
                                     if (fe.code == 'already-exists') {
                                       setState(
                                         () => errorText =
-                                            'Diese Emailadresse ist bereits vergeben.',
+                                            'Diese E-Mail-Adresse ist bereits vergeben.',
                                       );
                                     } else if (fe.code == 'permission-denied') {
                                       setState(
@@ -296,7 +296,7 @@ class ElternScreenState extends State<ElternScreen>
                     );
                   },
                 ),
-                // Removed invalid switch/case error handling block (now handled above with if/else)
+                // Ungültigen switch/case-Fehlerblock entfernt (wird oben per if/else behandelt).
               ],
             );
           },
@@ -378,10 +378,10 @@ class ElternScreenState extends State<ElternScreen>
                     userFound = true;
                     return AlertDialog(
                       title: const Text(
-                        'Passwortwiederherstellungsemail senden?',
+                        'Passwort-Wiederherstellungs-E-Mail senden?',
                       ),
                       content: Text(
-                        'Soll eine Passwort-Wiederherstellungs-Email an $email gesendet werden?',
+                        'Soll eine Passwort-Wiederherstellungs-E-Mail an $email gesendet werden?',
                       ),
                       actions: [
                         TextButton(
@@ -409,8 +409,7 @@ class ElternScreenState extends State<ElternScreen>
         },
       ).then((sendRecovery) async {
         if (sendRecovery == 'retry') {
-          // Retry logic: call _addEltern again with same data (optional, or instruct user to retry)
-          // For now, do nothing (user can press Add again)
+          // Der Nutzer kann den Vorgang manuell erneut auslösen.
           return;
         }
         if (userFound && sendRecovery == true) {
@@ -420,9 +419,9 @@ class ElternScreenState extends State<ElternScreen>
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text('Email gesendet'),
+                title: const Text('E-Mail gesendet'),
                 content: Text(
-                  'Eine Passwort-Wiederherstellungs-Email wurde an $email gesendet.',
+                  'Eine Passwort-Wiederherstellungs-E-Mail wurde an $email gesendet.',
                 ),
                 actions: [
                   TextButton(
@@ -438,7 +437,7 @@ class ElternScreenState extends State<ElternScreen>
               context: context,
               builder: (context) => AlertDialog(
                 title: const Text('Fehler'),
-                content: Text('Fehler beim Senden der Email: ${e.toString()}'),
+                content: Text('Fehler beim Senden der E-Mail: ${e.toString()}'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -449,7 +448,7 @@ class ElternScreenState extends State<ElternScreen>
             );
           }
         }
-        // After popup, just stay on ElternScreen (no navigation needed)
+        // Nach dem Dialog auf diesem Bildschirm bleiben.
       });
     }
   }
@@ -487,7 +486,7 @@ class _ElternDetailScreenState extends State<ElternDetailScreen>
 
   @override
   void dispose() {
-    // Lifecycle handled by ControllerLifecycleMixin
+    // Lifecycle wird vom ControllerLifecycleMixin verwaltet.
     super.dispose();
   }
 
@@ -539,14 +538,14 @@ class _ElternDetailScreenState extends State<ElternDetailScreen>
       await showErrorDialog(
         context,
         title: 'Fehler',
-        content: 'Emailadresse ist erforderlich.',
+        content: 'E-Mail-Adresse ist erforderlich.',
       );
       return;
     }
     if (!isValidEmail(email)) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte gültige Emailadresse eingeben.')),
+        const SnackBar(content: Text('Bitte gültige E-Mail-Adresse eingeben.')),
       );
       return;
     }
@@ -607,7 +606,7 @@ class _ElternDetailScreenState extends State<ElternDetailScreen>
       ),
     );
     if (confirmed == true) {
-      // Call cloud function to delete parent
+      // Cloud Function zum Löschen des Elternteils aufrufen.
       try {
         final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
         final callable = functions.httpsCallable('deleteParent');
@@ -657,7 +656,7 @@ class _ElternDetailScreenState extends State<ElternDetailScreen>
             const SizedBox(height: 12),
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Emailadresse'),
+              decoration: const InputDecoration(labelText: 'E-Mail-Adresse'),
             ),
             const SizedBox(height: 32),
             Row(

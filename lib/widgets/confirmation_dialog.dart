@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-/// A reusable confirmation dialog widget.
+/// Wiederverwendbarer Bestätigungsdialog.
 ///
-/// Usage:
+/// Verwendung:
 /// ```dart
 /// final confirmed = await showConfirmationDialog(
 ///   context,
-///   title: 'Delete?',
-///   content: 'Are you sure you want to delete this item?',
+///   title: 'Löschen?',
+///   content: 'Möchtest du diesen Eintrag wirklich löschen?',
 /// );
 /// if (confirmed == true) { ... }
 /// ```
@@ -41,14 +41,14 @@ Future<bool?> showConfirmationDialog(
   );
 }
 
-/// A reusable error dialog widget.
+/// Wiederverwendbarer Fehlerdialog.
 ///
-/// Usage:
+/// Verwendung:
 /// ```dart
 /// await showErrorDialog(
 ///   context,
-///   title: 'Error',
-///   content: 'Something went wrong.',
+///   title: 'Fehler',
+///   content: 'Es ist ein Fehler aufgetreten.',
 /// );
 /// ```
 Future<void> showErrorDialog(

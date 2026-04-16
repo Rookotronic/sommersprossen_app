@@ -175,7 +175,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lotterie Details')),
+      appBar: AppBar(title: const Text('Lotterie-Details')),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('lotteries')

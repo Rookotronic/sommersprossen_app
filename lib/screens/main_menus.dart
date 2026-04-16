@@ -63,13 +63,24 @@ class ParentMainMenuScreen extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
               if (snapshot.hasError) {
-                return Center(child: Text('Fehler beim Laden der Kinder:\n${snapshot.error}'));
+                return Center(
+                  child: Text(
+                    'Fehler beim Laden der Kinder:\n${snapshot.error}',
+                  ),
+                );
               }
               final docs = snapshot.data?.docs ?? [];
               if (docs.isEmpty) {
                 return const Center(child: Text('Keine Kinder gefunden.'));
               }
-              final kinder = docs.map((doc) => Child.fromFirestore(doc.id, doc.data() as Map<String, dynamic>)).toList();
+              final kinder = docs
+                  .map(
+                    (doc) => Child.fromFirestore(
+                      doc.id,
+                      doc.data() as Map<String, dynamic>,
+                    ),
+                  )
+                  .toList();
               // Always show all children vertically in MeinKindDetailScreen
               return MeinKindDetailScreen(children: kinder);
             },
@@ -84,18 +95,16 @@ class ParentMainMenuScreen extends StatelessWidget {
 ///
 /// Zeigt die wichtigsten Verwaltungsfunktionen und die aktive Lotterie für Admins.
 class AdminMainMenuScreen extends StatelessWidget {
-  /// Returns the list of menu entry tiles for the admin main menu.
+  /// Gibt die Liste der Menüeinträge für das Admin-Hauptmenü zurück.
   List<Widget> _buildMenuEntryTiles(BuildContext context) {
     return [
       MenuEntryTile(
         icon: Icons.shuffle,
         title: 'Lotterie',
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const LotteryScreen(),
-            ),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const LotteryScreen()));
         },
       ),
       MenuEntryTile(
@@ -105,15 +114,14 @@ class AdminMainMenuScreen extends StatelessWidget {
           final confirmed = await showConfirmationDialog(
             context,
             title: 'Lotterietopf öffnen?',
-            content: 'Bist du sicher, dass du den Lotterietopf öffnen möchtest?',
+            content:
+                'Bist du sicher, dass du den Lotterietopf öffnen möchtest?',
             confirmText: 'Öffnen',
           );
           if (confirmed == true) {
             if (!context.mounted) return;
             Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const LotterietopfScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const LotterietopfScreen()),
             );
           }
         },
@@ -122,30 +130,27 @@ class AdminMainMenuScreen extends StatelessWidget {
         icon: Icons.child_care,
         title: 'Kinder',
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const KinderScreen(),
-            ),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const KinderScreen()));
         },
       ),
       MenuEntryTile(
         icon: Icons.people,
         title: 'Eltern',
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const ElternScreen(),
-            ),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const ElternScreen()));
         },
       ),
     ];
   }
+
   /// Erstellt eine Instanz des Admin-Hauptmenüs.
   const AdminMainMenuScreen({super.key});
 
-  /// Holt den Benutzernamen aus der aktuellen Email-Adresse.
+  /// Holt den Benutzernamen aus der aktuellen E-Mail-Adresse.
   String get userName {
     final email = FirebaseAuth.instance.currentUser?.email ?? '';
     if (email.contains('@')) {
@@ -168,7 +173,7 @@ class AdminMainMenuScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Reduce gap between greeting and first menu point
+              // Abstand zwischen Begrüßung und erstem Menüpunkt reduzieren
               const SizedBox(height: 4),
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
@@ -182,7 +187,10 @@ class AdminMainMenuScreen extends StatelessWidget {
                       margin: const EdgeInsets.only(bottom: 24),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Text('Lade aktive Lotterien...', style: Theme.of(context).textTheme.bodyLarge),
+                        child: Text(
+                          'Aktive Lotterien werden geladen...',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
                       ),
                     );
                   }
@@ -199,7 +207,12 @@ class AdminMainMenuScreen extends StatelessWidget {
                       final lottery = Lottery.fromFirestore(doc);
                       return Row(
                         children: [
-                          Expanded(child: ActiveLotteryTile(lottery: lottery, lotteryId: lotteryId)),
+                          Expanded(
+                            child: ActiveLotteryTile(
+                              lottery: lottery,
+                              lotteryId: lotteryId,
+                            ),
+                          ),
                         ],
                       );
                     }).toList(),
