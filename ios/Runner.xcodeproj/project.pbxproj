@@ -384,7 +384,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Replace these with your actual configuration names if different\nif [ \"${CONFIGURATION}\" == \"Debug\" ]; then\n  cp \"${PROJECT_DIR}/Runner/GoogleService-Info-Dev.plist\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/GoogleService-Info.plist\"\nelse\n  cp \"${PROJECT_DIR}/Runner/GoogleService-Info-Prod.plist\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/GoogleService-Info.plist\"\nfi\n";
+			shellScript = "# Select Firebase plist based on FLAVOR dart-define when provided.\n# FLAVOR=dev  -> GoogleService-Info-Dev.plist\n# FLAVOR=prod -> GoogleService-Info-Prod.plist\n# Fallback: Debug => dev, otherwise => prod.\nPLIST_SRC=\"\"\n\nif echo \"${DART_DEFINES}\" | grep -q \"RkxBVk9SPXByb2Q=\"; then\n  PLIST_SRC=\"${PROJECT_DIR}/Runner/GoogleService-Info-Prod.plist\"\nelif echo \"${DART_DEFINES}\" | grep -q \"RkxBVk9SPWRldg==\"; then\n  PLIST_SRC=\"${PROJECT_DIR}/Runner/GoogleService-Info-Dev.plist\"\nelif [ \"${CONFIGURATION}\" = \"Debug\" ]; then\n  PLIST_SRC=\"${PROJECT_DIR}/Runner/GoogleService-Info-Dev.plist\"\nelse\n  PLIST_SRC=\"${PROJECT_DIR}/Runner/GoogleService-Info-Prod.plist\"\nfi\n\ncp \"${PLIST_SRC}\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/GoogleService-Info.plist\"\n";
 		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
