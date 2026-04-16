@@ -3,7 +3,7 @@
 name: sommersprossen_app
 description: "Kindergarten attendance and lottery app."
 publish_to: 'none' # This app is not published to pub.dev
-version: 0.1.0
+version: 0.1.0+1
 
 # Dart SDK constraint
 environment:

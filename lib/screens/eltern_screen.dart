@@ -24,27 +24,39 @@ class ElternScreen extends StatefulWidget {
 /// State-Klasse für ElternScreen.
 ///
 /// Beinhaltet die Logik zum Anzeigen, Hinzufügen und Bearbeiten von Eltern.
-class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixin {
-
+class ElternScreenState extends State<ElternScreen>
+    with ControllerLifecycleMixin {
   /// Baut das UI für die Elternliste und den FloatingActionButton zum Hinzufügen.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Eltern')),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('parents').orderBy('nachname').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('parents')
+            .orderBy('nachname')
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Fehler beim Laden der Eltern:\n${snapshot.error}'));
+            return Center(
+              child: Text('Fehler beim Laden der Eltern:\n${snapshot.error}'),
+            );
           }
           final docs = snapshot.data?.docs ?? [];
           if (docs.isEmpty) {
             return const Center(child: Text('Keine Eltern gefunden.'));
           }
-          final eltern = docs.map((doc) => Parent.fromFirestore(doc.id, doc.data() as Map<String, dynamic>)).toList();
+          final eltern = docs
+              .map(
+                (doc) => Parent.fromFirestore(
+                  doc.id,
+                  doc.data() as Map<String, dynamic>,
+                ),
+              )
+              .toList();
           return ListView.builder(
             itemCount: eltern.length,
             itemBuilder: (context, index) {
@@ -73,25 +85,21 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
   /// [parent] Der Elternteil, dessen Details angezeigt werden sollen.
   void _showElternDetails(Parent parent) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ElternDetailScreen(parent: parent),
-      ),
+      MaterialPageRoute(builder: (_) => ElternDetailScreen(parent: parent)),
     );
     if (!mounted) return;
     // Firestore updates handled in detail screen
   }
-
 
   /// Öffnet einen Dialog zum Hinzufügen eines neuen Elternteils.
   ///
   /// Validiert die Eingaben, prüft auf E-Mail-Einzigartigkeit und legt den Elternteil in Firestore an.
   /// Anschließend wird ggf. eine Passwort-Wiederherstellungs-Email angeboten.
   void _addEltern() async {
-  final vornameController = createController();
-  final nachnameController = createController();
-  final emailController = createController();
-  String? errorText;
-
+    final vornameController = createController();
+    final nachnameController = createController();
+    final emailController = createController();
+    String? errorText;
 
     final result = await showDialog<bool>(
       context: context,
@@ -115,13 +123,18 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                   ),
                   TextField(
                     controller: emailController,
-                    decoration: const InputDecoration(labelText: 'Emailadresse'),
+                    decoration: const InputDecoration(
+                      labelText: 'Emailadresse',
+                    ),
                     keyboardType: TextInputType.emailAddress,
                   ),
                   if (errorText != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(errorText!, style: const TextStyle(color: Colors.red)),
+                      child: Text(
+                        errorText!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
                     ),
                 ],
               ),
@@ -141,29 +154,44 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                               : () async {
                                   setStateBtn(() => isLoading = true);
                                   final vorname = vornameController.text.trim();
-                                  final nachname = nachnameController.text.trim();
+                                  final nachname = nachnameController.text
+                                      .trim();
                                   final email = emailController.text.trim();
-                                  if (vorname.isEmpty || nachname.isEmpty || email.isEmpty) {
+                                  if (vorname.isEmpty ||
+                                      nachname.isEmpty ||
+                                      email.isEmpty) {
                                     if (!mounted) return;
-                                    setState(() => errorText = 'Alle Felder sind erforderlich.');
+                                    setState(
+                                      () => errorText =
+                                          'Alle Felder sind erforderlich.',
+                                    );
                                     setStateBtn(() => isLoading = false);
                                     return;
                                   }
                                   if (!isAlpha(vorname)) {
                                     if (!mounted) return;
-                                    setState(() => errorText = 'Vorname: Nur Buchstaben und Sonderzeichen erlaubt.');
+                                    setState(
+                                      () => errorText =
+                                          'Vorname: Nur Buchstaben und Sonderzeichen erlaubt.',
+                                    );
                                     setStateBtn(() => isLoading = false);
                                     return;
                                   }
                                   if (!isAlpha(nachname)) {
                                     if (!mounted) return;
-                                    setState(() => errorText = 'Nachname: Nur Buchstaben und Sonderzeichen erlaubt.');
+                                    setState(
+                                      () => errorText =
+                                          'Nachname: Nur Buchstaben und Sonderzeichen erlaubt.',
+                                    );
                                     setStateBtn(() => isLoading = false);
                                     return;
                                   }
                                   if (!isValidEmail(email)) {
                                     if (!mounted) return;
-                                    setState(() => errorText = 'Bitte gültige Emailadresse eingeben.');
+                                    setState(
+                                      () => errorText =
+                                          'Bitte gültige Emailadresse eingeben.',
+                                    );
                                     setStateBtn(() => isLoading = false);
                                     return;
                                   }
@@ -175,7 +203,10 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                                       .get();
                                   if (query.docs.isNotEmpty) {
                                     if (!mounted) return;
-                                    setState(() => errorText = 'Diese Emailadresse ist bereits vergeben.');
+                                    setState(
+                                      () => errorText =
+                                          'Diese Emailadresse ist bereits vergeben.',
+                                    );
                                     setStateBtn(() => isLoading = false);
                                     return;
                                   }
@@ -183,40 +214,70 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                                   setState(() => errorText = null);
                                   try {
                                     // Use callable Cloud Function to create parent (server-side creates Auth user and parents/doc)
-                                    final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
-                                    final callable = functions.httpsCallable('createParent');
-                                    final callerUid = FirebaseAuth.instance.currentUser?.uid;
-                                    final resp = await callable.call(<String, dynamic>{
-                                      'email': emailLower,
-                                      'vorname': vorname,
-                                      'nachname': nachname,
-                                      'createdBy': callerUid,
-                                    });
-                                    final data = resp.data as Map<String, dynamic>?;
-                                    if (data != null && (data['success'] == true || data['uid'] != null)) {
+                                    final functions =
+                                        FirebaseFunctions.instanceFor(
+                                          region: 'europe-west1',
+                                        );
+                                    final callable = functions.httpsCallable(
+                                      'createParent',
+                                    );
+                                    final callerUid =
+                                        FirebaseAuth.instance.currentUser?.uid;
+                                    final resp = await callable
+                                        .call(<String, dynamic>{
+                                          'email': emailLower,
+                                          'vorname': vorname,
+                                          'nachname': nachname,
+                                          'createdBy': callerUid,
+                                        });
+                                    final data =
+                                        resp.data as Map<String, dynamic>?;
+                                    if (data != null &&
+                                        (data['success'] == true ||
+                                            data['uid'] != null)) {
                                       if (!context.mounted) return;
                                       Navigator.of(context).pop(true);
                                     } else {
                                       if (!context.mounted) return;
-                                      setState(() => errorText = 'Fehler beim Erstellen des Elternteils.');
+                                      setState(
+                                        () => errorText =
+                                            'Fehler beim Erstellen des Elternteils.',
+                                      );
                                     }
                                   } on FirebaseFunctionsException catch (fe) {
                                     if (!mounted) return;
                                     // Map common server-side HttpsError codes to user messages
                                     if (fe.code == 'already-exists') {
-                                      setState(() => errorText = 'Diese Emailadresse ist bereits vergeben.');
+                                      setState(
+                                        () => errorText =
+                                            'Diese Emailadresse ist bereits vergeben.',
+                                      );
                                     } else if (fe.code == 'permission-denied') {
-                                      setState(() => errorText = 'Sie haben keine Berechtigung, Eltern anzulegen.');
+                                      setState(
+                                        () => errorText =
+                                            'Sie haben keine Berechtigung, Eltern anzulegen.',
+                                      );
                                     } else if (fe.code == 'invalid-argument') {
-                                      setState(() => errorText = 'Ungültige Eingaben.');
+                                      setState(
+                                        () => errorText = 'Ungültige Eingaben.',
+                                      );
                                     } else if (fe.code == 'unauthenticated') {
-                                      setState(() => errorText = 'Sie müssen angemeldet sein.');
+                                      setState(
+                                        () => errorText =
+                                            'Sie müssen angemeldet sein.',
+                                      );
                                     } else {
-                                      setState(() => errorText = 'Fehler beim Erstellen: fe.message}');
+                                      setState(
+                                        () => errorText =
+                                            'Fehler beim Erstellen: ${fe.message ?? fe.code}',
+                                      );
                                     }
                                   } catch (e) {
                                     if (!mounted) return;
-                                    setState(() => errorText = 'Fehler beim Erstellen: ${e.toString()}');
+                                    setState(
+                                      () => errorText =
+                                          'Fehler beim Erstellen: ${e.toString()}',
+                                    );
                                   } finally {
                                     setStateBtn(() => isLoading = false);
                                   }
@@ -225,7 +286,9 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Text('Hinzufügen'),
                         );
@@ -243,7 +306,10 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
     if (!mounted) return;
     if (result == true) {
       final email = emailController.text.trim();
-      final usersQuery = FirebaseFirestore.instance.collection('users').where('email', isEqualTo: email).limit(1);
+      final usersQuery = FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1);
       bool userFound = false;
       bool timedOut = false;
       DateTime startTime = DateTime.now();
@@ -257,20 +323,22 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                 stream: usersQuery.snapshots(),
                 builder: (context, snapshot) {
                   // Timeout logic
-                  if (!timedOut && DateTime.now().difference(startTime).inSeconds > 30) {
+                  if (!timedOut &&
+                      DateTime.now().difference(startTime).inSeconds > 30) {
                     timedOut = true;
-                    
-                      Future.microtask(() {
-                        if (context.mounted) {
-                                     Navigator.of(context).pop('timeout');
-               }
-                });
-                    
+
+                    Future.microtask(() {
+                      if (context.mounted) {
+                        Navigator.of(context).pop('timeout');
+                      }
+                    });
                   }
                   if (timedOut) {
                     return AlertDialog(
                       title: const Text('Zeitüberschreitung'),
-                      content: const Text('Benutzer wurde nicht innerhalb von 30 Sekunden erstellt. Bitte versuchen Sie es erneut.'),
+                      content: const Text(
+                        'Benutzer wurde nicht innerhalb von 30 Sekunden erstellt. Bitte versuchen Sie es erneut.',
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop('retry'),
@@ -286,21 +354,35 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const AlertDialog(
                       title: Text('Warte auf Benutzererstellung...'),
-                      content: SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+                      content: SizedBox(
+                        height: 48,
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
                     );
                   }
                   if (snapshot.hasError) {
                     return AlertDialog(
                       title: const Text('Fehler'),
-                      content: Text('Fehler beim Überprüfen der Benutzererstellung: ${snapshot.error}'),
-                      actions: [TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('OK'))],
+                      content: Text(
+                        'Fehler beim Überprüfen der Benutzererstellung: ${snapshot.error}',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('OK'),
+                        ),
+                      ],
                     );
                   }
                   if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
                     userFound = true;
                     return AlertDialog(
-                      title: const Text('Passwortwiederherstellungsemail senden?'),
-                      content: Text('Soll eine Passwort-Wiederherstellungs-Email an $email gesendet werden?'),
+                      title: const Text(
+                        'Passwortwiederherstellungsemail senden?',
+                      ),
+                      content: Text(
+                        'Soll eine Passwort-Wiederherstellungs-Email an $email gesendet werden?',
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(false),
@@ -315,7 +397,10 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
                   }
                   return const AlertDialog(
                     title: Text('Warte auf Benutzererstellung...'),
-                    content: SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+                    content: SizedBox(
+                      height: 48,
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
                   );
                 },
               );
@@ -336,7 +421,9 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
               context: context,
               builder: (context) => AlertDialog(
                 title: const Text('Email gesendet'),
-                content: Text('Eine Passwort-Wiederherstellungs-Email wurde an $email gesendet.'),
+                content: Text(
+                  'Eine Passwort-Wiederherstellungs-Email wurde an $email gesendet.',
+                ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -365,8 +452,8 @@ class ElternScreenState extends State<ElternScreen> with ControllerLifecycleMixi
         // After popup, just stay on ElternScreen (no navigation needed)
       });
     }
-    }
   }
+}
 
 /// Detailbildschirm zur Anzeige und Bearbeitung eines Elternteils.
 class ElternDetailScreen extends StatefulWidget {
@@ -382,7 +469,8 @@ class ElternDetailScreen extends StatefulWidget {
 /// State-Klasse für ElternDetailScreen.
 ///
 /// Beinhaltet die Logik zum Bearbeiten und Löschen eines Elternteils.
-class _ElternDetailScreenState extends State<ElternDetailScreen> with ControllerLifecycleMixin {
+class _ElternDetailScreenState extends State<ElternDetailScreen>
+    with ControllerLifecycleMixin {
   final FirestoreService _firestoreService = FirestoreService();
   // ...existing code...
   late TextEditingController _vornameController;
@@ -392,17 +480,16 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
   @override
   void initState() {
     super.initState();
-  _vornameController = createController(text: widget.parent.vorname);
-  _nachnameController = createController(text: widget.parent.nachname);
-  _emailController = createController(text: widget.parent.email);
+    _vornameController = createController(text: widget.parent.vorname);
+    _nachnameController = createController(text: widget.parent.nachname);
+    _emailController = createController(text: widget.parent.email);
   }
 
   @override
   void dispose() {
-  // Lifecycle handled by ControllerLifecycleMixin
-  super.dispose();
+    // Lifecycle handled by ControllerLifecycleMixin
+    super.dispose();
   }
-
 
   /// Speichert die Änderungen am Elternteil in Firestore.
   ///
@@ -458,7 +545,9 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
     }
     if (!isValidEmail(email)) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bitte gültige Emailadresse eingeben.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bitte gültige Emailadresse eingeben.')),
+      );
       return;
     }
     final updated = Parent(
@@ -469,17 +558,25 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
     );
     // Update parent in Firestore
     try {
-      final success = await _firestoreService.update('parents', updated.id, updated.toFirestore());
+      final success = await _firestoreService.update(
+        'parents',
+        updated.id,
+        updated.toFirestore(),
+      );
       if (!mounted) return;
       if (success) {
         Navigator.of(context).pop(updated);
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fehler beim Speichern.')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Fehler beim Speichern.')));
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fehler beim Speichern: ${e.toString()}')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler beim Speichern: ${e.toString()}')),
+      );
     }
   }
 
@@ -488,9 +585,11 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
     if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog( 
+      builder: (context) => AlertDialog(
         title: const Text('Eltern löschen'),
-        content: const Text('Sind Sie sicher, dass Sie diesen Elternteil löschen möchten?'),
+        content: const Text(
+          'Sind Sie sicher, dass Sie diesen Elternteil löschen möchten?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -518,11 +617,15 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
           Navigator.of(context).pop({'delete': true, 'id': widget.parent.id});
         } else {
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fehler beim Löschen.')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Fehler beim Löschen.')));
         }
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fehler beim Löschen: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Löschen: ${e.toString()}')),
+        );
       }
     }
   }
@@ -532,7 +635,11 @@ class _ElternDetailScreenState extends State<ElternDetailScreen> with Controller
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Eltern: ${widget.parent.vorname} ${widget.parent.nachname}')),
+      appBar: AppBar(
+        title: Text(
+          'Eltern: ${widget.parent.vorname} ${widget.parent.nachname}',
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
