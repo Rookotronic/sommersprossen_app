@@ -18,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.sommersprossen_app"
+    namespace = "com.sommersprossen.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -32,8 +32,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.sommersprossen_app"
+        applicationId = "com.sommersprossen.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -64,6 +63,7 @@ android {
     productFlavors {
         create("dev") {
             dimension = "env"
+            applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
         }
         create("prod") {

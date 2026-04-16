@@ -112,7 +112,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '767015238873',
     projectId: 'sommersprossenapp',
     storageBucket: 'sommersprossenapp.firebasestorage.app',
-    iosBundleId: 'com.example.sommersprossenApp',
+    iosBundleId: 'com.sommersprossen.app',
   );
 
   /// Firebase-Konfiguration für iOS (Prod).
@@ -122,7 +122,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '771074457475',
     projectId: 'sommersprossen-app-prod',
     storageBucket: 'sommersprossen-app-prod.firebasestorage.app',
-    iosBundleId: 'com.example.sommersprossenApp',
+    iosBundleId: 'com.sommersprossen.app',
   );
 
   /// Firebase-Konfiguration für macOS.
@@ -132,7 +132,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '767015238873',
     projectId: 'sommersprossenapp',
     storageBucket: 'sommersprossenapp.firebasestorage.app',
-    iosBundleId: 'com.example.sommersprossenApp',
+    iosBundleId: 'com.sommersprossen.app',
   );
 
   /// Firebase-Konfiguration für Windows.
