@@ -465,8 +465,9 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                                             'children':
                                                                 updatedChildren,
                                                           });
-                                                      if (!context.mounted)
+                                                      if (!context.mounted) {
                                                         return;
+                                                      }
                                                       ScaffoldMessenger.of(
                                                         context,
                                                       ).showSnackBar(

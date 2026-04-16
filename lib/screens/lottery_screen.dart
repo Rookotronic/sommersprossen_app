@@ -64,6 +64,7 @@ class _LotteryScreenState extends State<LotteryScreen>
         if (activeLotteries.isEmpty) {
           showAddButton = true;
         }
+        final heroTagSuffix = identityHashCode(this);
         return Scaffold(
           appBar: AppBar(title: const Text('Lotterie')),
           body: docs.isEmpty
@@ -114,7 +115,7 @@ class _LotteryScreenState extends State<LotteryScreen>
             children: [
               if (showAddButton)
                 FloatingActionButton(
-                  heroTag: 'addLottery',
+                  heroTag: 'addLottery_$heroTagSuffix',
                   onPressed: () async {
                     await _showNewLotteryDialog(
                       activeLottery: (activeLotteries.length == 1)
@@ -127,7 +128,7 @@ class _LotteryScreenState extends State<LotteryScreen>
                 ),
               const SizedBox(width: 16),
               FloatingActionButton(
-                heroTag: 'clearLotteries',
+                heroTag: 'clearLotteries_$heroTagSuffix',
                 backgroundColor: Colors.red,
                 onPressed: () async {
                   final confirmed = await showDialog<bool>(
