@@ -1,6 +1,5 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Button zum Versenden von Benachrichtigungen an Eltern.
 ///
@@ -29,13 +28,35 @@ Widget notifyparentsbutton({
                   final notifyParentsForLottery = functions.httpsCallable(
                     'notifyParentsForLottery',
                   );
-                  await notifyParentsForLottery({'lotteryId': lotteryId});
+                  final result = await notifyParentsForLottery({
+                    'lotteryId': lotteryId,
+                  });
 
-                  // Firestore-Feld `requestsSend` auf true setzen.
-                  await FirebaseFirestore.instance
-                      .collection('lotteries')
-                      .doc(lotteryId)
-                      .update({'requestsSend': true});
+                  final data = result.data;
+                  bool functionSucceeded = false;
+                  String? backendMessage;
+
+                  if (data is bool) {
+                    functionSucceeded = data;
+                  } else if (data is Map) {
+                    final map = Map<String, dynamic>.from(data);
+                    functionSucceeded = map['success'] == true;
+                    backendMessage =
+                        map['error']?.toString() ?? map['message']?.toString();
+                  }
+
+                  if (!functionSucceeded) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          backendMessage ??
+                              'Funktion wurde aufgerufen, hat aber keinen Erfolg gemeldet.',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
 
                   await onSuccess();
                 } on FirebaseFunctionsException catch (error) {
