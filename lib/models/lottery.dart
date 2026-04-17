@@ -23,13 +23,28 @@ class LotteryChild {
   });
 
   /// Creates a [LotteryChild] from a map (Firestore or local data).
-  factory LotteryChild.fromMap(Map<String, dynamic> map) => LotteryChild(
-    childId: map['childId'],
-    notified: map['notified'] ?? false,
-    responded: map['responded'] ?? false,
-    need: map['need'] ?? false,
-    picked: map['picked'] ?? false,
-  );
+  factory LotteryChild.fromMap(Map<String, dynamic> map) {
+    bool parseBool(dynamic raw) {
+      if (raw is bool) return raw;
+      if (raw is num) return raw != 0;
+      if (raw is String) {
+        final normalized = raw.trim().toLowerCase();
+        return normalized == 'true' || normalized == '1';
+      }
+      return false;
+    }
+
+    final childIdRaw = map['childId'];
+    final childId = (childIdRaw ?? '').toString();
+
+    return LotteryChild(
+      childId: childId,
+      notified: parseBool(map['notified']),
+      responded: parseBool(map['responded']),
+      need: parseBool(map['need']),
+      picked: parseBool(map['picked']),
+    );
+  }
 
   /// Converts this [LotteryChild] to a map for Firestore or local storage.
   Map<String, dynamic> toMap() => {
@@ -113,14 +128,20 @@ class Lottery {
     final childrenRaw = data['children'];
     final information = (data['information'] ?? '').toString();
 
-    final List<LotteryChild> children;
+    final List<LotteryChild> children = [];
     if (childrenRaw is List) {
-      children = childrenRaw
-          .whereType<Map>()
-          .map((c) => LotteryChild.fromMap(Map<String, dynamic>.from(c)))
-          .toList();
-    } else {
-      children = [];
+      for (final rawChild in childrenRaw) {
+        if (rawChild is! Map) continue;
+
+        // Firestore data can occasionally contain unexpected key/value types.
+        // Coerce keys to String so malformed entries do not crash the UI.
+        final childMap = <String, dynamic>{};
+        rawChild.forEach((key, value) {
+          childMap[key.toString()] = value;
+        });
+
+        children.add(LotteryChild.fromMap(childMap));
+      }
     }
 
     return Lottery(

@@ -25,7 +25,6 @@ class MyChildHistoryScreen extends StatelessWidget {
           .collection('lotteries')
           .where('requestsSend', isEqualTo: true)
           .where('finished', isEqualTo: true)
-          .orderBy('createdAt', descending: true)
           .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {

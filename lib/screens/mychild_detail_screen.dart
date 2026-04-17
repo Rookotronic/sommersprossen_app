@@ -8,6 +8,8 @@ import '../widgets/child_details_box.dart';
 import 'mychild_history_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
+import '../models/lottery.dart';
 
 /// Zeigt die Detailansicht für ein oder mehrere Kinder an.
 ///
@@ -119,7 +121,6 @@ class MeinKindDetailScreen extends StatelessWidget {
                         stream: FirebaseFirestore.instance
                             .collection('lotteries')
                             .where('requestsSend', isEqualTo: true)
-                            .orderBy('createdAt', descending: true)
                             .snapshots(),
                         builder: (context, lotterySnapshot) {
                           if (lotterySnapshot.connectionState == ConnectionState.waiting) {
@@ -131,21 +132,29 @@ class MeinKindDetailScreen extends StatelessWidget {
                           final now = DateTime.now();
                           final List<Widget> lotteryBoxes = [];
                           for (final doc in lotterySnapshot.data!.docs) {
-                            final data = doc.data() as Map<String, dynamic>?;
-                            if (data == null) continue;
-                            final childrenList = (data['children'] as List?) ?? [];
-                            final lotteryChild = childrenList.firstWhere(
-                              (c) => c['childId'] == child.id,
-                              orElse: () => null,
-                            );
+                            Lottery lottery;
+                            try {
+                              lottery = Lottery.fromFirestore(doc);
+                            } catch (e, st) {
+                              debugPrint('Skipping malformed lottery doc ${doc.id}: $e');
+                              debugPrintStack(stackTrace: st);
+                              continue;
+                            }
+                            LotteryChild? lotteryChild;
+                            for (final entry in lottery.children) {
+                              if (entry.childId == child.id) {
+                                lotteryChild = entry;
+                                break;
+                              }
+                            }
                             if (lotteryChild == null) continue;
-                            final finished = data['finished'] == true;
-                            final date = (data['date'] != null) ? DateTime.tryParse(data['date']) : null;
-                            final information = (data['information'] ?? '') as String;
-                            final picked = lotteryChild['picked'] == true;
-                            final responded = lotteryChild['responded'] == true;
-                            final need = lotteryChild['need'] == true;
-                            final allAnswersReceived = data['allAnswersReceived'] == true;
+                            final finished = lottery.finished;
+                            final date = lottery.date;
+                            final information = lottery.information;
+                            final picked = lotteryChild.picked;
+                            final responded = lotteryChild.responded;
+                            final need = lotteryChild.need;
+                            final allAnswersReceived = lottery.allAnswersReceived;
                             final stateText = picked
                                 ? 'Ausgewählt'
                                 : responded
@@ -155,7 +164,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                               ? (picked ? Colors.red : Colors.green)
                               : (responded ? (need ? Colors.orange : Colors.red) : Colors.blue.shade100);
                             // Only show finished lotteries if the date is today or in the future
-                            if (finished && date != null && date.isBefore(DateTime(now.year, now.month, now.day))) {
+                            if (finished && date.isBefore(DateTime(now.year, now.month, now.day))) {
                               continue;
                             }
                             if (!finished) {
