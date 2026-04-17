@@ -13,6 +13,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   shared_preferences: ^2.5.3 # Local storage for user/session data
   cloud_firestore: ^6.0.2 # Firestore database
   logger: ^2.6.2 # Logging utility
