@@ -7,6 +7,7 @@ class LotteryInfoSection extends StatelessWidget {
   final String lotteryId;
   final void Function(BuildContext, String) onEditInformation;
   final void Function(BuildContext, int, int) onEditNumberToPick;
+  final bool showDateHeader;
 
   const LotteryInfoSection({
     super.key,
@@ -14,6 +15,7 @@ class LotteryInfoSection extends StatelessWidget {
     required this.lotteryId,
     required this.onEditInformation,
     required this.onEditNumberToPick,
+    this.showDateHeader = true,
   });
 
   @override
@@ -21,11 +23,13 @@ class LotteryInfoSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          custom_date_utils.DateUtils.formatWeekdayDate(lottery.date),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
+        if (showDateHeader) ...[
+          Text(
+            custom_date_utils.DateUtils.formatWeekdayDate(lottery.date),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+        ],
         Row(
           children: [
             Expanded(

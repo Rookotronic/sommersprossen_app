@@ -35,6 +35,23 @@ class LotteryDetailScreen extends StatefulWidget {
 ///
 /// Beinhaltet die Logik zur Anzeige, Bearbeitung und Löschung einer Lotterie.
 class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
+  String _formatLotteryHeaderDate(DateTime date) {
+    const weekdays = [
+      'Montag',
+      'Dienstag',
+      'Mittwoch',
+      'Donnerstag',
+      'Freitag',
+      'Samstag',
+      'Sonntag',
+    ];
+    final weekday = weekdays[date.weekday - 1];
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    return '$weekday, $day.$month.$year';
+  }
+
   Future<void> _editNumberToPick(
     BuildContext context,
     int currentNumber,
@@ -175,7 +192,29 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lotterie-Details')),
+      appBar: AppBar(
+        title: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('lotteries')
+              .doc(widget.lotteryId)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || !snapshot.data!.exists) {
+              return const Text('Lotterie-Details');
+            }
+            final lottery = Lottery.fromFirestore(snapshot.data!);
+            return Text(
+              _formatLotteryHeaderDate(lottery.date),
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            );
+          },
+        ),
+      ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('lotteries')
@@ -212,6 +251,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                   lotteryId: widget.lotteryId,
                   onEditInformation: _editInformation,
                   onEditNumberToPick: _editNumberToPick,
+                  showDateHeader: false,
                 ),
                 ReportingPeriodControlSection(
                   lottery: lottery,
@@ -284,12 +324,6 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Fixed header
-                          Text(
-                            'Kinder:',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               vertical: 8,
