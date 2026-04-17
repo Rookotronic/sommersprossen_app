@@ -205,10 +205,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
             final lottery = Lottery.fromFirestore(snapshot.data!);
             return Text(
               _formatLotteryHeaderDate(lottery.date),
-              style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             );
@@ -241,394 +238,349 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
               !lottery.finished &&
               !lottery.requestsSend &&
               !lottery.allAnswersReceived;
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                LotteryInfoSection(
-                  lottery: lottery,
-                  lotteryId: widget.lotteryId,
-                  onEditInformation: _editInformation,
-                  onEditNumberToPick: _editNumberToPick,
-                  showDateHeader: false,
-                ),
-                ReportingPeriodControlSection(
-                  lottery: lottery,
-                  lotteryId: widget.lotteryId,
-                  showSendButton: showSendButton,
-                  onEndPeriod: () async {
-                    final confirmed = await showConfirmationDialog(
-                      context,
-                      title: 'Lotterie jetzt ziehen?',
-                      content:
-                          'Bist du sicher, dass du die Lotterie jetzt ziehen möchtest?',
-                      confirmText: 'Jetzt ziehen',
-                    );
-                    if (confirmed == true) {
-                      try {
-                        final functions = FirebaseFunctions.instanceFor(
-                          region: 'europe-west1',
+          return FutureBuilder<List<Child>>(
+            future: ChildService.fetchChildrenByIds(
+              lottery.children.map((c) => c.childId).toList(),
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text(
+                    'Fehler beim Laden der Kinder: ${snapshot.error}',
+                  ),
+                );
+              }
+
+              final children = snapshot.data ?? [];
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    LotteryInfoSection(
+                      lottery: lottery,
+                      lotteryId: widget.lotteryId,
+                      onEditInformation: _editInformation,
+                      onEditNumberToPick: _editNumberToPick,
+                      showDateHeader: false,
+                    ),
+                    ReportingPeriodControlSection(
+                      lottery: lottery,
+                      lotteryId: widget.lotteryId,
+                      showSendButton: showSendButton,
+                      onEndPeriod: () async {
+                        final confirmed = await showConfirmationDialog(
+                          context,
+                          title: 'Lotterie jetzt ziehen?',
+                          content:
+                              'Bist du sicher, dass du die Lotterie jetzt ziehen möchtest?',
+                          confirmText: 'Jetzt ziehen',
                         );
-                        final handleLotteryPicking = functions.httpsCallable(
-                          'handleLotteryPicking',
-                        );
-                        await handleLotteryPicking({
-                          'lotteryId': widget.lotteryId,
-                        });
+                        if (confirmed == true) {
+                          try {
+                            final functions = FirebaseFunctions.instanceFor(
+                              region: 'europe-west1',
+                            );
+                            final handleLotteryPicking = functions
+                                .httpsCallable('handleLotteryPicking');
+                            await handleLotteryPicking({
+                              'lotteryId': widget.lotteryId,
+                            });
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Lotterie wurde gezogen!'),
+                              ),
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Fehler beim Ziehen der Lotterie: $e',
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      onNotifyParents: () async {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Lotterie wurde gezogen!'),
+                            content: Text('Benachrichtigungen gesendet!'),
                           ),
                         );
-                      } catch (e) {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Fehler beim Ziehen der Lotterie: $e',
-                            ),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  onNotifyParents: () async {
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Benachrichtigungen gesendet!'),
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 4,
                       ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                FutureBuilder<List<Child>>(
-                  future: ChildService.fetchChildrenByIds(
-                    lottery.children.map((c) => c.childId).toList(),
-                  ),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'Fehler beim Laden der Kinder: ${snapshot.error}',
-                        ),
-                      );
-                    }
-                    final children = snapshot.data ?? [];
-                    return Expanded(
+                      color: Colors.grey.shade200,
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 4,
-                            ),
-                            color: Colors.grey.shade200,
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      flex: 3,
-                                      child: Text(
-                                        'Name',
-                                        style: const TextStyle(fontSize: 11),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Center(
-                                        child: Text(
-                                          'Benachrichtigt',
-                                          style: const TextStyle(fontSize: 11),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Center(
-                                        child: Text(
-                                          'Geantwortet',
-                                          style: const TextStyle(fontSize: 11),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Center(
-                                        child: Text(
-                                          'Bedarf',
-                                          style: const TextStyle(fontSize: 11),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  'Name',
+                                  style: const TextStyle(fontSize: 11),
                                 ),
-                                Row(
-                                  children: [
-                                    const Expanded(flex: 3, child: SizedBox()),
-                                    Expanded(
-                                      child: Center(
-                                        child: Text(
-                                          '${lottery.children.where((c) => c.notified).length} / ${lottery.children.length}',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Center(
-                                        child: Text(
-                                          '${lottery.children.where((c) => c.responded).length} / ${lottery.children.length}',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Center(
-                                        child: Text(
-                                          '${lottery.children.where((c) => c.need).length} / ${lottery.children.length}',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    'Benachrichtigt',
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    'Geantwortet',
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    'Bedarf',
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          // Scrollable list
-                          Expanded(
-                            child: ListView(
-                              padding: EdgeInsets.zero,
-                              children: [
-                                ...lottery.children.map((lotteryChild) {
-                                  final child = children.firstWhere(
-                                    (c) => c.id == lotteryChild.childId,
-                                    orElse: () => Child(
-                                      id: '',
-                                      vorname: '',
-                                      nachname: '',
+                          Row(
+                            children: [
+                              const Expanded(flex: 3, child: SizedBox()),
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    '${lottery.children.where((c) => c.notified).length} / ${lottery.children.length}',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                  );
-                                  final showGezogen =
-                                      lottery.finished && lotteryChild.picked;
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 6,
-                                      horizontal: 4,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    '${lottery.children.where((c) => c.responded).length} / ${lottery.children.length}',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: lotteryChild.picked
-                                          ? const Color.fromARGB(
-                                              255,
-                                              255,
-                                              192,
-                                              192,
-                                            )
-                                          : null,
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                      ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    '${lottery.children.where((c) => c.need).length} / ${lottery.children.length}',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 3,
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                '${child.vorname} ${child.nachname}${showGezogen ? ' (gezogen)' : ''}',
-                                                style: const TextStyle(
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                              if (!lottery.finished)
-                                                IconButton(
-                                                  icon: const Icon(
-                                                    Icons.delete,
-                                                    size: 18,
-                                                    color: Colors.red,
-                                                  ),
-                                                  tooltip: 'Kind entfernen',
-                                                  onPressed: () async {
-                                                    final confirmed =
-                                                        await showConfirmationDialog(
-                                                          context,
-                                                          title:
-                                                              'Kind entfernen',
-                                                          content:
-                                                              'Möchtest du dieses Kind wirklich aus der Lotterie entfernen?',
-                                                          confirmText:
-                                                              'Entfernen',
-                                                        );
-                                                    if (confirmed == true) {
-                                                      final updatedChildren =
-                                                          lottery.children
-                                                              .where(
-                                                                (c) =>
-                                                                    c.childId !=
-                                                                    lotteryChild
-                                                                        .childId,
-                                                              )
-                                                              .map(
-                                                                (c) =>
-                                                                    c.toMap(),
-                                                              )
-                                                              .toList();
-                                                      await FirebaseFirestore
-                                                          .instance
-                                                          .collection(
-                                                            'lotteries',
-                                                          )
-                                                          .doc(widget.lotteryId)
-                                                          .update({
-                                                            'children':
-                                                                updatedChildren,
-                                                          });
-                                                      if (!context.mounted) {
-                                                        return;
-                                                      }
-                                                      ScaffoldMessenger.of(
-                                                        context,
-                                                      ).showSnackBar(
-                                                        const SnackBar(
-                                                          content: Text(
-                                                            'Kind entfernt.',
-                                                          ),
-                                                        ),
-                                                      );
-                                                    }
-                                                  },
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Center(
-                                            child: Icon(
-                                              lotteryChild.notified
-                                                  ? Icons.check_circle
-                                                  : Icons.cancel,
-                                              color: lotteryChild.notified
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                              size: 18,
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Center(
-                                            child: Icon(
-                                              lotteryChild.responded
-                                                  ? Icons.check_circle
-                                                  : Icons.cancel,
-                                              color: lotteryChild.responded
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                              size: 18,
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Center(
-                                            child: Icon(
-                                              lotteryChild.need
-                                                  ? Icons.check_circle
-                                                  : Icons.cancel,
-                                              color: lotteryChild.need
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                              size: 18,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          if (lottery.finished)
-                            PrintLotteryButton(
-                              lottery: lottery,
-                              children: children,
-                            ),
-                          const SizedBox(height: 8),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                            ),
-                            onPressed: () async {
-                              final confirmed = await showConfirmationDialog(
-                                context,
-                                title: 'Lotterie löschen',
-                                content:
-                                    'Bist du sicher, dass du diese Lotterie löschen möchtest? Dies kann nicht rückgängig gemacht werden.',
-                                confirmText: 'Ja, löschen',
-                              );
-                              if (confirmed == true) {
-                                if (!context.mounted) return;
-                                final doubleCheck = await showConfirmationDialog(
-                                  context,
-                                  title: 'Wirklich löschen?',
-                                  content:
-                                      'Bitte bestätige erneut, dass du die Lotterie wirklich löschen willst.',
-                                  confirmText: 'Endgültig löschen',
-                                  cancelText: 'Nein',
-                                );
-                                if (doubleCheck == true) {
-                                  try {
-                                    await FirebaseFirestore.instance
-                                        .collection('lotteries')
-                                        .doc(widget.lotteryId)
-                                        .delete();
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Lotterie gelöscht!'),
-                                      ),
-                                    );
-                                    Navigator.of(context).pop();
-                                  } catch (e) {
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Fehler beim Löschen: $e',
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                }
-                              }
-                            },
-                            child: const Text('Löschen'),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    );
-                  },
+                    ),
+                    const SizedBox(height: 4),
+                    ...lottery.children.map((lotteryChild) {
+                      final child = children.firstWhere(
+                        (c) => c.id == lotteryChild.childId,
+                        orElse: () => Child(id: '', vorname: '', nachname: ''),
+                      );
+                      final showGezogen =
+                          lottery.finished && lotteryChild.picked;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: lotteryChild.picked
+                              ? const Color.fromARGB(255, 255, 192, 192)
+                              : null,
+                          border: Border(
+                            bottom: BorderSide(color: Colors.grey.shade300),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '${child.vorname} ${child.nachname}${showGezogen ? ' (gezogen)' : ''}',
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                  if (!lottery.finished)
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        size: 18,
+                                        color: Colors.red,
+                                      ),
+                                      tooltip: 'Kind entfernen',
+                                      onPressed: () async {
+                                        final confirmed =
+                                            await showConfirmationDialog(
+                                              context,
+                                              title: 'Kind entfernen',
+                                              content:
+                                                  'Möchtest du dieses Kind wirklich aus der Lotterie entfernen?',
+                                              confirmText: 'Entfernen',
+                                            );
+                                        if (confirmed == true) {
+                                          final updatedChildren = lottery
+                                              .children
+                                              .where(
+                                                (c) =>
+                                                    c.childId !=
+                                                    lotteryChild.childId,
+                                              )
+                                              .map((c) => c.toMap())
+                                              .toList();
+                                          await FirebaseFirestore.instance
+                                              .collection('lotteries')
+                                              .doc(widget.lotteryId)
+                                              .update({
+                                                'children': updatedChildren,
+                                              });
+                                          if (!context.mounted) {
+                                            return;
+                                          }
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Kind entfernt.'),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Center(
+                                child: Icon(
+                                  lotteryChild.notified
+                                      ? Icons.check_circle
+                                      : Icons.cancel,
+                                  color: lotteryChild.notified
+                                      ? Colors.green
+                                      : Colors.red,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Center(
+                                child: Icon(
+                                  lotteryChild.responded
+                                      ? Icons.check_circle
+                                      : Icons.cancel,
+                                  color: lotteryChild.responded
+                                      ? Colors.green
+                                      : Colors.red,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Center(
+                                child: Icon(
+                                  lotteryChild.need
+                                      ? Icons.check_circle
+                                      : Icons.cancel,
+                                  color: lotteryChild.need
+                                      ? Colors.green
+                                      : Colors.red,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 16),
+                    if (lottery.finished)
+                      PrintLotteryButton(lottery: lottery, children: children),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        final confirmed = await showConfirmationDialog(
+                          context,
+                          title: 'Lotterie löschen',
+                          content:
+                              'Bist du sicher, dass du diese Lotterie löschen möchtest? Dies kann nicht rückgängig gemacht werden.',
+                          confirmText: 'Ja, löschen',
+                        );
+                        if (confirmed == true) {
+                          if (!context.mounted) return;
+                          final doubleCheck = await showConfirmationDialog(
+                            context,
+                            title: 'Wirklich löschen?',
+                            content:
+                                'Bitte bestätige erneut, dass du die Lotterie wirklich löschen willst.',
+                            confirmText: 'Endgültig löschen',
+                            cancelText: 'Nein',
+                          );
+                          if (doubleCheck == true) {
+                            try {
+                              await FirebaseFirestore.instance
+                                  .collection('lotteries')
+                                  .doc(widget.lotteryId)
+                                  .delete();
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Lotterie gelöscht!'),
+                                ),
+                              );
+                              Navigator.of(context).pop();
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Fehler beim Löschen: $e'),
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
+                      child: const Text('Löschen'),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
