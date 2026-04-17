@@ -496,7 +496,6 @@ class _ElternDetailScreenState extends State<ElternDetailScreen>
   Future<void> _save() async {
     final vorname = _vornameController.text.trim();
     final nachname = _nachnameController.text.trim();
-    final email = _emailController.text.trim();
     if (vorname.isEmpty) {
       if (!mounted) return;
       await showErrorDialog(
@@ -533,27 +532,11 @@ class _ElternDetailScreenState extends State<ElternDetailScreen>
       );
       return;
     }
-    if (email.isEmpty) {
-      if (!mounted) return;
-      await showErrorDialog(
-        context,
-        title: 'Fehler',
-        content: 'E-Mail-Adresse ist erforderlich.',
-      );
-      return;
-    }
-    if (!isValidEmail(email)) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte gültige E-Mail-Adresse eingeben.')),
-      );
-      return;
-    }
     final updated = Parent(
       id: widget.parent.id,
       vorname: vorname,
       nachname: nachname,
-      email: email,
+      email: widget.parent.email,
     );
     // Update parent in Firestore
     try {
@@ -656,7 +639,11 @@ class _ElternDetailScreenState extends State<ElternDetailScreen>
             const SizedBox(height: 12),
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(labelText: 'E-Mail-Adresse'),
+              readOnly: true,
+              decoration: const InputDecoration(
+                labelText: 'E-Mail-Adresse',
+                helperText: 'E-Mail kann hier nicht geändert werden.',
+              ),
             ),
             const SizedBox(height: 32),
             Row(
