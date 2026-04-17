@@ -208,6 +208,7 @@ class _LotteryScreenState extends State<LotteryScreen>
                     onTap: () async {
                       final picked = await showDatePicker(
                         context: context,
+                        locale: const Locale('de', 'DE'),
                         initialDate: selectedDate,
                         firstDate: DateTime(2020),
                         lastDate: DateTime(2100),
