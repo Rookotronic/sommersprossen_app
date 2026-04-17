@@ -130,7 +130,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                             return const SizedBox.shrink();
                           }
                           final now = DateTime.now();
-                          final List<Widget> lotteryBoxes = [];
+                          final List<Map<String, dynamic>> lotteryEntries = [];
                           for (final doc in lotterySnapshot.data!.docs) {
                             Lottery lottery;
                             try {
@@ -167,6 +167,43 @@ class MeinKindDetailScreen extends StatelessWidget {
                             if (finished && date.isBefore(DateTime(now.year, now.month, now.day))) {
                               continue;
                             }
+                            lotteryEntries.add({
+                              'finished': finished,
+                              'date': date,
+                              'information': information,
+                              'responded': responded,
+                              'need': need,
+                              'allAnswersReceived': allAnswersReceived,
+                              'stateText': stateText,
+                              'boxColor': boxColor,
+                              'picked': picked,
+                            });
+                          }
+
+                          lotteryEntries.sort((a, b) {
+                            final aFinished = a['finished'] as bool;
+                            final bFinished = b['finished'] as bool;
+                            if (aFinished != bFinished) {
+                              return aFinished ? 1 : -1;
+                            }
+
+                            final aDate = a['date'] as DateTime;
+                            final bDate = b['date'] as DateTime;
+                            return aDate.compareTo(bDate);
+                          });
+
+                          final List<Widget> lotteryBoxes = [];
+                          for (final entry in lotteryEntries) {
+                            final finished = entry['finished'] as bool;
+                            final date = entry['date'] as DateTime;
+                            final information = entry['information'] as String;
+                            final responded = entry['responded'] as bool;
+                            final need = entry['need'] as bool;
+                            final allAnswersReceived = entry['allAnswersReceived'] as bool;
+                            final stateText = entry['stateText'] as String;
+                            final boxColor = entry['boxColor'] as Color;
+                            final picked = entry['picked'] as bool;
+
                             if (!finished) {
                               lotteryBoxes.add(ActiveLotteryBox(
                                 date: date,
