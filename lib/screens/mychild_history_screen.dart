@@ -23,6 +23,8 @@ class MyChildHistoryScreen extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
           .collection('lotteries')
+          .where('requestsSend', isEqualTo: true)
+          .where('finished', isEqualTo: true)
           .orderBy('createdAt', descending: true)
           .snapshots(),
         builder: (context, snapshot) {

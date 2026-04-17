@@ -118,6 +118,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                       StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection('lotteries')
+                            .where('requestsSend', isEqualTo: true)
                             .orderBy('createdAt', descending: true)
                             .snapshots(),
                         builder: (context, lotterySnapshot) {
