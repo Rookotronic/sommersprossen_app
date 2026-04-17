@@ -22,6 +22,8 @@ class LotteryScreen extends StatefulWidget {
 /// Beinhaltet die Logik zum Laden, Anzeigen und Erstellen von Lotterien.
 class _LotteryScreenState extends State<LotteryScreen>
     with ControllerLifecycleMixin {
+  final String _fabTagSuffix = UniqueKey().toString();
+
   @override
   /// Wird bei Abhängigkeitsänderungen aufgerufen und triggert einen Rebuild.
   @override
@@ -64,7 +66,6 @@ class _LotteryScreenState extends State<LotteryScreen>
         if (activeLotteries.isEmpty) {
           showAddButton = true;
         }
-        final heroTagSuffix = identityHashCode(this);
         return Scaffold(
           appBar: AppBar(title: const Text('Lotterie')),
           body: docs.isEmpty
@@ -115,7 +116,7 @@ class _LotteryScreenState extends State<LotteryScreen>
             children: [
               if (showAddButton)
                 FloatingActionButton(
-                  heroTag: 'addLottery_$heroTagSuffix',
+                  heroTag: 'addLottery_$_fabTagSuffix',
                   onPressed: () async {
                     await _showNewLotteryDialog(
                       activeLottery: (activeLotteries.length == 1)
@@ -128,7 +129,7 @@ class _LotteryScreenState extends State<LotteryScreen>
                 ),
               const SizedBox(width: 16),
               FloatingActionButton(
-                heroTag: 'clearLotteries_$heroTagSuffix',
+                heroTag: 'clearLotteries_$_fabTagSuffix',
                 backgroundColor: Colors.red,
                 onPressed: () async {
                   final confirmed = await showDialog<bool>(
@@ -303,7 +304,8 @@ class _LotteryScreenState extends State<LotteryScreen>
                       if (!mounted) return;
                       if (e is FirebaseFunctionsException) {
                         setState(
-                          () => errorText = e.message ?? 'Fehler beim Speichern.',
+                          () =>
+                              errorText = e.message ?? 'Fehler beim Speichern.',
                         );
                       } else {
                         setState(

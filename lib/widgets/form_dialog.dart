@@ -19,20 +19,31 @@ class FormDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final maxContentHeight = MediaQuery.sizeOf(context).height * 0.6;
+
     return AlertDialog(
       title: Text(title),
       content: SizedBox(
         width: minWidth,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ...fields,
-            if (errorText != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(errorText!, style: const TextStyle(color: Colors.red)),
-              ),
-          ],
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxContentHeight),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ...fields,
+                if (errorText != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      errorText!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
       actions: actions,

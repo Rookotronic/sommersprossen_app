@@ -90,6 +90,79 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
     }
   }
 
+  Future<void> _showRefillDialog() async {
+    await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Topf neu befüllen?'),
+        content: const Text('Möchtest du den Lotterietopf neu befüllen?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Abbrechen'),
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                final callable = FirebaseFunctions.instanceFor(
+                  region: 'europe-west1',
+                ).httpsCallable('createLotteryPot');
+                await callable.call();
+                if (!context.mounted) return;
+                Navigator.of(context).pop(true);
+                await _loadPotData();
+              } catch (e) {
+                if (!context.mounted) return;
+                Navigator.of(context).pop(false);
+                String errorMsg;
+                if (e is FirebaseFunctionsException) {
+                  errorMsg =
+                      'Fehler beim Befüllen des Lotterietopfs:\n'
+                      'Code: \t${e.code}\n'
+                      'Meldung: ${e.message}\n'
+                      'Details: ${e.details ?? ''}';
+                } else {
+                  errorMsg =
+                      'Fehler beim Befüllen des Lotterietopfs: ${e.toString()}';
+                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      errorMsg,
+                      maxLines: 30,
+                      overflow: TextOverflow.visible,
+                    ),
+                    duration: const Duration(seconds: 15),
+                  ),
+                );
+                await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Fehler beim Cloud-Function-Aufruf'),
+                    content: SizedBox(
+                      width: double.maxFinite,
+                      child: SingleChildScrollView(
+                        child: SelectableText(errorMsg),
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+            child: const Text('Neu befüllen'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+  }
+
   @override
   /// Baut das UI für die Anzeige und Verwaltung des Lotterietopfs.
   @override
@@ -108,9 +181,23 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                     margin: const EdgeInsets.only(bottom: 24),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'Startdatum: ${formatDate(lotterypot!.startDate)}',
-                        style: Theme.of(context).textTheme.titleMedium,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Startdatum: ${formatDate(lotterypot!.startDate)}',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          if (!hasActiveLottery) ...[
+                            const SizedBox(width: 12),
+                            ElevatedButton.icon(
+                              onPressed: _showRefillDialog,
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Topf neu befüllen'),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),
@@ -248,88 +335,6 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                   ),
                 ],
               ),
-            ),
-      floatingActionButton: hasActiveLottery
-          ? null
-          : FloatingActionButton(
-              onPressed: () async {
-                await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Topf neu befüllen?'),
-                    content: const Text(
-                      'Möchtest du den Lotterietopf neu befüllen?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Abbrechen'),
-                      ),
-                      TextButton(
-                        onPressed: () async {
-                          try {
-                            final callable = FirebaseFunctions.instanceFor(
-                              region: 'europe-west1',
-                            ).httpsCallable('createLotteryPot');
-                            await callable.call();
-                            if (!context.mounted) return;
-                            Navigator.of(context).pop(true);
-                          } catch (e) {
-                            if (!context.mounted) return;
-                            Navigator.of(context).pop(false);
-                            String errorMsg;
-                            if (e is FirebaseFunctionsException) {
-                              errorMsg =
-                                  'Fehler beim Befüllen des Lotterietopfs:\n'
-                                  'Code: 	${e.code}\n'
-                                  'Meldung: ${e.message}\n'
-                                  'Details: ${e.details ?? ''}';
-                            } else {
-                              errorMsg =
-                                  'Fehler beim Befüllen des Lotterietopfs: ${e.toString()}';
-                            }
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  errorMsg,
-                                  maxLines: 30,
-                                  overflow: TextOverflow.visible,
-                                ),
-                                duration: const Duration(seconds: 15),
-                              ),
-                            );
-                            await showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text(
-                                  'Fehler beim Cloud-Function-Aufruf',
-                                ),
-                                content: SizedBox(
-                                  width: double.maxFinite,
-                                  child: SingleChildScrollView(
-                                    child: SelectableText(errorMsg),
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    child: const Text('OK'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                        },
-                        child: const Text('Neu befüllen'),
-                      ),
-                    ],
-                  ),
-                );
-                if (!mounted) return;
-              },
-              tooltip: 'Topf neu befüllen',
-              child: const Icon(Icons.refresh),
             ),
     );
   }
