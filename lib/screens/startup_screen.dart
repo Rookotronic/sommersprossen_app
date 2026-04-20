@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'loading_screen.dart';
 import 'main_menus.dart';
 import '../utils/validators.dart';
@@ -88,12 +89,41 @@ class _LoginScreenState extends State<LoginScreen>
 
   bool _obscurePassword = true;
   String? _errorMessage;
+  String? _versionLabel;
 
   @override
   void initState() {
     super.initState();
     _userController = createController();
     _passwordController = createController();
+    _initVersionLabel();
+  }
+
+  Future<void> _initVersionLabel() async {
+    final deployVersion = _deployVersion.trim();
+    if (deployVersion.isNotEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _versionLabel = 'Version $deployVersion';
+      });
+      return;
+    }
+
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (!mounted) return;
+      final buildSuffix = info.buildNumber.isNotEmpty
+          ? '+${info.buildNumber}'
+          : '';
+      setState(() {
+        _versionLabel = 'App-Version ${info.version}$buildSuffix';
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _versionLabel = null;
+      });
+    }
   }
 
   @override
@@ -303,11 +333,11 @@ class _LoginScreenState extends State<LoginScreen>
                     },
                     child: const Text('Passwort vergessen?'),
                   ),
-                  if (_deployVersion.isNotEmpty)
+                  if (_versionLabel != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
-                        'Version $_deployVersion',
+                        _versionLabel!,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey.shade600,
                         ),

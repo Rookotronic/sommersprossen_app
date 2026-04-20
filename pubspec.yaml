@@ -25,6 +25,7 @@ dependencies:
   printing: ^5.11.0 # PDF and print support
   firebase_core: ^4.1.1
   pdf: ^3.11.3
+  package_info_plus: ^8.0.0
 
 # Development dependencies
 dev_dependencies:
