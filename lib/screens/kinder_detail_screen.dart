@@ -214,8 +214,9 @@ class _KinderDetailScreenState extends State<KinderDetailScreen>
                       onChanged: (checked) {
                         setStateDialog(() {
                           if (checked == true) {
-                            if (!tempSelected.contains(parent))
+                            if (!tempSelected.contains(parent)) {
                               tempSelected.add(parent);
+                            }
                           } else {
                             tempSelected.remove(parent);
                           }

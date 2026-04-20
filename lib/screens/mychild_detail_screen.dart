@@ -8,7 +8,6 @@ import '../widgets/child_details_box.dart';
 import 'mychild_history_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:flutter/foundation.dart';
 import '../models/lottery.dart';
 
 /// Zeigt die Detailansicht für ein oder mehrere Kinder an.

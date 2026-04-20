@@ -543,7 +543,10 @@ class _ElternDetailScreenState extends State<ElternDetailScreen>
       final success = await _firestoreService.update(
         'parents',
         updated.id,
-        updated.toFirestore(),
+        {
+          'vorname': updated.vorname,
+          'nachname': updated.nachname,
+        },
       );
       if (!mounted) return;
       if (success) {
@@ -640,10 +643,9 @@ class _ElternDetailScreenState extends State<ElternDetailScreen>
             TextField(
               controller: _emailController,
               readOnly: true,
-              decoration: const InputDecoration(
-                labelText: 'E-Mail-Adresse',
-                helperText: 'E-Mail kann hier nicht geändert werden.',
-              ),
+              showCursor: false,
+              enableInteractiveSelection: false,
+              decoration: const InputDecoration(labelText: 'E-Mail-Adresse'),
             ),
             const SizedBox(height: 32),
             Row(

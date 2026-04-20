@@ -103,8 +103,9 @@ class _KinderScreenState extends State<KinderScreen>
                         onChanged: (checked) {
                           setState(() {
                             if (checked == true) {
-                              if (!selectedParents.contains(parent))
+                              if (!selectedParents.contains(parent)) {
                                 selectedParents.add(parent);
+                              }
                             } else {
                               selectedParents.remove(parent);
                             }
