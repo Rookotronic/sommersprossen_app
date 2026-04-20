@@ -104,7 +104,7 @@ class MeinKindDetailScreen extends StatelessWidget {
                       ChildDetailsBox(
                         child: child,
                         parents: parents,
-                        onTap: () {
+                        onHistoryTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => MyChildHistoryScreen(

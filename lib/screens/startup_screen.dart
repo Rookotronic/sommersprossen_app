@@ -76,6 +76,10 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with ControllerLifecycleMixin {
+  static const String _deployVersion = String.fromEnvironment(
+    'APP_DEPLOY_VERSION',
+    defaultValue: '',
+  );
   final _logger = Logger();
   final _formKey = GlobalKey<FormState>();
 
@@ -299,6 +303,16 @@ class _LoginScreenState extends State<LoginScreen>
                     },
                     child: const Text('Passwort vergessen?'),
                   ),
+                  if (_deployVersion.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'Version $_deployVersion',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

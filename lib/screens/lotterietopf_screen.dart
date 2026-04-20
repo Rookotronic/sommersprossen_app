@@ -233,6 +233,9 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                               orElse: () =>
                                   Child(id: '', vorname: '', nachname: ''),
                             );
+                            final childName = child.id.isNotEmpty
+                                ? '${child.vorname} ${child.nachname}'.trim()
+                                : 'dieses Kind';
                             final style = Theme.of(context).textTheme.bodyLarge;
                             return ListTile(
                               leading: Text('#${index + 1}'),
@@ -252,6 +255,16 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                                     ),
                                     tooltip: 'Kind nach oben',
                                     onPressed: () async {
+                                      final confirmed =
+                                          await showConfirmationDialog(
+                                            context,
+                                            title:
+                                                'Kind nach oben verschieben?',
+                                            content:
+                                                'Möchtest du $childName wirklich nach oben setzen?',
+                                            confirmText: 'Ja, nach oben',
+                                          );
+                                      if (confirmed != true) return;
                                       try {
                                         final callable =
                                             FirebaseFunctions.instanceFor(
@@ -266,7 +279,7 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                                         ).showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                              '${child.vorname} wurde nach oben gesetzt.',
+                                              '$childName wurde nach oben gesetzt.',
                                             ),
                                           ),
                                         );
@@ -292,6 +305,16 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                                     ),
                                     tooltip: 'Kind nach unten',
                                     onPressed: () async {
+                                      final confirmed =
+                                          await showConfirmationDialog(
+                                            context,
+                                            title:
+                                                'Kind nach unten verschieben?',
+                                            content:
+                                                'Möchtest du $childName wirklich nach unten setzen?',
+                                            confirmText: 'Ja, nach unten',
+                                          );
+                                      if (confirmed != true) return;
                                       try {
                                         final callable =
                                             FirebaseFunctions.instanceFor(
@@ -306,7 +329,7 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                                         ).showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                              '${child.vorname} wurde nach unten gesetzt.',
+                                              '$childName wurde nach unten gesetzt.',
                                             ),
                                           ),
                                         );
