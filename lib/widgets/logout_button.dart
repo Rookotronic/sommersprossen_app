@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/startup_screen.dart';
 
 /// Button zum Ausloggen des aktuellen Benutzers.
@@ -15,6 +16,9 @@ class LogoutButton extends StatelessWidget {
       tooltip: 'Abmelden',
       onPressed: () async {
         await FirebaseAuth.instance.signOut();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('isLoggedIn');
+        await prefs.remove('userType');
         if (context.mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const StartupScreen()),

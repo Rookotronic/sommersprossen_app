@@ -72,59 +72,6 @@ class _MeinKindDetailScreenState extends State<MeinKindDetailScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (widget.children.length > 1)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (widget.children.every((c) => c.siblings.isEmpty))
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
-                        final callable = functions.httpsCallable('LinkSiblings');
-                        final childIds = widget.children.map((c) => c.id).toList();
-                        await callable({'childIds': childIds});
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Kinder wurden verknüpft.')),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Fehler: $e')),
-                        );
-                      }
-                    },
-                    child: const Text('Kinder gemeinsam ziehen'),
-                  ),
-                if (widget.children.any((c) => c.siblings.isNotEmpty))
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
-                        final callable = functions.httpsCallable('SeperateSiblings');
-                        final childIds = widget.children.map((c) => c.id).toList();
-                        await callable({'childIds': childIds});
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Kinder wurden getrennt.')),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Fehler: $e')),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Kinder trennen'),
-                  ),
-              ],
-            ),
-          ),
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance

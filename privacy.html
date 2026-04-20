@@ -2,21 +2,165 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Datenschutzerklärung – Sommersprossen App</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+      color: #1f2937;
+      background: #ffffff;
+    }
+    h1, h2, h3 {
+      line-height: 1.25;
+      color: #111827;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    a {
+      color: #0f766e;
+    }
+    .meta {
+      color: #4b5563;
+      font-size: 0.95rem;
+    }
+    .box {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 10px 0 20px;
+    }
+  </style>
 </head>
 <body>
   <h1>Datenschutzerklärung für Sommersprossen App</h1>
-  <p>Die Sommersprossen App wird von Kindergärten genutzt, um Betreuungsorganisation und Kommunikation mit Eltern zu erleichtern.</p>
-  <h2>Erhobene Daten</h2>
+  <p class="meta">Stand: 20.04.2026</p>
+
+  <p>
+    Diese Datenschutzerklärung informiert über die Verarbeitung personenbezogener
+    Daten bei der Nutzung der Sommersprossen App.
+  </p>
+
+  <h2>1. Verantwortlicher</h2>
+  <div class="box">
+    <strong>Sommersprossen e. V.</strong><br>
+    Schuetzstrasse 56<br>
+    50996 Koeln<br>
+    Telefon: 0221 - 354757<br>
+    E-Mail: <a href="mailto:info@sommersprossen.org">info@sommersprossen.org</a><br>
+    Impressum: <a href="https://sommersprossen.org/impressum/">https://sommersprossen.org/impressum/</a>
+  </div>
+
+  <p>
+    Bei Fragen zum Datenschutz koennen Sie sich an die oben genannte Kontaktadresse wenden.
+    Ein gesonderter Datenschutzbeauftragter wurde derzeit nicht benannt.
+  </p>
+
+  <h2>2. Rollenverteilung (Verantwortlicher / Auftragsverarbeiter)</h2>
+  <p>
+    Die Sommersprossen App wird durch die Einrichtung als Verantwortlicher im Sinne der DSGVO genutzt.
+    Technische Dienstleister (z. B. Hosting- und Backend-Anbieter) werden als Auftragsverarbeiter
+    auf Basis vertraglicher Vereinbarungen eingesetzt.
+  </p>
+
+  <h2>3. Zwecke und Rechtsgrundlagen der Verarbeitung</h2>
   <ul>
-    <li>Name der Eltern und Kind(er), E-Mail-Adresse – eingegeben von der Kindergartenleitung</li>
-    <li>FCM-Token (Push-Token) für die Zustellung von Benachrichtigungen</li>
+    <li>
+      <strong>Organisation der Betreuung und Kommunikation mit Eltern</strong><br>
+      Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertrag/Betreuungsverhaeltnis)
+      bzw. Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an geordneten Betriebsablaeufen).
+    </li>
+    <li>
+      <strong>Nutzerverwaltung und Zugriffsschutz</strong><br>
+      Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO und Art. 6 Abs. 1 lit. f DSGVO.
+    </li>
+    <li>
+      <strong>Push-Benachrichtigungen (optional je Geraeteeinstellung)</strong><br>
+      Rechtsgrundlage: Art. 6 Abs. 1 lit. a DSGVO (Einwilligung, soweit erforderlich)
+      und/oder Art. 6 Abs. 1 lit. b DSGVO fuer betriebsbezogene Mitteilungen.
+    </li>
+    <li>
+      <strong>Technische Sicherheit, Fehleranalyse und Missbrauchspraevention</strong><br>
+      Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.
+    </li>
   </ul>
-  <h2>Verwendung der Daten</h2>
-  <p>Die Daten werden ausschließlich für interne Zwecke und zur Versendung von Benachrichtigungen genutzt. Es erfolgt keine Weitergabe an Dritte, außer der technische Versand durch Firebase (Google)</p>
-  <h2>Datenlöschung</h2>
-  <p>Eltern können bei der Kindergartenleitung die Löschung ihrer Daten beantragen.</p>
-  <h2>Kontakt</h2>
-  <p>Für Datenschutzfragen wenden Sie sich bitte an Ihre Kindergartenleitung.</p>
+
+  <h2>4. Verarbeitete Datenkategorien</h2>
+  <ul>
+    <li>Stammdaten: Vorname/Nachname von Eltern und Kindern</li>
+    <li>Kontaktdaten: E-Mail-Adressen</li>
+    <li>Nutzungs- und Organisationsdaten: Bedarfsmeldungen, Lotterie-/Betreuungsstatus, Zuordnungen</li>
+    <li>Technische Daten: Push-Token (FCM), technische Protokolldaten</li>
+    <li>Authentifizierungsdaten: Konto-ID (Firebase Authentication)</li>
+  </ul>
+
+  <h2>5. Empfaenger und Dienstleister</h2>
+  <p>
+    Zur Bereitstellung der App werden insbesondere folgende Kategorien von Empfaengern eingebunden:
+  </p>
+  <ul>
+    <li>Interne befugte Stellen der Einrichtung</li>
+    <li>Technische Auftragsverarbeiter (z. B. Firebase/Google Cloud fuer Authentifizierung, Datenbank, Push)</li>
+    <li>IT-Dienstleister im Rahmen von Wartung und Support</li>
+  </ul>
+
+  <h2>6. Drittlanduebermittlung</h2>
+  <p>
+    Bei Nutzung von Cloud-Diensten kann eine Verarbeitung in Drittländern (z. B. USA) nicht ausgeschlossen werden.
+    Soweit erforderlich, erfolgen solche Uebermittlungen auf Grundlage geeigneter Garantien,
+    insbesondere Standardvertragsklauseln gemaess Art. 46 DSGVO.
+  </p>
+
+  <h2>7. Speicherdauer und Loeschung</h2>
+  <ul>
+    <li>Kontodaten und zugeordnete Organisationsdaten werden gespeichert, solange das Betreuungsverhaeltnis besteht.</li>
+    <li>Push-Token werden bis zur Abmeldung, Ersetzung oder Loeschung des Kontos gespeichert.</li>
+    <li>Technische Protokolldaten werden nur so lange gespeichert, wie es fuer Sicherheit und Betrieb erforderlich ist.</li>
+  </ul>
+  <p>
+    Eine Loeschung kann ueber die Kindergartenleitung angefordert werden.
+    Gesetzliche Aufbewahrungspflichten bleiben unberuehrt.
+  </p>
+
+  <h2>8. Rechte betroffener Personen</h2>
+  <p>Betroffene Personen haben nach DSGVO insbesondere folgende Rechte:</p>
+  <ul>
+    <li>Auskunft (Art. 15 DSGVO)</li>
+    <li>Berichtigung (Art. 16 DSGVO)</li>
+    <li>Loeschung (Art. 17 DSGVO)</li>
+    <li>Einschraenkung der Verarbeitung (Art. 18 DSGVO)</li>
+    <li>Datenuebertragbarkeit (Art. 20 DSGVO)</li>
+    <li>Widerspruch gegen Verarbeitung auf Basis von Art. 6 Abs. 1 lit. e/f DSGVO (Art. 21 DSGVO)</li>
+    <li>Widerruf erteilter Einwilligungen mit Wirkung fuer die Zukunft (Art. 7 Abs. 3 DSGVO)</li>
+  </ul>
+  <p>
+    Zur Ausuebung dieser Rechte wenden Sie sich bitte an:
+    <a href="mailto:info@sommersprossen.org">info@sommersprossen.org</a>
+  </p>
+
+  <h2>9. Beschwerderecht</h2>
+  <p>
+    Sie haben das Recht, sich bei einer Datenschutzaufsichtsbehoerde zu beschweren,
+    wenn Sie der Ansicht sind, dass die Verarbeitung Ihrer personenbezogenen Daten
+    gegen Datenschutzrecht verstoesst.
+  </p>
+
+  <h2>10. Pflicht zur Bereitstellung von Daten</h2>
+  <p>
+    Bestimmte Daten sind fuer die Nutzung der App und die Organisation des Betreuungsbetriebs erforderlich.
+    Ohne diese Daten kann die Nutzung einzelner Funktionen eingeschraenkt oder nicht moeglich sein.
+  </p>
+
+  <h2>11. Aenderungen dieser Datenschutzerklaerung</h2>
+  <p>
+    Diese Datenschutzerklaerung kann angepasst werden, wenn sich rechtliche,
+    technische oder organisatorische Rahmenbedingungen aendern.
+    Es gilt jeweils die auf dieser Seite veroeffentlichte Fassung.
+  </p>
 </body>
 </html>

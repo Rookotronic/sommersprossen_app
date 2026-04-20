@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import '../utils/controller_lifecycle_mixin.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -26,45 +25,57 @@ class StartupScreen extends StatefulWidget {
 
 /// State fuer den Startbildschirm.
 class _StartupScreenState extends State<StartupScreen> {
+  static const Duration _startupRoleFetchTimeout = Duration(seconds: 8);
+  late final Future<Widget> _startupTarget;
+
   /// Initialisiert die App und prueft den Login-Status.
   @override
   void initState() {
     super.initState();
-    _initApp();
+    _startupTarget = _resolveStartupTarget();
   }
 
-  /// Prueft, ob der Nutzer eingeloggt ist und navigiert entsprechend.
-  Future<void> _initApp() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    final userType = prefs.getString('userType');
-    if (isLoggedIn && userType != null) {
-      Widget menu;
-      if (userType == 'parent') {
-        menu = const ParentMainMenuScreen();
-      } else if (userType == 'admin') {
-        menu = const AdminMainMenuScreen();
-      } else {
-        menu = const MainMenuScreen();
-      }
-      if (mounted) {
-        Navigator.of(
-          context,
-        ).pushReplacement(MaterialPageRoute(builder: (_) => menu));
-      }
-    } else {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-      }
+  /// Prueft, ob der Nutzer eingeloggt ist und liefert den Zielscreen.
+  Future<Widget> _resolveStartupTarget() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const LoginScreen();
+    }
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .timeout(_startupRoleFetchTimeout);
+
+      final userType = doc.data()?['type'] as String?;
+      final Widget menu = userType == 'admin'
+          ? const AdminMainMenuScreen()
+          : const ParentMainMenuScreen();
+      return menu;
+    } catch (e) {
+      debugPrint('Startup role fetch failed, falling back to login: $e');
+      FirebaseAuth.instance.signOut().catchError((_) {
+        // Ignore signOut errors during startup fallback.
+      });
+      return const LoginScreen();
     }
   }
 
   /// Zeigt einen Ladebildschirm waehrend der Initialisierung.
   @override
   Widget build(BuildContext context) {
-    return const LoadingScreen();
+    return FutureBuilder<Widget>(
+      future: _startupTarget,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
+          return snapshot.data!;
+        }
+        return const LoadingScreen();
+      },
+    );
   }
 }
 

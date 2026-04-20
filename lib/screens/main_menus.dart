@@ -10,6 +10,7 @@ import '../widgets/confirmation_dialog.dart';
 import '../models/child.dart';
 import 'mychild_detail_screen.dart';
 import 'lotterietopf_screen.dart';
+import 'parent_options_screen.dart';
 import '../widgets/menu_entry_tile.dart';
 import '../widgets/logout_button.dart';
 
@@ -70,9 +71,6 @@ class ParentMainMenuScreen extends StatelessWidget {
                 );
               }
               final docs = snapshot.data?.docs ?? [];
-              if (docs.isEmpty) {
-                return const Center(child: Text('Keine Kinder gefunden.'));
-              }
               final kinder = docs
                   .map(
                     (doc) => Child.fromFirestore(
@@ -81,8 +79,36 @@ class ParentMainMenuScreen extends StatelessWidget {
                     ),
                   )
                   .toList();
-              // Always show all children vertically in MeinKindDetailScreen
-              return MeinKindDetailScreen(children: kinder);
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ParentOptionsScreen(
+                                parentId: parentId,
+                                children: kinder,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.tune),
+                        label: const Text('Optionen'),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: docs.isEmpty
+                        ? const Center(child: Text('Keine Kinder gefunden.'))
+                        // Always show all children vertically in MeinKindDetailScreen
+                        : MeinKindDetailScreen(children: kinder),
+                  ),
+                ],
+              );
             },
           );
         },
