@@ -1,76 +1,147 @@
-# 🏫 Kindergarten Attendance Manager
+# Sommersprossen App
 
-A Flutter app for kindergartens to **organize care restrictions in case of staff illness**.
-Parents can register attendance needs, while the **kindergarten administration** runs a fair **lottery system without replacement** until all children have stayed at home once.
-The app is designed for families and administrators to communicate efficiently and transparently.
+Flutter-App zur Organisation von Betreuungsengpaessen in der Kita.
 
-## ✨ Features
-- 👩‍👩‍👧 **Two user roles**: Parents and Kindergarten Administration
-- 📅 Parents can **submit attendance requests**
-- 🎲 Administration runs a **lottery system** to distribute home days fairly
-- 🔔 Push notifications to keep parents updated
-- 📊 Dashboard for admins with requests, draws, and history
-- 🖨️ Print finished lottery details as PDF (with sorting, marking, and export)
-- 🔒 Firebase authentication (parents vs. admin accounts)
-- ☁️ Firebase backend (Firestore, Cloud Functions, Messaging)
-- 📝 Well-documented, null-safe codebase for maintainability
-- 🛡️ Robust async error handling and context safety throughout the app
-- 🧑‍💻 Cloud Function-based parent creation for security and reliability
-- 📈 Child model extensibility (e.g., `nTimesNoNeed` field for new lottery logic: children who volunteer to stay home multiple times are moved to the bottom of the lottery pot)
-- 📦 Regular dependency updates for security and compatibility
+Die App unterstuetzt zwei Rollen:
 
-## 🛠️ Tech Stack
-- **Flutter** (Dart) — cross-platform app (iOS, Android, Web for dev)
-- **Firebase** — Auth, Firestore, Cloud Functions, Messaging
-- **Provider / Riverpod** (depending on your state management choice)
-- **Xcode** / **Android Studio** for native builds
+1. Eltern
+2. Kindergartenleitung/Administration
 
-## 🚀 Getting Started
+Im Mittelpunkt stehen Bedarfsrueckmeldungen, eine faire Lotterie-Logik, transparente Kommunikation und einfache Verwaltung.
 
-### 1. Prerequisites
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) (latest stable)
-- [Firebase CLI](https://firebase.google.com/docs/cli)
-- Xcode (for iOS) or Android Studio (for Android)
-- A configured Firebase project (see below)
+## Funktionsumfang
 
-### 2. Clone the Repository
+### Eltern
+
+1. Anmeldung mit E-Mail/Passwort (Firebase Auth)
+2. Einsicht in eigene Kinder inklusive aktueller Lotterie-/Betreuungsinformationen
+3. Historie pro Kind
+4. Optionenseite mit:
+5. Ziehungsmodus fuer Geschwister (zusammen oder getrennt)
+6. Konto-Loeschung mit Sicherheitsabfrage
+
+### Administration
+
+1. Verwaltung von Eltern und Kindern
+2. Anlage und Steuerung von Lotterien
+3. Lotterietopf-Management
+4. PDF-Ausgabe abgeschlossener Lotterien
+5. Ausloesen von Benachrichtigungsprozessen
+
+### Plattformen
+
+1. Android
+2. iOS
+3. Web (vor allem fuer Entwicklung und schnelle Pruefung)
+
+## Architektur und Technik
+
+1. Flutter (Dart, null-safety)
+2. Firebase Auth fuer Login
+3. Cloud Firestore fuer Fachdaten
+4. Cloud Functions fuer kritische Serverlogik
+5. Firebase Messaging fuer Push-Token-Verwaltung
+6. PDF/Printing fuer Ausgaben
+
+## Projektstruktur (Kurzueberblick)
+
+1. lib/screens: Hauptseiten und Flows
+2. lib/widgets: Wiederverwendbare UI-Bausteine
+3. lib/models: Datenmodelle (Kind, Eltern, Lotterie)
+4. lib/services: Zugriffe auf Firestore/Fachdienste
+5. scripts: Hilfsskripte fuer Deploy/Entwicklung
+
+## Voraussetzungen
+
+1. Flutter SDK (aktuell/stable)
+2. Xcode fuer iOS-Builds
+3. Android SDK/ADB fuer Android-Builds
+4. Firebase-Projekt(e) inkl. Konfigurationsdateien
+
+## Einrichtung
+
+### 1) Repository klonen
+
 ```bash
 git clone https://github.com/Rookotronic/sommersprossen_app.git
 cd sommersprossen_app
 ```
 
-### 3. Install Dependencies
+### 2) Abhaengigkeiten installieren
+
 ```bash
 flutter pub get
 ```
 
-### 4. Firebase Setup
-- Add your Firebase config files (`google-services.json` for Android, `GoogleService-Info.plist` for iOS).
-- Configure `firebase_options.dart` using the FlutterFire CLI.
+### 3) Firebase konfigurieren
 
-### 5. Run the App
+1. Android: google-services.json pro Flavor hinterlegen
+2. iOS: GoogleService-Info-*.plist pro Umgebung hinterlegen
+3. FlutterFire-Optionen in lib/firebase_options.dart aktuell halten
+
+## Starten in der Entwicklung
+
+### Web (Chrome)
+
 ```bash
-flutter run
+flutter run -d chrome --dart-define=FLAVOR=dev
 ```
 
-### 6. Printing Lottery Details
-- On finished lotteries, admins can print details as PDF (sorted, marked, exportable).
+### Android Emulator (dev-Flavor)
 
-## 📄 Documentation
-- All major screens, widgets, and services are documented with Dart doc comments.
-- See `/lib/screens/` and `/lib/widgets/` for examples.
-- Recent improvements include:
-	- Defensive null-safety and context checks
-	- Async error handling for Firestore and Cloud Functions
-	- Cloud Function for secure parent creation
-		- New integer field `nTimesNoNeed` in the Child model (used to move children to the bottom of the lottery pot after volunteering to stay home multiple times)
-	- Updated dependencies for latest Flutter/Dart compatibility
+```bash
+flutter run -d emulator-5554 --flavor dev --dart-define=FLAVOR=dev
+```
 
-## 💡 Contributing
-Pull requests and feedback are welcome!
+### iPhone (dev)
 
-## 📦 License
+```bash
+flutter run -d <DEVICE_ID> --dart-define=FLAVOR=dev
+```
+
+## Deploy-Hinweis Android
+
+Fuer stabile Android-Deploys steht ein Skript bereit:
+
+```bash
+./scripts/deploy_android_dev.sh
+```
+
+Das Skript:
+
+1. erkennt einen laufenden Emulator
+2. baut das dev-debug APK
+3. installiert die App neu
+4. startet die App automatisch
+5. fuehrt eine deploy-Version mit Fingerprint-Logik
+
+## Konfiguration und Versionen
+
+1. App-Version: in pubspec.yaml
+2. Login-Label zeigt deploy-Version (falls gesetzt) oder App-Version
+3. Flavors werden ueber dart-define FLAVOR gesteuert
+
+## Aktuelle Produktlogik (Auszug)
+
+1. Eltern-E-Mail ist in der Eltern-Detailansicht nicht editierbar
+2. Parent-Optionen sind auch ohne zugeordnete Kinder sichtbar
+3. Aktionen mit hohem Fehlklick-Risiko wurden mit bestaetigenden Dialogen abgesichert
+4. Startup-Flow nutzt Firebase-Session/Rollenauflösung statt lokaler Login-Flags
+
+## Datenschutz und Rechtliches
+
+1. Datenschutzhinweise:
+   https://sommersprossen.org/datenschutzhinweise/
+   https://rookotronic.github.io/sommersprossen_app/privacy.html
+2. Impressum:
+   https://sommersprossen.org/impressum/
+
+## Qualitaetssicherung (empfohlen)
+
+```bash
+flutter analyze
+```
+
+## Lizenz
+
 MIT
-
-## 🔒 Privacy & Data Protection
-See our [Privacy Policy](https://rookotronic.github.io/sommersprossen_app/privacy.html) for details on data handling and protection.
