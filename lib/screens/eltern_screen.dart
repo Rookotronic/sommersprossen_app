@@ -65,7 +65,11 @@ class ElternScreenState extends State<ElternScreen>
               return Container(
                 color: isEven ? Colors.white : Colors.blue[50],
                 child: ListTile(
-                  title: Text('${parent.nachname}, ${parent.vorname}'),
+                  title: Text(
+                    '${parent.nachname}, ${parent.vorname}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   onTap: () => _showElternDetails(parent),
                 ),
               );

@@ -41,7 +41,11 @@ class ParentMainMenuScreen extends StatelessWidget {
     final userName = email.contains('@') ? email.split('@').first : email;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Hallo $userName!'),
+        title: Text(
+          'Hallo $userName!',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: const [LogoutButton()],
       ),
       body: FutureBuilder<String?>(

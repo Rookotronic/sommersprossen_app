@@ -54,6 +54,7 @@ class PrintLotteryButton extends StatelessWidget {
                   pw.Text(
                     lottery.information,
                     style: pw.TextStyle(fontSize: 12, color: PdfColors.grey800),
+                    softWrap: true,
                   ),
                   pw.SizedBox(height: 8),
                 ],

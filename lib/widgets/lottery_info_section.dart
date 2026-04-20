@@ -60,6 +60,7 @@ class LotteryInfoSection extends StatelessWidget {
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade900),
+                  softWrap: true,
                 ),
               ),
               IconButton(

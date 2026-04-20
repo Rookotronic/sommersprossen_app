@@ -211,7 +211,11 @@ class _KinderScreenState extends State<KinderScreen>
           return Container(
             color: isEven ? Colors.white : Colors.blue[50],
             child: ListTile(
-              title: Text('${kind.vorname} ${kind.nachname}'),
+              title: Text(
+                '${kind.vorname} ${kind.nachname}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               onTap: () => _showKinderDetails(kind),
             ),
           );
