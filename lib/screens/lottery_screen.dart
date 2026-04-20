@@ -192,6 +192,7 @@ class _LotteryScreenState extends State<LotteryScreen>
     final nrController = createController();
     final infoController = TextEditingController();
     String? errorText;
+    bool isCreating = false;
     return showDialog<bool>(
       context: context,
       builder: (context) {
@@ -256,67 +257,78 @@ class _LotteryScreenState extends State<LotteryScreen>
                   child: const Text('Abbrechen'),
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    final nr = int.tryParse(nrController.text.trim());
-                    final now = DateTime.now();
-                    final selectedDay = DateTime(
-                      selectedDate.year,
-                      selectedDate.month,
-                      selectedDate.day,
-                    );
-                    final today = DateTime(now.year, now.month, now.day);
-                    if (nr == null || nr < 1) {
-                      setState(
-                        () => errorText =
-                            'Bitte eine gültige Anzahl Kinder eingeben.',
-                      );
-                      return;
-                    }
-                    if (selectedDay.isBefore(today)) {
-                      setState(
-                        () => errorText =
-                            'Bitte ein gültiges Datum wählen (nicht in der Vergangenheit).',
-                      );
-                      return;
-                    }
-                    try {
-                      final callable = FirebaseFunctions.instanceFor(
-                        region: 'europe-west1',
-                      ).httpsCallable('addLottery');
-                      final result = await callable.call({
-                        'date': DateFormat('yyyy-MM-dd').format(selectedDate),
-                        'nrOfChildrenToPick': nr,
-                        'information': infoController.text.trim(),
-                      });
-                      if (result.data['success'] == true) {
-                        if (context.mounted) {
-                          Navigator.of(context, rootNavigator: true).pop(false);
-                        } else {
-                          return;
-                        }
-                      } else {
-                        setState(
-                          () => errorText =
-                              result.data['message'] ??
-                              'Fehler beim Speichern.',
-                        );
-                      }
-                    } catch (e) {
-                      if (!mounted) return;
-                      if (e is FirebaseFunctionsException) {
-                        setState(
-                          () =>
-                              errorText = e.message ?? 'Fehler beim Speichern.',
-                        );
-                      } else {
-                        setState(
-                          () => errorText =
-                              'Fehler beim Speichern: ${e.toString()}',
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Erstellen'),
+                  onPressed: isCreating
+                      ? null
+                      : () async {
+                          final nr = int.tryParse(nrController.text.trim());
+                          final now = DateTime.now();
+                          final selectedDay = DateTime(
+                            selectedDate.year,
+                            selectedDate.month,
+                            selectedDate.day,
+                          );
+                          final today = DateTime(now.year, now.month, now.day);
+                          if (nr == null || nr < 1) {
+                            setState(
+                              () => errorText =
+                                  'Bitte eine gültige Anzahl Kinder eingeben.',
+                            );
+                            return;
+                          }
+                          if (selectedDay.isBefore(today)) {
+                            setState(
+                              () => errorText =
+                                  'Bitte ein gültiges Datum wählen (nicht in der Vergangenheit).',
+                            );
+                            return;
+                          }
+                          setState(() => isCreating = true);
+                          try {
+                            final callable = FirebaseFunctions.instanceFor(
+                              region: 'europe-west1',
+                            ).httpsCallable('addLottery');
+                            final result = await callable.call({
+                              'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+                              'nrOfChildrenToPick': nr,
+                              'information': infoController.text.trim(),
+                            });
+                            if (result.data['success'] == true) {
+                              if (context.mounted) {
+                                Navigator.of(context, rootNavigator: true).pop(false);
+                              } else {
+                                return;
+                              }
+                            } else {
+                              setState(
+                                () => errorText =
+                                    result.data['message'] ??
+                                    'Fehler beim Speichern.',
+                              );
+                            }
+                          } catch (e) {
+                            if (!mounted) return;
+                            if (e is FirebaseFunctionsException) {
+                              setState(
+                                () =>
+                                    errorText = e.message ?? 'Fehler beim Speichern.',
+                              );
+                            } else {
+                              setState(
+                                () => errorText =
+                                    'Fehler beim Speichern: ${e.toString()}',
+                              );
+                            }
+                          } finally {
+                            if (mounted) setState(() => isCreating = false);
+                          }
+                        },
+                  child: isCreating
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Erstellen'),
                 ),
               ],
             );
