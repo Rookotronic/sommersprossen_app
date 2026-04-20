@@ -157,11 +157,6 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  bool _isAlphanumeric(String value) {
-    final alphanumeric = RegExp(r'^[a-zA-Z0-9]*$');
-    return alphanumeric.hasMatch(value);
-  }
-
   Future<void> _login(BuildContext context) async {
     final email = _userController.text.trim();
     final password = _passwordController.text.trim();
@@ -296,9 +291,6 @@ class _LoginScreenState extends State<LoginScreen>
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Bitte Passwort eingeben';
-                      }
-                      if (!_isAlphanumeric(value)) {
-                        return 'Nur Buchstaben und Zahlen erlaubt';
                       }
                       return null;
                     },
