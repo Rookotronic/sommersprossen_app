@@ -112,11 +112,8 @@ class _LoginScreenState extends State<LoginScreen>
     try {
       final info = await PackageInfo.fromPlatform();
       if (!mounted) return;
-      final buildSuffix = info.buildNumber.isNotEmpty
-          ? '+${info.buildNumber}'
-          : '';
       setState(() {
-        _versionLabel = 'App-Version ${info.version}$buildSuffix';
+        _versionLabel = 'App-Version ${info.version}';
       });
     } catch (_) {
       if (!mounted) return;
