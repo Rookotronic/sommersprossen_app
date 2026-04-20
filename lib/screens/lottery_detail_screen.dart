@@ -428,9 +428,12 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                               flex: 3,
                               child: Row(
                                 children: [
-                                  Text(
-                                    '${child.vorname} ${child.nachname}${showGezogen ? ' (gezogen)' : ''}',
-                                    style: const TextStyle(fontSize: 13),
+                                  Flexible(
+                                    child: Text(
+                                      '${child.vorname} ${child.nachname}${showGezogen ? ' (gezogen)' : ''}',
+                                      style: const TextStyle(fontSize: 13),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                   if (!lottery.finished)
                                     IconButton(
