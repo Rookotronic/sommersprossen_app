@@ -69,6 +69,7 @@ class _KinderScreenState extends State<KinderScreen>
       context: context,
       barrierDismissible: false,
       builder: (context) {
+        bool isSaving = false;
         return StatefulBuilder(
           builder: (context, setState) {
             return FormDialog(
@@ -132,55 +133,61 @@ class _KinderScreenState extends State<KinderScreen>
                   child: const Text('Abbrechen'),
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    final vorname = vornameController.text.trim();
-                    final nachname = nachnameController.text.trim();
-                    if (vorname.isEmpty) {
-                      setState(() => errorText = 'Vorname ist erforderlich.');
-                      return;
-                    }
-                    if (!isAlpha(vorname)) {
-                      setState(
-                        () => errorText =
-                            'Vorname: Nur Buchstaben und Sonderzeichen erlaubt.',
-                      );
-                      return;
-                    }
-                    if (nachname.isEmpty) {
-                      setState(() => errorText = 'Nachname ist erforderlich.');
-                      return;
-                    }
-                    if (!isAlpha(nachname)) {
-                      setState(
-                        () => errorText =
-                            'Nachname: Nur Buchstaben und Sonderzeichen erlaubt.',
-                      );
-                      return;
-                    }
-                    setState(() => errorText = null);
-                    // Kind in Firestore speichern.
-                    final result = await _firestoreService.add('children', {
-                      'vorname': vorname,
-                      'nachname': nachname,
-                      'parentIds': selectedParents.isEmpty
-                          ? null
-                          : selectedParents.map((p) => p.id).toList(),
-                      'nTimesNoNeed': 0,
-                      'two': isTwo,
-                      'siblings': <String>[],
-                    });
-                    if (result != null) {
-                      await _reloadKinder();
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      } else {
-                        return;
-                      }
-                    } else {
-                      setState(() => errorText = 'Fehler beim Speichern.');
-                    }
-                  },
-                  child: const Text('Speichern'),
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          final vorname = vornameController.text.trim();
+                          final nachname = nachnameController.text.trim();
+                          if (vorname.isEmpty) {
+                            setState(() => errorText = 'Vorname ist erforderlich.');
+                            return;
+                          }
+                          if (!isAlpha(vorname)) {
+                            setState(
+                              () => errorText =
+                                  'Vorname: Nur Buchstaben und Sonderzeichen erlaubt.',
+                            );
+                            return;
+                          }
+                          if (nachname.isEmpty) {
+                            setState(() => errorText = 'Nachname ist erforderlich.');
+                            return;
+                          }
+                          if (!isAlpha(nachname)) {
+                            setState(
+                              () => errorText =
+                                  'Nachname: Nur Buchstaben und Sonderzeichen erlaubt.',
+                            );
+                            return;
+                          }
+                          setState(() => errorText = null);
+                          setState(() => isSaving = true);
+                          // Kind in Firestore speichern.
+                          final result = await _firestoreService.add('children', {
+                            'vorname': vorname,
+                            'nachname': nachname,
+                            'parentIds': selectedParents.isEmpty
+                                ? null
+                                : selectedParents.map((p) => p.id).toList(),
+                            'nTimesNoNeed': 0,
+                            'two': isTwo,
+                            'siblings': <String>[],
+                          });
+                          if (result != null) {
+                            await _reloadKinder();
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            } else {
+                              return;
+                            }
+                          } else {
+                            setState(() => errorText = 'Fehler beim Speichern.');
+                          }
+                          if (mounted) setState(() => isSaving = false);
+                        },
+                  child: isSaving
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('Speichern'),
                 ),
               ],
             );
