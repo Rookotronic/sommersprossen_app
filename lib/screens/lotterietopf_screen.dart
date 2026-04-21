@@ -169,135 +169,156 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Lotterietopf')),
-      body: _loading || lotterypot == null || lotterypot!.kids.isEmpty
+      body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Card(
-                    color: Colors.blue.shade50,
-                    margin: const EdgeInsets.only(bottom: 24),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
+          : lotterypot == null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Es existiert noch kein Lotterietopf.',
+                        style: TextStyle(fontSize: 16),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: _showRefillDialog,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Lotterietopf anlegen'),
+                      ),
+                    ],
+                  ),
+                )
+              : lotterypot!.kids.isEmpty
+                  ? const Center(child: Text('Der Lotterietopf ist leer.'))
+                  : Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Text(
-                              'Startdatum: ${formatDate(lotterypot!.startDate)}',
-                              style: Theme.of(context).textTheme.titleMedium,
+                          Card(
+                            color: Colors.blue.shade50,
+                            margin: const EdgeInsets.only(bottom: 24),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Startdatum: ${formatDate(lotterypot!.startDate)}',
+                                      style: Theme.of(context).textTheme.titleMedium,
+                                    ),
+                                  ),
+                                  if (!hasActiveLottery) ...[
+                                    const SizedBox(width: 12),
+                                    ElevatedButton.icon(
+                                      onPressed: _showRefillDialog,
+                                      icon: const Icon(Icons.refresh),
+                                      label: const Text('Topf neu befüllen'),
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
                           ),
-                          if (!hasActiveLottery) ...[
-                            const SizedBox(width: 12),
-                            ElevatedButton.icon(
-                              onPressed: _showRefillDialog,
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('Topf neu befüllen'),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                  Text(
-                    'Einträge:',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: FutureBuilder<List<Child>>(
-                      future: ChildService.fetchChildrenByIds(lotterypot!.kids),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Fehler beim Laden der Kinder: ${snapshot.error}',
-                            ),
-                          );
-                        }
-                        final children = snapshot.data ?? [];
-                        return ListView.builder(
-                          itemCount: lotterypot!.kids.length,
-                          itemBuilder: (context, index) {
-                            final childId = lotterypot!.kids[index];
-                            final child = children.firstWhere(
-                              (c) => c.id == childId,
-                              orElse: () =>
-                                  Child(id: '', vorname: '', nachname: ''),
-                            );
-                            final childName = child.id.isNotEmpty
-                                ? '${child.vorname} ${child.nachname}'.trim()
-                                : 'dieses Kind';
-                            final style = Theme.of(context).textTheme.bodyLarge;
-                            return ListTile(
-                              leading: Text('#${index + 1}'),
-                              title: child.id.isNotEmpty
-                                  ? Text(
-                                      '${child.nachname}, ${child.vorname}',
-                                      style: style,
-                                    )
-                                  : Text('Unbekanntes Kind', style: style),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.arrow_upward,
-                                      color: Colors.blue,
+                          Text(
+                            'Einträge:',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: FutureBuilder<List<Child>>(
+                              future: ChildService.fetchChildrenByIds(lotterypot!.kids),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                                if (snapshot.hasError) {
+                                  return Center(
+                                    child: Text(
+                                      'Fehler beim Laden der Kinder: ${snapshot.error}',
                                     ),
-                                    tooltip: 'Kind nach oben',
-                                    onPressed: () async {
-                                      final confirmed =
-                                          await showConfirmationDialog(
-                                            context,
-                                            title:
-                                                'Kind nach oben verschieben?',
-                                            content:
-                                                'Möchtest du $childName wirklich nach oben setzen?',
-                                            confirmText: 'Ja, nach oben',
-                                          );
-                                      if (confirmed != true) return;
-                                      try {
-                                        final callable =
-                                            FirebaseFunctions.instanceFor(
-                                              region: 'europe-west1',
-                                            ).httpsCallable('sendKidToTop');
-                                        await callable.call({
-                                          'childId': childId,
-                                        });
-                                        if (!context.mounted) return;
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              '$childName wurde nach oben gesetzt.',
+                                  );
+                                }
+                                final children = snapshot.data ?? [];
+                                return ListView.builder(
+                                  itemCount: lotterypot!.kids.length,
+                                  itemBuilder: (context, index) {
+                                    final childId = lotterypot!.kids[index];
+                                    final child = children.firstWhere(
+                                      (c) => c.id == childId,
+                                      orElse: () =>
+                                          Child(id: '', vorname: '', nachname: ''),
+                                    );
+                                    final childName = child.id.isNotEmpty
+                                        ? '${child.vorname} ${child.nachname}'.trim()
+                                        : 'dieses Kind';
+                                    final style = Theme.of(context).textTheme.bodyLarge;
+                                    return ListTile(
+                                      leading: Text('#${index + 1}'),
+                                      title: child.id.isNotEmpty
+                                          ? Text(
+                                              '${child.nachname}, ${child.vorname}',
+                                              style: style,
+                                            )
+                                          : Text('Unbekanntes Kind', style: style),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.arrow_upward,
+                                              color: Colors.blue,
                                             ),
+                                            tooltip: 'Kind nach oben',
+                                            onPressed: () async {
+                                              final confirmed =
+                                                  await showConfirmationDialog(
+                                                    context,
+                                                    title:
+                                                        'Kind nach oben verschieben?',
+                                                    content:
+                                                        'Möchtest du $childName wirklich nach oben setzen?',
+                                                    confirmText: 'Ja, nach oben',
+                                                  );
+                                              if (confirmed != true) return;
+                                              try {
+                                                final callable =
+                                                    FirebaseFunctions.instanceFor(
+                                                      region: 'europe-west1',
+                                                    ).httpsCallable('sendKidToTop');
+                                                await callable.call({
+                                                  'childId': childId,
+                                                });
+                                                if (!context.mounted) return;
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      '$childName wurde nach oben gesetzt.',
+                                                    ),
+                                                  ),
+                                                );
+                                                await _loadPotData();
+                                              } catch (e) {
+                                                if (!context.mounted) return;
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      'Fehler: ${e.toString()}',
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
                                           ),
-                                        );
-                                        await _loadPotData();
-                                      } catch (e) {
-                                        if (!context.mounted) return;
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Fehler: ${e.toString()}',
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  ),
                                   IconButton(
                                     icon: const Icon(
                                       Icons.arrow_downward,
