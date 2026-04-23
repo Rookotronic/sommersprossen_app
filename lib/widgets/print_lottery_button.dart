@@ -119,6 +119,10 @@ class PrintLotteryButton extends StatelessWidget {
                         (e) => e.childId == child.id,
                       );
                       final showGezogen = lottery.finished && entry.picked;
+                      final isDeleted = (child.vorname.trim().isEmpty && child.nachname.trim().isEmpty);
+                      final displayName = isDeleted
+                          ? 'GELÖSCHT'
+                          : '${child.vorname} ${child.nachname}'.trim();
                       return pw.TableRow(
                         decoration: showGezogen
                             ? const pw.BoxDecoration(color: PdfColors.pink100)
@@ -127,7 +131,7 @@ class PrintLotteryButton extends StatelessWidget {
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(4),
                             child: pw.Text(
-                              '${child.vorname} ${child.nachname}${showGezogen ? ' (gezogen)' : ''}',
+                              '$displayName${showGezogen ? ' (gezogen)' : ''}',
                               style: pw.TextStyle(fontSize: 11),
                             ),
                           ),

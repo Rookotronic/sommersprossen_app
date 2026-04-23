@@ -409,6 +409,10 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                       );
                       final showGezogen =
                           lottery.finished && lotteryChild.picked;
+                      final isDeleted = (child.vorname.trim().isEmpty && child.nachname.trim().isEmpty);
+                      final displayName = isDeleted
+                          ? 'GELÖSCHT'
+                          : '${child.vorname} ${child.nachname}'.trim();
                       return Container(
                         padding: const EdgeInsets.symmetric(
                           vertical: 6,
@@ -430,7 +434,7 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      '${child.vorname} ${child.nachname}${showGezogen ? ' (gezogen)' : ''}',
+                                      '$displayName${showGezogen ? ' (gezogen)' : ''}',
                                       style: const TextStyle(fontSize: 13),
                                       overflow: TextOverflow.ellipsis,
                                     ),
