@@ -29,9 +29,8 @@ class PrintLotteryButton extends StatelessWidget {
       ),
       onPressed: () async {
         final pdf = pw.Document();
-        final sortedChildren = [...children]
-          ..sort((a, b) => a.nachname.compareTo(b.nachname));
-        // Informationsbereich
+        // Map for fast lookup of Child by id
+        final childMap = {for (var c in children) c.id: c};
         pdf.addPage(
           pw.Page(
             build: (context) => pw.Column(
@@ -114,10 +113,8 @@ class PrintLotteryButton extends StatelessWidget {
                         ),
                       ],
                     ),
-                    ...sortedChildren.map((child) {
-                      final entry = lottery.children.firstWhere(
-                        (e) => e.childId == child.id,
-                      );
+                    ...lottery.children.map((entry) {
+                      final child = childMap[entry.childId] ?? Child(id: '', vorname: '', nachname: '');
                       final showGezogen = lottery.finished && entry.picked;
                       final isDeleted = (child.vorname.trim().isEmpty && child.nachname.trim().isEmpty);
                       final displayName = isDeleted

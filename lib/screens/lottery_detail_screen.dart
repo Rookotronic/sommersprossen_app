@@ -254,7 +254,13 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                 );
               }
 
-              final children = snapshot.data ?? [];
+              final fetchedChildren = snapshot.data ?? [];
+              // Map of id -> Child for fast lookup
+              final childMap = {for (var c in fetchedChildren) c.id: c};
+              // Always create a children list matching lottery.children order/length
+              final children = lottery.children.map((lotteryChild) {
+                return childMap[lotteryChild.childId] ?? Child(id: '', vorname: '', nachname: '');
+              }).toList();
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
