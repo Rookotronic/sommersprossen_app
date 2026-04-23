@@ -7,6 +7,7 @@ class ActiveLotteryBox extends StatelessWidget {
   final bool responded;
   final bool need;
   final bool allAnswersReceived;
+  final bool finished;
   final String stateText;
   final Color boxColor;
   final VoidCallback? onNeed;
@@ -19,6 +20,7 @@ class ActiveLotteryBox extends StatelessWidget {
     required this.responded,
     required this.need,
     required this.allAnswersReceived,
+    required this.finished,
     required this.stateText,
     required this.boxColor,
     this.onNeed,
@@ -29,9 +31,11 @@ class ActiveLotteryBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       color: boxColor,
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0), // Wie ChildDetailsBox
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -58,23 +62,24 @@ class ActiveLotteryBox extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 12),
-            if (!allAnswersReceived) Row(
-              children: [
-                ElevatedButton(
-                  onPressed: onNeed,
-                  child: const Text('Bedarf'),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
+            if (!finished)
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: onNeed,
+                    child: const Text('Bedarf'),
                   ),
-                  onPressed: onNoNeed,
-                  child: const Text('Kein Bedarf'),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: onNoNeed,
+                    child: const Text('Kein Bedarf'),
+                  ),
+                ],
+              ),
           ],
         ),
       ),

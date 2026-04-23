@@ -186,6 +186,7 @@ class _MeinKindDetailScreenState extends State<MeinKindDetailScreen> {
                                 responded: responded,
                                 need: need,
                                 allAnswersReceived: allAnswersReceived,
+                                finished: finished,
                                 stateText: stateText,
                                 boxColor: boxColor,
                                 onNeed: () async {
