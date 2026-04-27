@@ -11,6 +11,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'loading_screen.dart';
 import 'main_menus.dart';
 import '../utils/validators.dart';
+import '../utils/firebase_error_messages.dart';
 
 /// Startbildschirm der App.
 ///
@@ -159,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen>
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
-        _errorMessage = 'Fehler: ${e.message ?? e.code}';
+        _errorMessage = firebaseAuthErrorMessage(e.code);
       });
     } catch (_) {
       setState(() {
@@ -231,13 +232,11 @@ class _LoginScreenState extends State<LoginScreen>
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
-        _errorMessage =
-            'Anmeldung fehlgeschlagen: [${e.code}] ${e.message ?? ''}';
+        _errorMessage = 'Anmeldung fehlgeschlagen: ' + firebaseAuthErrorMessage(e.code);
       });
     } catch (e) {
       setState(() {
-        _errorMessage =
-            'Anmeldung fehlgeschlagen: ${e is Exception ? e.toString() : 'Unbekannter Fehler'}';
+        _errorMessage = 'Anmeldung fehlgeschlagen: Unbekannter Fehler.';
       });
     }
   }

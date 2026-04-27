@@ -1,5 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:sommersprossen_app/utils/firebase_error_messages.dart';
 import '../utils/controller_lifecycle_mixin.dart';
 import '../utils/validators.dart';
 import '../widgets/confirmation_dialog.dart';
@@ -273,14 +274,14 @@ class ElternScreenState extends State<ElternScreen>
                                     } else {
                                       setState(
                                         () => errorText =
-                                            'Fehler beim Erstellen: ${fe.message ?? fe.code}',
+                                            firebaseAuthErrorMessage(fe.code, context: 'register'),
                                       );
                                     }
                                   } catch (e) {
                                     if (!mounted) return;
                                     setState(
                                       () => errorText =
-                                          'Fehler beim Erstellen: ${e.toString()}',
+                                          firebaseAuthErrorMessage('unknown', context: 'register'),
                                     );
                                   } finally {
                                     setStateBtn(() => isLoading = false);
