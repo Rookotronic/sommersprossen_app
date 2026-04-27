@@ -69,10 +69,15 @@ class _ParentOptionsScreenState extends State<ParentOptionsScreen> {
         const SnackBar(content: Text('Kinder werden ab jetzt getrennt gezogen.')),
       );
       Navigator.of(context).pop(true);
-    } catch (e) {
+    } on FirebaseFunctionsException catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Umstellen: $e')),
+        const SnackBar(content: Text('Fehler beim Umstellen. Bitte versuchen Sie es erneut.')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unbekannter Fehler beim Umstellen.')),
       );
     } finally {
       if (mounted) {
@@ -127,19 +132,15 @@ class _ParentOptionsScreenState extends State<ParentOptionsScreen> {
         MaterialPageRoute(builder: (_) => const StartupScreen()),
         (route) => false,
       );
-    } on FirebaseFunctionsException catch (e) {
+    } on FirebaseFunctionsException catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.message ?? 'Konto konnte nicht gelöscht werden.',
-          ),
-        ),
+        const SnackBar(content: Text('Konto konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.')),
       );
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Konto konnte nicht gelöscht werden: $e')),
+        const SnackBar(content: Text('Unbekannter Fehler beim Löschen des Kontos.')),
       );
     } finally {
       if (mounted) {
