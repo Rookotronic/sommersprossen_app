@@ -12,6 +12,7 @@ import 'loading_screen.dart';
 import 'main_menus.dart';
 import '../utils/validators.dart';
 import '../utils/firebase_error_messages.dart';
+import '../widgets/offline_banner.dart';
 
 /// Startbildschirm der App.
 ///
@@ -232,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen>
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
-        _errorMessage = 'Anmeldung fehlgeschlagen: ' + firebaseAuthErrorMessage(e.code);
+        _errorMessage = 'Anmeldung fehlgeschlagen: ${firebaseAuthErrorMessage(e.code)}';
       });
     } catch (e) {
       setState(() {
@@ -243,106 +244,108 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Anmeldung')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: AutofillGroup(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: _userController,
-                    decoration: const InputDecoration(
-                      labelText: 'E-Mail-Adresse',
-                      border: OutlineInputBorder(),
-                    ),
-                    textInputAction: TextInputAction.next,
-                    keyboardType: TextInputType.emailAddress,
-                    autofillHints: const [
-                      AutofillHints.username,
-                      AutofillHints.email,
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Bitte E-Mail-Adresse eingeben';
-                      }
-                      if (!isValidEmail(value)) {
-                        return 'Bitte gültige E-Mail-Adresse eingeben';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: 'Passwort',
-                      border: const OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+    return OfflineBanner(
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Anmeldung')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: AutofillGroup(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: _userController,
+                      decoration: const InputDecoration(
+                        labelText: 'E-Mail-Adresse',
+                        border: OutlineInputBorder(),
                       ),
-                    ),
-                    autofillHints: const [AutofillHints.password],
-                    obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.done,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Bitte Passwort eingeben';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  if (_errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          _login(context);
+                      textInputAction: TextInputAction.next,
+                      keyboardType: TextInputType.emailAddress,
+                      autofillHints: const [
+                        AutofillHints.username,
+                        AutofillHints.email,
+                      ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Bitte E-Mail-Adresse eingeben';
                         }
+                        if (!isValidEmail(value)) {
+                          return 'Bitte gültige E-Mail-Adresse eingeben';
+                        }
+                        return null;
                       },
-                      child: const Text('Anmelden'),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      _resetPassword(context);
-                    },
-                    child: const Text('Passwort vergessen?'),
-                  ),
-                  if (_versionLabel != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        _versionLabel!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade600,
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Passwort',
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
                         ),
                       ),
+                      autofillHints: const [AutofillHints.password],
+                      obscureText: _obscurePassword,
+                      textInputAction: TextInputAction.done,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Bitte Passwort eingeben';
+                        }
+                        return null;
+                      },
                     ),
-                ],
+                    const SizedBox(height: 24),
+                    if (_errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState?.validate() ?? false) {
+                            _login(context);
+                          }
+                        },
+                        child: const Text('Anmelden'),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () {
+                        _resetPassword(context);
+                      },
+                      child: const Text('Passwort vergessen?'),
+                    ),
+                    if (_versionLabel != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          _versionLabel!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),

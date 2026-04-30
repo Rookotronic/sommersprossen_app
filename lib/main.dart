@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/startup_screen.dart';
+import 'widgets/offline_banner.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -59,7 +60,9 @@ class MainApp extends StatelessWidget {
           surface: Colors.white, 
         ),
       ),
-      home: const StartupScreen(),
+      home: OfflineBanner(
+        child: const StartupScreen(),
+      ),
     );
   }
 }

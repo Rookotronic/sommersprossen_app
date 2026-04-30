@@ -26,6 +26,7 @@ dependencies:
   firebase_core: ^4.1.1
   pdf: ^3.11.3
   package_info_plus: ^8.0.0
+  connectivity_plus: ^5.0.2
 
 # Development dependencies
 dev_dependencies:
