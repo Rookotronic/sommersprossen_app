@@ -60,9 +60,10 @@ class MainApp extends StatelessWidget {
           surface: Colors.white, 
         ),
       ),
-      home: OfflineBanner(
-        child: const StartupScreen(),
+      builder: (context, child) => OfflineBanner(
+        child: child ?? const SizedBox.shrink(),
       ),
+      home: const StartupScreen(),
     );
   }
 }

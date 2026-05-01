@@ -12,7 +12,6 @@ import 'loading_screen.dart';
 import 'main_menus.dart';
 import '../utils/validators.dart';
 import '../utils/firebase_error_messages.dart';
-import '../widgets/offline_banner.dart';
 
 /// Startbildschirm der App.
 ///
@@ -156,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Passwort-Reset-E-Mail wurde gesendet!'),
-          ),
+          )
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -244,18 +243,17 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-    return OfflineBanner(
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Anmeldung')),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: AutofillGroup(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+    return Scaffold(
+      appBar: AppBar(title: const Text('Anmeldung')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
+            child: AutofillGroup(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                     TextFormField(
                       controller: _userController,
                       decoration: const InputDecoration(
@@ -345,13 +343,12 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                       ),
                   ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
-    );
+      );
   }
 }
 
