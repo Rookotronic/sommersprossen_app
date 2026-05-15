@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -13,26 +14,32 @@ class OfflineBanner extends StatefulWidget {
 class _OfflineBannerState extends State<OfflineBanner> {
   bool _isOffline = false;
   late final Connectivity _connectivity;
-  late final Stream<ConnectivityResult> _connectivityStream;
+  late final StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
     _connectivity = Connectivity();
-    _connectivityStream = _connectivity.onConnectivityChanged;
-    _checkInitialStatus();
-    _connectivityStream.listen((result) {
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((result) {
       setState(() {
         _isOffline = result == ConnectivityResult.none;
       });
     });
+    _checkInitialStatus();
   }
 
   Future<void> _checkInitialStatus() async {
     final result = await _connectivity.checkConnectivity();
+    if (!mounted) return;
     setState(() {
       _isOffline = result == ConnectivityResult.none;
     });
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
   }
 
   @override

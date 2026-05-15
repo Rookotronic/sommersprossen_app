@@ -315,7 +315,7 @@ class _LotteryScreenState extends State<LotteryScreen>
                             } else {
                               setState(
                                 () => errorText =
-                                    'Fehler beim Speichern: ${e.toString()}',
+                                    'Fehler beim Speichern. Bitte versuche es erneut.',
                               );
                             }
                           } finally {

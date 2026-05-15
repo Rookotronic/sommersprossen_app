@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, kReleaseMode, TargetPlatform;
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:logger/logger.dart';
 import 'screens/startup_screen.dart';
 import 'widgets/offline_banner.dart';
 
@@ -12,6 +13,10 @@ import 'firebase_options.dart';
 /// Initialisiert Firebase und startet die Hauptanwendung.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (kReleaseMode) {
+    Logger.level = Level.off;
+  }
 
   if (kIsWeb) {
     await Firebase.initializeApp(

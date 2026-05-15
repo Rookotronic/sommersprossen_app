@@ -58,7 +58,7 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
       await showErrorDialog(
         context,
         title: 'Fehler beim Laden des Lotterietopfs',
-        content: e.toString(),
+        content: 'Bitte prüfe deine Verbindung und versuche es erneut.',
       );
     }
   }
@@ -83,8 +83,8 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
         _loading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Fehler beim Laden der Lotterien: ${e.toString()}'),
+        const SnackBar(
+          content: Text('Fehler beim Laden der Lotterien. Bitte versuche es erneut.'),
         ),
       );
     }
@@ -123,7 +123,7 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                       'Details: ${e.details ?? ''}';
                 } else {
                   errorMsg =
-                      'Fehler beim Befüllen des Lotterietopfs: ${e.toString()}';
+                      'Fehler beim Befüllen des Lotterietopfs. Bitte versuche es erneut.';
                 }
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -310,9 +310,9 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                                                 ScaffoldMessenger.of(
                                                   context,
                                                 ).showSnackBar(
-                                                  SnackBar(
+                                                  const SnackBar(
                                                     content: Text(
-                                                      'Fehler: ${e.toString()}',
+                                                      'Aktion fehlgeschlagen. Bitte versuche es erneut.',
                                                     ),
                                                   ),
                                                 );
@@ -360,9 +360,9 @@ class _LotterietopfScreenState extends State<LotterietopfScreen> {
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
-                                          SnackBar(
+                                          const SnackBar(
                                             content: Text(
-                                              'Fehler: ${e.toString()}',
+                                              'Aktion fehlgeschlagen. Bitte versuche es erneut.',
                                             ),
                                           ),
                                         );

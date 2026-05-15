@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -161,6 +162,7 @@ class _LoginScreenState extends State<LoginScreen>
   bool _obscurePassword = true;
   String? _errorMessage;
   String? _versionLabel;
+  StreamSubscription<String>? _fcmTokenRefreshSubscription;
 
   @override
   void initState() {
@@ -196,6 +198,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   void dispose() {
+    _fcmTokenRefreshSubscription?.cancel();
     // Lifecycle wird vom ControllerLifecycleMixin verwaltet.
     super.dispose();
   }
@@ -230,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   Future<void> _login(BuildContext context) async {
     final email = _userController.text.trim();
-    final password = _passwordController.text.trim();
+    final password = _passwordController.text;
     if (!isValidEmail(email)) {
       setState(() {
         _errorMessage = 'Bitte gültige E-Mail-Adresse eingeben.';
@@ -258,7 +261,7 @@ class _LoginScreenState extends State<LoginScreen>
                   .doc(user.uid)
                   .update({'fcmToken': token});
             }
-            FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+            _fcmTokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
               await FirebaseFirestore.instance
                   .collection('users')
                   .doc(user.uid)

@@ -442,7 +442,7 @@ class ElternScreenState extends State<ElternScreen>
               context: context,
               builder: (context) => AlertDialog(
                 title: const Text('Fehler'),
-                content: Text('Fehler beim Senden der E-Mail: ${e.toString()}'),
+                content: const Text('Fehler beim Senden der E-Mail. Bitte versuche es erneut.'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -565,7 +565,7 @@ class _ElternDetailScreenState extends State<ElternDetailScreen>
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Speichern: ${e.toString()}')),
+        const SnackBar(content: Text('Fehler beim Speichern. Bitte versuche es erneut.')),
       );
     }
   }
@@ -614,7 +614,7 @@ class _ElternDetailScreenState extends State<ElternDetailScreen>
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Löschen: ${e.toString()}')),
+          const SnackBar(content: Text('Fehler beim Löschen. Bitte versuche es erneut.')),
         );
       }
     }
