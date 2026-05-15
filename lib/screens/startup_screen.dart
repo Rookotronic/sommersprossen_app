@@ -56,11 +56,8 @@ class _StartupScreenState extends State<StartupScreen> {
           : const ParentMainMenuScreen();
       return menu;
     } catch (e) {
-      debugPrint('Startup role fetch failed, falling back to login: $e');
-      FirebaseAuth.instance.signOut().catchError((_) {
-        // Ignore signOut errors during startup fallback.
-      });
-      return const LoginScreen();
+      debugPrint('Startup role fetch failed, keeping session active: $e');
+      return const StartupRetryScreen();
     }
   }
 
@@ -76,6 +73,68 @@ class _StartupScreenState extends State<StartupScreen> {
         }
         return const LoadingScreen();
       },
+    );
+  }
+}
+
+class StartupRetryScreen extends StatelessWidget {
+  const StartupRetryScreen({super.key});
+
+  Future<void> _retry(BuildContext context) async {
+    await Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const StartupScreen()),
+    );
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    if (!context.mounted) return;
+    await Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Verbindung prüfen')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off, size: 56),
+              const SizedBox(height: 16),
+              const Text(
+                'Dein Konto konnte gerade nicht geladen werden.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Bitte versuche es erneut. Deine Anmeldung bleibt erhalten.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _retry(context),
+                  child: const Text('Erneut versuchen'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => _signOut(context),
+                  child: const Text('Abmelden'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

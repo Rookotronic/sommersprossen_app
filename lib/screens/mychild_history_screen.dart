@@ -1,6 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+DateTime? _parseLotteryDate(dynamic raw) {
+  if (raw is Timestamp) {
+    return raw.toDate();
+  }
+  if (raw is int) {
+    return DateTime.fromMillisecondsSinceEpoch(raw);
+  }
+  if (raw is String) {
+    return DateTime.tryParse(raw);
+  }
+  return null;
+}
+
 /// Zeigt die Lotterie-Historie für ein bestimmtes Kind an.
 ///
 /// Listet alle vergangenen Lotterien und deren Ergebnis für das Kind auf.
@@ -51,18 +64,8 @@ class MyChildHistoryScreen extends StatelessWidget {
           }
           // Sortiere die Historie nach Datum absteigend
           history.sort((a, b) {
-            DateTime? dateA;
-            DateTime? dateB;
-            if (a['date'] is Timestamp) {
-              dateA = (a['date'] as Timestamp).toDate();
-            } else if (a['date'] is String) {
-              dateA = DateTime.tryParse(a['date'] as String);
-            }
-            if (b['date'] is Timestamp) {
-              dateB = (b['date'] as Timestamp).toDate();
-            } else if (b['date'] is String) {
-              dateB = DateTime.tryParse(b['date'] as String);
-            }
+            final dateA = _parseLotteryDate(a['date']);
+            final dateB = _parseLotteryDate(b['date']);
             if (dateA == null && dateB == null) return 0;
             if (dateA == null) return 1;
             if (dateB == null) return -1;
@@ -76,19 +79,10 @@ class MyChildHistoryScreen extends StatelessWidget {
             itemCount: history.length,
             itemBuilder: (context, index) {
               final item = history[index];
-              DateTime? date;
-              if (item['date'] is Timestamp) {
-                date = (item['date'] as Timestamp).toDate();
-              } else if (item['date'] is String) {
-                try {
-                  date = DateTime.parse(item['date'] as String);
-                } catch (_) {
-                  date = null;
-                }
-              }
-        final dateText = date != null
-          ? '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}'
-          : 'Unbekanntes Datum';
+              final date = _parseLotteryDate(item['date']);
+              final dateText = date != null
+                  ? '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}'
+                  : 'Unbekanntes Datum';
               final picked = item['picked'] == true;
               final need = item['need'] == true;
               Color cardColor;
