@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, kReleaseMode, TargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kDebugMode, kIsWeb, kReleaseMode, TargetPlatform;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logger/logger.dart';
 import 'screens/startup_screen.dart';
 import 'widgets/offline_banner.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'firebase_options.dart';
 
 /// Einstiegspunkt der App.
@@ -37,6 +38,11 @@ void main() async {
         break;
     }
   }
+
+  await FirebaseAppCheck.instance.activate(
+    providerAndroid: kDebugMode ? const AndroidDebugProvider() : const AndroidPlayIntegrityProvider(),
+    providerApple: kDebugMode ? const AppleDebugProvider() : const AppleDeviceCheckProvider(),
+  );
 
   runApp(const MainApp());
 }

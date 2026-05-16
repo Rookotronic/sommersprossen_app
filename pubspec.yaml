@@ -24,6 +24,7 @@ dependencies:
   firebase_messaging: ^16.0.2 # Push notifications
   printing: ^5.11.0 # PDF and print support
   firebase_core: ^4.1.1
+  firebase_app_check: ^0.4.1
   pdf: ^3.11.3
   package_info_plus: ^8.0.0
   connectivity_plus: ^5.0.2
