@@ -56,11 +56,22 @@ class _MeinKindDetailScreenState extends State<MeinKindDetailScreen> {
     if (child.parentIds.isEmpty) {
       return [];
     }
-    final snapshot = await FirebaseFirestore.instance
-        .collection('parents')
-        .where(FieldPath.documentId, whereIn: child.parentIds)
-        .get();
-    return snapshot.docs.map((doc) => Parent.fromFirestore(doc.id, doc.data())).toList();
+    final results = await Future.wait(
+      child.parentIds.map((id) async {
+        try {
+          final doc = await FirebaseFirestore.instance
+              .collection('parents')
+              .doc(id)
+              .get();
+          if (!doc.exists) return null;
+          return Parent.fromFirestore(doc.id, doc.data()!);
+        } catch (_) {
+          // No read access to this parent doc (e.g. co-parent) — skip silently.
+          return null;
+        }
+      }),
+    );
+    return results.whereType<Parent>().toList();
   }
 
   Future<List<Parent>> _getParentsFuture(Child child) {

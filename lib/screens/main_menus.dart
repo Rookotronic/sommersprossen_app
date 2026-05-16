@@ -23,15 +23,14 @@ class ParentMainMenuScreen extends StatelessWidget {
 
   /// Holt die Dokumenten-ID des eingeloggten Elternteils aus Firestore.
   Future<String?> _getParentDocId() async {
-    final email = FirebaseAuth.instance.currentUser?.email;
-    if (email == null) return null;
-    final snap = await FirebaseFirestore.instance
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return null;
+    final doc = await FirebaseFirestore.instance
         .collection('parents')
-        .where('email', isEqualTo: email)
-        .limit(1)
+        .doc(uid)
         .get();
-    if (snap.docs.isEmpty) return null;
-    return snap.docs.first.id;
+    if (!doc.exists) return null;
+    return doc.id;
   }
 
   /// Baut das UI für das Eltern-Hauptmenü.
