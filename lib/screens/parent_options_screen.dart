@@ -61,7 +61,7 @@ class _ParentOptionsScreenState extends State<ParentOptionsScreen> {
     setState(() => _isUpdatingSiblingMode = true);
     try {
       final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
-      final callable = functions.httpsCallable('SeperateSiblings');
+        final callable = functions.httpsCallable('SeparateSiblings');
       final childIds = widget.children.map((c) => c.id).toList();
       await callable({'childIds': childIds});
       if (!mounted) return;
