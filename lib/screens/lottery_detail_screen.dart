@@ -325,8 +325,8 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 4,
+                        vertical: 10,
+                        horizontal: 8,
                       ),
                       color: Colors.grey.shade200,
                       child: Column(
@@ -335,24 +335,36 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                             children: [
                               Expanded(
                                 flex: 3,
-                                child: Text(
-                                  'Name',
-                                  style: const TextStyle(fontSize: 11),
-                                ),
-                              ),
-                              Expanded(
-                                child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 4),
                                   child: Text(
-                                    'Benachrichtigt',
-                                    style: const TextStyle(fontSize: 11),
+                                    'Name',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ),
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    'Geantwortet',
-                                    style: const TextStyle(fontSize: 11),
+                                    'Benachr.',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    'Antwort',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -360,12 +372,16 @@ class _LotteryDetailScreenState extends State<LotteryDetailScreen> {
                                 child: Center(
                                   child: Text(
                                     'Bedarf',
-                                    style: const TextStyle(fontSize: 11),
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ),
                             ],
                           ),
+                          const SizedBox(height: 4),
                           Row(
                             children: [
                               const Expanded(flex: 3, child: SizedBox()),

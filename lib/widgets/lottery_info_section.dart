@@ -18,6 +18,20 @@ class LotteryInfoSection extends StatelessWidget {
     this.showDateHeader = true,
   });
 
+  Widget _buildEditButton({
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return IconButton(
+      icon: const Icon(Icons.edit, size: 18),
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+      onPressed: onPressed,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -31,6 +45,7 @@ class LotteryInfoSection extends StatelessWidget {
           const SizedBox(height: 8),
         ],
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: Text(
@@ -38,8 +53,7 @@ class LotteryInfoSection extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.edit, size: 20),
+            _buildEditButton(
               tooltip: 'Anzahl bearbeiten',
               onPressed: () => onEditNumberToPick(
                 context,
@@ -63,11 +77,13 @@ class LotteryInfoSection extends StatelessWidget {
                   softWrap: true,
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.edit, size: 20),
-                tooltip: 'Bearbeiten',
-                onPressed: () =>
-                    onEditInformation(context, lottery.information),
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: _buildEditButton(
+                  tooltip: 'Bearbeiten',
+                  onPressed: () =>
+                      onEditInformation(context, lottery.information),
+                ),
               ),
             ],
           ),
@@ -76,8 +92,7 @@ class LotteryInfoSection extends StatelessWidget {
           Row(
             children: [
               Expanded(child: const SizedBox()),
-              IconButton(
-                icon: const Icon(Icons.edit, size: 20),
+              _buildEditButton(
                 tooltip: 'Information hinzufügen',
                 onPressed: () => onEditInformation(context, ''),
               ),
