@@ -30,8 +30,8 @@ class ChildrenListSection extends StatelessWidget {
           child: Row(
             children: [
               Expanded(flex: 3, child: Text('Name', style: const TextStyle(fontSize: 11))),
-              Expanded(child: Center(child: Text('Benachrichtigt', style: const TextStyle(fontSize: 11)))),
-              Expanded(child: Center(child: Text('Geantwortet', style: const TextStyle(fontSize: 11)))),
+              Expanded(child: Center(child: Text('Benachr.', style: const TextStyle(fontSize: 11)))),
+              Expanded(child: Center(child: Text('Antwort', style: const TextStyle(fontSize: 11)))),
               Expanded(child: Center(child: Text('Bedarf', style: const TextStyle(fontSize: 11)))),
             ],
           ),
