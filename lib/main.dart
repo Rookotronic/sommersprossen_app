@@ -9,6 +9,37 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'firebase_options.dart';
 
+Future<void> initializeFirebase() async {
+  try {
+    if (kIsWeb) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      return;
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        await Firebase.initializeApp();
+        break;
+      default:
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        break;
+    }
+  } catch (error) {
+    final isDuplicateApp = error is FirebaseException
+        ? error.code == 'duplicate-app'
+        : error.toString().contains('duplicate-app');
+
+    if (!isDuplicateApp) {
+      rethrow;
+    }
+  }
+}
+
 /// Einstiegspunkt der App.
 ///
 /// Initialisiert Firebase und startet die Hauptanwendung.
@@ -19,25 +50,7 @@ void main() async {
     Logger.level = Level.off;
   }
 
-  if (Firebase.apps.isEmpty) {
-    if (kIsWeb) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    } else {
-      switch (defaultTargetPlatform) {
-        case TargetPlatform.iOS:
-        case TargetPlatform.macOS:
-          await Firebase.initializeApp();
-          break;
-        default:
-          await Firebase.initializeApp(
-            options: DefaultFirebaseOptions.currentPlatform,
-          );
-          break;
-      }
-    }
-  }
+  await initializeFirebase();
 
   await FirebaseAppCheck.instance.activate(
     providerAndroid: kDebugMode ? const AndroidDebugProvider() : const AndroidPlayIntegrityProvider(),
