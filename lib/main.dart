@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, kReleaseMode, TargetPlatform;
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logger/logger.dart';
 import 'screens/startup_screen.dart';
@@ -11,24 +11,9 @@ import 'firebase_options.dart';
 
 Future<void> initializeFirebase() async {
   try {
-    if (kIsWeb) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      return;
-    }
-
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        await Firebase.initializeApp();
-        break;
-      default:
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-        break;
-    }
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (error) {
     final isDuplicateApp = error is FirebaseException
         ? error.code == 'duplicate-app'
@@ -53,16 +38,22 @@ void main() async {
   await initializeFirebase();
 
   const flavor = String.fromEnvironment('FLAVOR');
-  final isProd = flavor == 'prod' || kReleaseMode;
+  // isProd nur wenn FLAVOR=prod explizit gesetzt.
+  // kReleaseMode NICHT verwenden: dev-signierte Release-Builds
+  // unterstützen kein DeviceCheck und würden App-Check-Fehler produzieren.
+  final isProd = flavor == 'prod';
+
   await FirebaseAppCheck.instance.activate(
     providerAndroid: isProd ? const AndroidPlayIntegrityProvider() : const AndroidDebugProvider(),
-    providerApple: isProd ? const AppleDeviceCheckProvider() : const AppleDebugProvider(),
+    providerApple: isProd ? const AppleAppAttestProvider() : const AppleDebugProvider(),
   );
 
   if (!isProd) {
-    final token = await FirebaseAppCheck.instance.getToken(true);
-    // ignore: avoid_print
-    print('🔑 App Check Debug Token: $token');
+    // Token asynchron abrufen – nicht auf Ergebnis warten, damit App nicht hängt
+    FirebaseAppCheck.instance.getToken(true).then((token) {
+      // ignore: avoid_print
+      print('🔑 App Check Debug Token: $token');
+    });
   }
 
   runApp(const MainApp());
