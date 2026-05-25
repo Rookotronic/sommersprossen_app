@@ -53,6 +53,9 @@ class ParentMainMenuScreen extends StatelessWidget {
           if (parentSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+          if (parentSnapshot.hasError) {
+            return Center(child: Text('Fehler: ${parentSnapshot.error}'));
+          }
           if (!parentSnapshot.hasData || parentSnapshot.data == null) {
             return const Center(child: Text('Kein Eltern-Datensatz gefunden.'));
           }

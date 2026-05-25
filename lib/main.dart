@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, kDebugMode, kIsWeb, kReleaseMode, TargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, kReleaseMode, TargetPlatform;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logger/logger.dart';
 import 'screens/startup_screen.dart';
@@ -52,10 +52,18 @@ void main() async {
 
   await initializeFirebase();
 
+  const flavor = String.fromEnvironment('FLAVOR');
+  final isProd = flavor == 'prod' || kReleaseMode;
   await FirebaseAppCheck.instance.activate(
-    providerAndroid: kDebugMode ? const AndroidDebugProvider() : const AndroidPlayIntegrityProvider(),
-    providerApple: kDebugMode ? const AppleDebugProvider() : const AppleDeviceCheckProvider(),
+    providerAndroid: isProd ? const AndroidPlayIntegrityProvider() : const AndroidDebugProvider(),
+    providerApple: isProd ? const AppleDeviceCheckProvider() : const AppleDebugProvider(),
   );
+
+  if (!isProd) {
+    final token = await FirebaseAppCheck.instance.getToken(true);
+    // ignore: avoid_print
+    print('🔑 App Check Debug Token: $token');
+  }
 
   runApp(const MainApp());
 }
@@ -69,6 +77,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
