@@ -38,23 +38,14 @@ void main() async {
   await initializeFirebase();
 
   const flavor = String.fromEnvironment('FLAVOR');
-  // isProd nur wenn FLAVOR=prod explizit gesetzt.
-  // kReleaseMode NICHT verwenden: dev-signierte Release-Builds
-  // unterstützen kein DeviceCheck und würden App-Check-Fehler produzieren.
+  const appCheckDebug = bool.fromEnvironment('APPCHECK_DEBUG');
   final isProd = flavor == 'prod';
+  final useProductionProvider = isProd && !appCheckDebug;
 
   await FirebaseAppCheck.instance.activate(
-    providerAndroid: isProd ? const AndroidPlayIntegrityProvider() : const AndroidDebugProvider(),
-    providerApple: isProd ? const AppleAppAttestProvider() : const AppleDebugProvider(),
+    providerAndroid: useProductionProvider ? const AndroidPlayIntegrityProvider() : const AndroidDebugProvider(),
+    providerApple: useProductionProvider ? const AppleAppAttestProvider() : const AppleDebugProvider(),
   );
-
-  if (!isProd) {
-    // Token asynchron abrufen – nicht auf Ergebnis warten, damit App nicht hängt
-    FirebaseAppCheck.instance.getToken(true).then((token) {
-      // ignore: avoid_print
-      print('🔑 App Check Debug Token: $token');
-    });
-  }
 
   runApp(const MainApp());
 }
@@ -84,9 +75,9 @@ class MainApp extends StatelessWidget {
           surface: Colors.white, 
         ),
       ),
-      builder: (context, child) => OfflineBanner(
-        child: child ?? const SizedBox.shrink(),
-      ),
+      builder: (context, child) {
+        return OfflineBanner(child: child ?? const SizedBox.shrink());
+      },
       home: const StartupScreen(),
     );
   }
