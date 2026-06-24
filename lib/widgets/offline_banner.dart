@@ -14,25 +14,25 @@ class OfflineBanner extends StatefulWidget {
 class _OfflineBannerState extends State<OfflineBanner> {
   bool _isOffline = false;
   late final Connectivity _connectivity;
-  late final StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  late final StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
     _connectivity = Connectivity();
-    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((result) {
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((results) {
       setState(() {
-        _isOffline = result == ConnectivityResult.none;
+        _isOffline = results.isEmpty || results.every((r) => r == ConnectivityResult.none);
       });
     });
     _checkInitialStatus();
   }
 
   Future<void> _checkInitialStatus() async {
-    final result = await _connectivity.checkConnectivity();
+    final results = await _connectivity.checkConnectivity();
     if (!mounted) return;
     setState(() {
-      _isOffline = result == ConnectivityResult.none;
+      _isOffline = results.isEmpty || results.every((r) => r == ConnectivityResult.none);
     });
   }
 
