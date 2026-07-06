@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../widgets/lottery_result_box.dart';
 import '../widgets/active_lottery_box.dart';
 import '../models/child.dart';
-import '../models/parent.dart';
 
 import '../widgets/child_details_box.dart';
 import 'mychild_history_screen.dart';
@@ -25,59 +24,6 @@ class MeinKindDetailScreen extends StatefulWidget {
 }
 
 class _MeinKindDetailScreenState extends State<MeinKindDetailScreen> {
-  final Map<String, Future<List<Parent>>> _parentsFutures =
-      <String, Future<List<Parent>>>{};
-
-  @override
-  void initState() {
-    super.initState();
-    _syncParentFutureCache();
-  }
-
-  @override
-  void didUpdateWidget(covariant MeinKindDetailScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _syncParentFutureCache();
-  }
-
-  void _syncParentFutureCache() {
-    final validIds = widget.children.map((c) => c.id).toSet();
-    _parentsFutures.removeWhere((id, _) => !validIds.contains(id));
-    for (final child in widget.children) {
-      _parentsFutures.putIfAbsent(
-        child.id,
-        () => _fetchParentsForChild(child),
-      );
-    }
-  }
-
-  /// Holt die Eltern für ein bestimmtes Kind aus Firestore.
-  Future<List<Parent>> _fetchParentsForChild(Child child) async {
-    if (child.parentIds.isEmpty) {
-      return [];
-    }
-    final results = await Future.wait(
-      child.parentIds.map((id) async {
-        try {
-          final doc = await FirebaseFirestore.instance
-              .collection('parents')
-              .doc(id)
-              .get();
-          if (!doc.exists) return null;
-          return Parent.fromFirestore(doc.id, doc.data()!);
-        } catch (_) {
-          // No read access to this parent doc (e.g. co-parent) — skip silently.
-          return null;
-        }
-      }),
-    );
-    return results.whereType<Parent>().toList();
-  }
-
-  Future<List<Parent>> _getParentsFuture(Child child) {
-    return _parentsFutures.putIfAbsent(child.id, () => _fetchParentsForChild(child));
-  }
-
   /// Baut die UI für die Kinder-Detailansicht.
   @override
   Widget build(BuildContext context) {
@@ -97,13 +43,7 @@ class _MeinKindDetailScreenState extends State<MeinKindDetailScreen> {
                 itemCount: widget.children.length,
                 itemBuilder: (context, index) {
                   final child = widget.children[index];
-                  return KeyedSubtree(
-                    key: ValueKey<String>(child.id),
-                    child: FutureBuilder<List<Parent>>(
-                      future: _getParentsFuture(child),
-                      builder: (context, snapshot) {
-                        final parents = snapshot.data ?? [];
-                        final now = DateTime.now();
+                  final now = DateTime.now();
                         final List<Map<String, dynamic>> lotteryEntries = [];
 
                         for (final doc in lotteryDocs) {
@@ -258,28 +198,27 @@ class _MeinKindDetailScreenState extends State<MeinKindDetailScreen> {
                           }
                         }
 
-                        return Column(
-                          children: [
-                            ChildDetailsBox(
-                              child: child,
-                              parents: parents,
-                              onHistoryTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => MyChildHistoryScreen(
-                                      childId: child.id,
-                                      childName:
-                                          '${child.vorname} ${child.nachname}',
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            if (lotteryBoxes.isNotEmpty)
-                              Column(children: lotteryBoxes),
-                          ],
-                        );
-                      },
+                  return KeyedSubtree(
+                    key: ValueKey<String>(child.id),
+                    child: Column(
+                      children: [
+                        ChildDetailsBox(
+                          child: child,
+                          onHistoryTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => MyChildHistoryScreen(
+                                  childId: child.id,
+                                  childName:
+                                      '${child.vorname} ${child.nachname}',
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        if (lotteryBoxes.isNotEmpty)
+                          Column(children: lotteryBoxes),
+                      ],
                     ),
                   );
                 },
