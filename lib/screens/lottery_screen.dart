@@ -200,9 +200,10 @@ class _LotteryScreenState extends State<LotteryScreen>
           builder: (context, setState) {
             return AlertDialog(
               title: const Text('Neue Lotterie starten'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                   ListTile(
                     title: Text(_formatDate(selectedDate)),
                     trailing: const Icon(Icons.calendar_today),
@@ -230,15 +231,13 @@ class _LotteryScreenState extends State<LotteryScreen>
                     ),
                   ),
                   // Information field (always last)
-                  Flexible(
-                    child: TextField(
-                      controller: infoController,
-                      maxLength: 300,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Information',
-                        hintText: 'Weitere Details zur Lotterie',
-                      ),
+                  TextField(
+                    controller: infoController,
+                    maxLength: 300,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Information',
+                      hintText: 'Weitere Details zur Lotterie',
                     ),
                   ),
                   if (errorText != null)
@@ -250,6 +249,7 @@ class _LotteryScreenState extends State<LotteryScreen>
                       ),
                     ),
                 ],
+              ),
               ),
               actions: [
                 TextButton(
