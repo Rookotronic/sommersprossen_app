@@ -62,7 +62,8 @@
       line-height: 1.5;
     }
 
-    .email-badge {
+    .email-readonly-field {
+      width: 100%;
       background: #f0fdf4;
       border: 1px solid #bbf7d0;
       border-radius: 8px;
@@ -71,6 +72,10 @@
       color: #166534;
       margin-bottom: 22px;
       word-break: break-all;
+      cursor: default;
+      outline: none;
+      /* Kein visueller Fokus-Ring, da read-only */
+      pointer-events: none;
     }
 
     .form-group {
@@ -231,17 +236,23 @@
       <h1>Neues Passwort wählen</h1>
       <p class="subtitle">Wähle ein sicheres Passwort für dein Konto.</p>
 
-      <div id="email-badge" class="email-badge"></div>
-
       <form id="reset-form" novalidate>
-        <!-- Verstecktes Feld: gibt Passwortmanagern den Kontonamen -->
-        <input id="email-hint" type="email" autocomplete="username"
-               style="display:none" tabindex="-1" aria-hidden="true" readonly />
+        <!-- Sichtbares readonly-Feld: zeigt die E-Mail-Adresse und gibt
+             Passwortmanagern den Kontonamen (RFC-konform: type=email, name=username) -->
+        <input id="email-field"
+               type="email"
+               name="username"
+               autocomplete="username"
+               class="email-readonly-field"
+               readonly
+               tabindex="-1"
+               aria-label="E-Mail-Adresse" />
 
         <div class="form-group">
           <label for="pw1">Neues Passwort</label>
           <div class="input-wrap">
             <input type="password" id="pw1"
+                   name="new-password"
                    autocomplete="new-password"
                    placeholder="Mindestens 8 Zeichen" />
             <button type="button" class="toggle-btn"
@@ -261,6 +272,7 @@
           <label for="pw2">Passwort bestätigen</label>
           <div class="input-wrap">
             <input type="password" id="pw2"
+                   name="confirm-password"
                    autocomplete="new-password"
                    placeholder="Passwort wiederholen" />
             <button type="button" class="toggle-btn"
@@ -377,11 +389,8 @@
           return;
         }
 
-        /* E-Mail anzeigen (textContent verhindert XSS) */
-        var badge = document.getElementById('email-badge');
-        badge.textContent = '📧 \u00A0' + (data.email || '');
-        /* Passwortmanager-Hint befüllen */
-        document.getElementById('email-hint').value = data.email || '';
+        /* E-Mail ins readonly-Feld setzen (value-Property verhindert XSS) */
+        document.getElementById('email-field').value = data.email || '';
 
         showState('s-form');
         document.getElementById('pw1').focus();
