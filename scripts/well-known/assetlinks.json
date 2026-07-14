@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.sommersprossen.app",
+      "sha256_cert_fingerprints": [
+        "EC:0A:63:F4:C4:E5:E2:E1:EE:E1:44:C2:C4:B4:98:C4:3F:9A:71:29:89:96:22:9F:FC:AD:8C:5F:A6:F7:CC:BE"
+      ]
+    }
+  }
+]

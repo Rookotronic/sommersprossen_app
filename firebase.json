@@ -1,1 +1,31 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"sommersprossenapp","appId":"1:767015238873:android:2129128619159e886dd2c8","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"sommersprossenapp","appId":"1:767015238873:ios:9275b33ef5c6ef936dd2c8","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"sommersprossenapp","appId":"1:767015238873:ios:9275b33ef5c6ef936dd2c8","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"sommersprossenapp","configurations":{"android":"1:767015238873:android:2129128619159e886dd2c8","ios":"1:767015238873:ios:9275b33ef5c6ef936dd2c8","macos":"1:767015238873:ios:9275b33ef5c6ef936dd2c8","web":"1:767015238873:web:a8aecf547a9e30b86dd2c8","windows":"1:767015238873:web:a8aecf547a9e30b86dd2c8"}}}}}}
+{
+  "hosting": {
+    "public": "hosting",
+    "ignore": [
+      "firebase.json",
+      "**/.*"
+    ],
+    "headers": [
+      {
+        "source": "**/.well-known/**",
+        "headers": [
+          { "key": "Content-Type",                   "value": "application/json" },
+          { "key": "Access-Control-Allow-Origin",    "value": "*"                },
+          { "key": "Cache-Control",                  "value": "public, max-age=3600" }
+        ]
+      },
+      {
+        "source": "/reset-password/**",
+        "headers": [
+          { "key": "X-Frame-Options",                "value": "DENY"             },
+          { "key": "X-Content-Type-Options",         "value": "nosniff"          },
+          { "key": "Referrer-Policy",                "value": "no-referrer"      },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://identitytoolkit.googleapis.com; img-src 'self' data:; base-uri 'none'; form-action 'self'"
+          }
+        ]
+      }
+    ]
+  },
+  "flutter":{"platforms":{"android":{"default":{"projectId":"sommersprossenapp","appId":"1:767015238873:android:2129128619159e886dd2c8","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"sommersprossenapp","appId":"1:767015238873:ios:9275b33ef5c6ef936dd2c8","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"sommersprossenapp","appId":"1:767015238873:ios:9275b33ef5c6ef936dd2c8","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"sommersprossenapp","configurations":{"android":"1:767015238873:android:2129128619159e886dd2c8","ios":"1:767015238873:ios:9275b33ef5c6ef936dd2c8","macos":"1:767015238873:ios:9275b33ef5c6ef936dd2c8","web":"1:767015238873:web:a8aecf547a9e30b86dd2c8","windows":"1:767015238873:web:a8aecf547a9e30b86dd2c8"}}}}}}

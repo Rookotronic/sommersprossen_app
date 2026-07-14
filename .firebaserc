@@ -1,6 +1,7 @@
 {
   "projects": {
-    "staging": "sommersprossenapp"
+    "staging": "sommersprossenapp",
+    "prod": "sommersprossen-app-prod"
   },
   "targets": {},
   "etags": {}
