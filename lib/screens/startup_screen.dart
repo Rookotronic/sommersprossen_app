@@ -186,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen>
       final info = await PackageInfo.fromPlatform();
       if (!mounted) return;
       setState(() {
-        _versionLabel = 'App-Version ${info.version}';
+        _versionLabel = 'App-Version ${info.version.split('+').first}';
       });
     } catch (_) {
       if (!mounted) return;
