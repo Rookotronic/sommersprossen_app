@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Passwort geändert – Sommersprossen KITA</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   Helvetica, Arial, sans-serif;
+      background: #f0fdf4;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      color: #1f2937;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 40px 32px;
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+    }
+    .state-icon { font-size: 2.8rem; margin-bottom: 14px; }
+    h1 { font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 6px; }
+    p  { font-size: 0.9rem; color: #4b5563; margin-top: 10px; line-height: 1.5; }
+    .open-btn {
+      display: inline-block;
+      margin-top: 24px;
+      padding: 13px 28px;
+      background: #0f766e;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .open-btn:hover { background: #0d6460; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="state-icon">✅</div>
+    <h1>Passwort geändert</h1>
+    <p>
+      Dein Passwort wurde erfolgreich geändert. Du kannst dich jetzt in der
+      <strong>Sommersprossen KITA App</strong> mit deinem neuen Passwort anmelden.
+    </p>
+    <!-- Dieser Button öffnet die App via Custom URL Scheme.
+         Der Tap ist gleichzeitig die user-initiierte Navigation,
+         die iOS braucht um "Passwort aktualisieren?" anzuzeigen. -->
+    <a href="sommersprossen://open" class="open-btn">App öffnen</a>
+  </div>
+</body>
+</html>

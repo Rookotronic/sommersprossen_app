@@ -237,7 +237,7 @@
       <h1>Neues Passwort wählen</h1>
       <p class="subtitle">Wähle ein sicheres Passwort für dein Konto.</p>
 
-      <form id="reset-form" novalidate>
+      <form id="reset-form" method="post" action="/reset-password/done" novalidate>
         <!-- Sichtbares readonly-Feld: zeigt die E-Mail-Adresse und gibt
              Passwortmanagern den Kontonamen (RFC-konform: type=email, name=username) -->
         <input id="email-field"
@@ -370,6 +370,18 @@
 
     /* ── Code verifizieren (Seiten-Ladezeit) ── */
     async function verifyCode() {
+      /* iOS-Navigation-Signal: Seite wurde nach erfolgreichem Reset neu geladen.
+         Nach kurzem Anzeigen des Erfolgsscreens nochmals navigieren – iOS
+         zeigt den "Passwort aktualisieren?"-Prompt erst bei dieser zweiten
+         Navigation nach dem Form-Submit. */
+      if (params.get('status') === 'done') {
+        showState('s-success');
+        window.setTimeout(function () {
+          window.location.replace('/reset-password/success/');
+        }, 700);
+        return;
+      }
+
       if (mode !== 'resetPassword' || !oobCode || !apiKey) {
         showState('s-error');
         return;
@@ -460,11 +472,7 @@
           return;
         }
 
-        showState('s-success');
-
-        /* Credential Management API: Browser/Passwortmanager über das neue
-           Passwort informieren. Löst auf Android den "Passwort speichern /
-           aktualisieren"-Dialog aus, ohne dass ein manueller Login nötig ist. */
+        /* Credential Management API (Android Chrome): läuft vor dem Submit. */
         if (window.PasswordCredential) {
           var credEmail = document.getElementById('email-field').value
                           || (data && data.email) || '';
@@ -476,6 +484,17 @@
             } catch (_) {}
           }
         }
+
+        /* iOS AutoFill – Update-Trick:
+           Das Formular wird unmittelbar vor dem nativen Submit von einem
+           "Passwort setzen"-Formular (new-password) in ein "Login"-Formular
+           (current-password) umgewandelt. iOS interpretiert den Submit dann als
+           "Benutzer hat sich mit einem Passwort eingeloggt, das vom gespeicherten
+           abweicht" → zeigt "Passwort aktualisieren?" → Credential wird direkt
+           geupdated, ohne dass der User sich erst manuell einloggen muss. */
+        pw1Input.setAttribute('autocomplete', 'current-password');
+        pw2Input.setAttribute('autocomplete', 'off');
+        document.getElementById('reset-form').submit();
 
       } catch (_) {
         submitErr.textContent = 'Netzwerkfehler. Bitte überprüfe deine Internetverbindung.';

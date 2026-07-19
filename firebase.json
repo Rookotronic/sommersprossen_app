@@ -5,6 +5,13 @@
       "firebase.json",
       "**/.*"
     ],
+    "redirects": [
+      {
+        "source": "/reset-password/done",
+        "destination": "/reset-password/?status=done",
+        "type": 302
+      }
+    ],
     "headers": [
       {
         "source": "**/.well-known/**",
