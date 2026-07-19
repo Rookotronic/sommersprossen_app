@@ -28,6 +28,7 @@ dependencies:
   pdf: ^3.11.3
   package_info_plus: ^8.0.0
   connectivity_plus: ^7.1.1
+  app_links: ^6.4.0
 
 # Development dependencies
 dev_dependencies:

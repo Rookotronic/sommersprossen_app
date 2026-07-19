@@ -462,6 +462,21 @@
 
         showState('s-success');
 
+        /* Credential Management API: Browser/Passwortmanager über das neue
+           Passwort informieren. Löst auf Android den "Passwort speichern /
+           aktualisieren"-Dialog aus, ohne dass ein manueller Login nötig ist. */
+        if (window.PasswordCredential) {
+          var credEmail = document.getElementById('email-field').value
+                          || (data && data.email) || '';
+          if (credEmail) {
+            try {
+              navigator.credentials.store(
+                new PasswordCredential({ id: credEmail, password: pw1 })
+              ).catch(function () {});
+            } catch (_) {}
+          }
+        }
+
       } catch (_) {
         submitErr.textContent = 'Netzwerkfehler. Bitte überprüfe deine Internetverbindung.';
         submitErr.hidden = false;
