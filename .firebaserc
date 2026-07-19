@@ -1,5 +1,6 @@
 {
   "projects": {
+    "default": "sommersprossen-app-prod",
     "staging": "sommersprossenapp",
     "prod": "sommersprossen-app-prod"
   },

@@ -164,6 +164,22 @@
       cursor: not-allowed;
     }
 
+    .open-btn {
+      display: inline-block;
+      margin-top: 24px;
+      padding: 13px 28px;
+      background: #0f766e;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .open-btn:hover { background: #0d6460; }
+
     .alert {
       background: #fef2f2;
       border: 1px solid #fecaca;
@@ -307,6 +323,7 @@
         <strong>Sommersprossen KITA App</strong> mit deinem neuen Passwort
         anmelden.
       </p>
+      <a href="sommersprossen://open" class="open-btn">App öffnen</a>
     </div>
 
     <!-- ── Fehler (ungültiger Code) ── -->
@@ -376,9 +393,6 @@
          Navigation nach dem Form-Submit. */
       if (params.get('status') === 'done') {
         showState('s-success');
-        window.setTimeout(function () {
-          window.location.replace('/reset-password/success/');
-        }, 700);
         return;
       }
 
