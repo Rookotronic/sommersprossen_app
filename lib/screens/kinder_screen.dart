@@ -84,36 +84,28 @@ class _KinderScreenState extends State<KinderScreen>
                   controller: nachnameController,
                   decoration: const InputDecoration(labelText: 'Nachname'),
                 ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Eltern',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
-                SizedBox(
-                  width: 300,
-                  height: 200,
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: parentList.map((parent) {
-                      final isChecked = selectedParents.contains(parent);
-                      return CheckboxListTile(
-                        value: isChecked,
-                        title: Text('${parent.nachname}, ${parent.vorname}'),
-                        onChanged: (checked) {
-                          setState(() {
-                            if (checked == true) {
-                              if (!selectedParents.contains(parent)) {
-                                selectedParents.add(parent);
-                              }
-                            } else {
-                              selectedParents.remove(parent);
-                            }
-                          });
-                        },
-                      );
-                    }).toList(),
+                InkWell(
+                  onTap: () async {
+                    final result = await showDialog<List<Parent>>(
+                      context: context,
+                      builder: (_) => _ParentPickerDialog(
+                        parentList: parentList,
+                        selected: List<Parent>.from(selectedParents),
+                      ),
+                    );
+                    if (result != null) {
+                      setState(() => selectedParents = result);
+                    }
+                  },
+                  child: InputDecorator(
+                    decoration: const InputDecoration(labelText: 'Eltern'),
+                    child: Text(
+                      selectedParents.isEmpty
+                          ? 'Keine ausgewählt'
+                          : selectedParents
+                              .map((p) => '${p.nachname}, ${p.vorname}')
+                              .join(' · '),
+                    ),
                   ),
                 ),
                 CheckboxListTile(
@@ -257,4 +249,69 @@ class _KinderScreenState extends State<KinderScreen>
   }
 
   // --- KinderDetailScreen wurde ans Dateiende verschoben ---
+}
+
+/// Dialog zur Auswahl von Elternteilen für ein Kind.
+class _ParentPickerDialog extends StatefulWidget {
+  final List<Parent> parentList;
+  final List<Parent> selected;
+
+  const _ParentPickerDialog({
+    required this.parentList,
+    required this.selected,
+  });
+
+  @override
+  State<_ParentPickerDialog> createState() => _ParentPickerDialogState();
+}
+
+class _ParentPickerDialogState extends State<_ParentPickerDialog> {
+  late List<Parent> _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = List<Parent>.from(widget.selected);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Eltern auswählen'),
+      content: SizedBox(
+        width: 300,
+        child: ListView(
+          shrinkWrap: true,
+          children: widget.parentList.map((parent) {
+            final isChecked = _selected.any((p) => p.id == parent.id);
+            return CheckboxListTile(
+              value: isChecked,
+              title: Text('${parent.nachname}, ${parent.vorname}'),
+              onChanged: (checked) {
+                setState(() {
+                  if (checked == true) {
+                    if (!_selected.any((p) => p.id == parent.id)) {
+                      _selected.add(parent);
+                    }
+                  } else {
+                    _selected.removeWhere((p) => p.id == parent.id);
+                  }
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Abbrechen'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(_selected),
+          child: const Text('Übernehmen'),
+        ),
+      ],
+    );
+  }
 }
