@@ -128,6 +128,8 @@ class ElternScreenState extends State<ElternScreen>
                   ),
                   TextField(
                     controller: emailController,
+                    textCapitalization: TextCapitalization.none,
+                    autocorrect: false,
                     decoration: const InputDecoration(
                       labelText: 'E-Mail-Adresse',
                     ),
